@@ -637,7 +637,7 @@
     }
     wypelnijPoprawke(w);
   }
-  function zaokraglij(min) { var r = min % 30, b = min - r; return r >= 16 ? b + 30 : b; }
+  function zaokraglij(min) { var r = min % 30, b = min - r; return r >= 26 ? b + 30 : b; }
   function liczStoper(w) {
     var teraz = naMin(terazHHMM()), start = naMin(w.start);
     var dl = teraz - start; if (dl < 0) dl += 1440;
