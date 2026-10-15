@@ -97,6 +97,20 @@
   .pill.brak{background:var(--biel);color:var(--pom2);border-color:var(--pom2)}
   .pill.wolny{background:var(--jasna);color:var(--szary)}
   .pill.dzis{background:var(--biel);color:var(--grafit);border:1px dashed var(--grafit)}
+  .pods{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .pod{background:var(--piasek);border-radius:14px;padding:12px 14px 10px}
+  .pod.glowny{grid-column:1 / -1;background:var(--grafit);color:var(--biel)}
+  .pod span{display:block;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--szary);font-weight:600}
+  .pod.glowny span{color:#C9C9C9}
+  .pod b{display:block;font-size:22px;font-weight:600;margin-top:2px;line-height:1.2}
+  .pod.glowny b{font-size:30px}
+  .pod small{display:block;font-size:12px;color:var(--szary);font-weight:300;margin-top:2px}
+  .pod.glowny small{color:#E6E6E6}
+  .dzien{border-left:4px solid var(--piasek);padding-left:8px}
+  .dzien.praca{border-left-color:var(--pom)} .dzien.toku{border-left-color:var(--pom2)}
+  .dzien.urlop,.dzien.l4,.dzien.odbior,.dzien.wolne-zamian{border-left-color:var(--grafit)}
+  .dzien.brak{border-left-color:var(--pom2);background:#FFF8F2}
+  .dzien.wolny,.dzien.dzis{border-left-color:var(--piasek)}
   .kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
   .kpi div{background:var(--piasek);border-radius:14px;padding:10px 12px 8px}
   .kpi span{display:block;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--szary);font-weight:600}
@@ -159,11 +173,6 @@
 </header>
 
 <main>
-  <div class="instal" id="instal">
-    <button id="instalZamknij" aria-label="zamknij">✕</button>
-    <b>Dodaj do ekranu głównego</b>, żeby mieć ikonę jak aplikację.<br>
-    <span id="instalJak"></span>
-  </div>
 
   <!-- ===================== DZIŚ ===================== -->
   <section class="ekran" id="ekran-dzis">
@@ -199,12 +208,11 @@
     </div>
 
     <p class="hint" id="hintWolny"></p>
-    <p class="hint" id="hintKarmienie" style="display:none">Przerwa na karmienie doliczy się sama po zakończeniu dnia: +1 h przy ponad 6 h pracy, +0,5 h przy 4–6 h.</p>
-    <p class="hint" id="hintNieob">Nie pracujesz dziś? Urlop, L4 i odbiór nadgodzin zgłaszasz w zakładce <b>Nieobecność</b>.</p>
 
-    <details class="card" id="popraw" style="padding:12px 16px">
-      <summary id="poprawTytul">Popraw dzisiejsze godziny</summary>
-      <p class="hint" style="margin-top:6px" id="poprawHint">Poprawki tylko dla dzisiejszego dnia. Wczorajsze i starsze zmienia administrator.</p>
+    <details class="card" id="popraw" style="padding:12px 16px;margin-top:14px">
+      <summary id="poprawTytul">Ustaw ręcznie</summary>
+      <p class="hint" style="margin-top:6px" id="poprawHint">Tu poprawisz dzisiejszy dzień co do minuty: start, koniec, przerwy, miejsce. Wczorajsze i starsze dni zmienia administrator.</p>
+      <p class="hint" id="hintKarmienie" style="display:none">Przerwa na karmienie dolicza się sama: +1 h przy ponad 6 h pracy, +0,5 h przy 4–6 h.</p>
       <div class="field" id="pDataBox" style="margin-top:12px;display:none"><label for="pData">Dzień (dziś albo weekend / święto wstecz)</label><input type="date" id="pData"></div>
       <div class="row field" style="margin-top:12px">
         <div><label for="pStart">Start</label><input type="time" id="pStart" step="60"></div>
@@ -230,28 +238,18 @@
       <button id="mNext" aria-label="Następny miesiąc">›</button>
     </div>
     <div class="card" id="mPods">
-      <div class="kpi">
-        <div><span>Godziny</span><b id="mSuma">—</b></div>
-        <div><span id="mNormaEt">Norma</span><b id="mNorma">—</b></div>
-        <div><span>Bilans</span><b id="mBilans">—</b></div>
+      <div class="pods">
+        <div class="pod glowny"><span>Przepracowałeś/aś w tym miesiącu</span><b id="mSuma">—</b><small id="mSumaDni"></small></div>
+        <div class="pod"><span id="mZostaloEt">Zostało do normy</span><b id="mZostalo">—</b><small id="mZostaloOpis"></small></div>
+        <div class="pod"><span>Nadgodziny</span><b id="mNadg">—</b><small id="mNadgOpis"></small></div>
+        <div class="pod"><span>Dni wolne</span><b id="mWolneDni">—</b><small id="mWolneOpis"></small></div>
       </div>
       <div class="bar"><i id="mBar" style="width:0"></i></div>
-      <p class="mini" id="mBarOpis" style="margin:0 0 10px"></p>
-      <div class="kpi">
-        <div><span>Dni pracy</span><b id="mDni">—</b></div>
-        <div><span>Urlop</span><b id="mUrlop">—</b></div>
-        <div><span>L4</span><b id="mL4">—</b></div>
-      </div>
-      <div class="kpi" style="margin-top:8px">
-        <div><span>w tym HO</span><b id="mHO">—</b></div>
-        <div><span>Wolne (w zamian)</span><b id="mWolne">—</b></div>
-        <div><span>Odbiór nadg.</span><b id="mOdbior">—</b></div>
-      </div>
-      <p class="mini" id="mDniRob" style="margin:8px 0 0"></p>
+      <p class="mini" id="mBarOpis" style="margin:0"></p>
       <div class="msg info" id="mBraki" style="display:none"></div>
     </div>
     <div class="card" style="padding:8px 12px">
-      <table><thead><tr><th>Dzień</th><th>Co</th><th class="n">Godz.</th></tr></thead><tbody id="mDniTabela"></tbody></table>
+      <table><thead><tr><th>Dzień</th><th>Co</th><th class="n">Godziny</th></tr></thead><tbody id="mDniTabela"></tbody></table>
     </div>
     <div class="row" style="margin-bottom:10px">
       <div><button class="btn" id="btnDrukuj">Karta do druku</button></div>
@@ -323,6 +321,11 @@
     <div class="msg" id="msgZespol"></div>
   </section>
 
+  <div class="instal" id="instal" style="margin-top:20px">
+    <button id="instalZamknij" aria-label="zamknij">✕</button>
+    <b>Dodaj do ekranu głównego</b>, żeby mieć ikonę jak aplikację.<br>
+    <span id="instalJak"></span>
+  </div>
   <p class="hint" style="text-align:center;margin-top:24px"><button class="btn ghost" id="btnWyloguj" style="text-align:center;width:100%">Wyloguj z tego telefonu</button></p>
 </main>
 </div>
@@ -383,6 +386,8 @@
   }
   function zajety(el, tak) { el.className = el.className.replace(' ladowanie', '') + (tak ? ' ladowanie' : ''); }
   function fmt(h) { var m = Math.round((h || 0) * 60); return Math.floor(m / 60) + ':' + ('0' + (m % 60)).slice(-2); }
+  function fmtH(h) { var m = Math.round(Math.abs(h || 0) * 60), g = Math.floor(m / 60), r = m % 60; return r ? (g ? g + ' h ' + r + ' min' : r + ' min') : g + ' h'; }
+  function liczDni(n, j, m, w) { n = Number(n) || 0; if (n === 1) return n + ' ' + j; var r = n % 10, s = n % 100; return n + ' ' + ((r >= 2 && r <= 4 && (s < 12 || s > 14)) ? m : w); }
   function fmtMin(min) { if (min < 0) min = 0; return Math.floor(min / 60) + ':' + ('0' + (min % 60)).slice(-2); }
   function naMin(t) { var c = t.split(':'); return Number(c[0]) * 60 + Number(c[1]); }
   function terazHHMM() { var d = new Date(); return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2); }
@@ -600,26 +605,26 @@
       $('statusCzas').textContent = '—';
       $('statusSub').textContent = s.roboczy ? 'Jeszcze nie zaczęto. Wybierz miejsce i kliknij Start.' : 'Dzień wolny od pracy';
       $('hintWolny').textContent = s.roboczy ? '' : (WEEKEND ? 'Praca w delegacji liczy się normalnie. Dzień wolny w zamian zgłosisz jako „Wolne” w zakładce Nieobecność.' : 'Dziś jest dzień wolny od pracy. Godziny i tak możesz zapisać.');
-      $('poprawTytul').textContent = 'Wpisz dzisiejsze godziny ręcznie (zapomniany Start)';
+      $('poprawTytul').textContent = 'Ustaw ręcznie (np. zapomniany Start)';
     } else if (nieobecnosc) {
       st.className = 'status';
       $('statusEtykieta').textContent = w.typ;
       $('statusCzas').textContent = w.typ === 'Urlop' ? 'URLOP' : (w.typ === 'Wolne' ? 'WOLNE' : (w.typ === 'Odbiór nadgodzin' ? 'ODBIÓR' : 'L4'));
       $('statusSub').textContent = w.uwagi || '';
       pow.className = 'powitanie'; pow.innerHTML = '<b>Dziś masz wolne.</b>' + opisWpisu(w) + '<span class="mini">Pomyłka? Usuń wpis w sekcji poniżej i kliknij Start.</span>';
-      $('poprawTytul').textContent = 'Usuń dzisiejszy wpis';
+      $('poprawTytul').textContent = 'Ustaw ręcznie / usuń wpis';
     } else if (naPrzerwie) {
       st.className = 'status pauza';
       $('statusEtykieta').textContent = 'Przerwa od ' + w.otwartaPrzerwa;
       $('statusSub').textContent = (w.lokalizacja || '') + ' · praca od ' + w.start;
       liczStoper(w); tyk = setInterval(function () { liczStoper(w); }, 30000);
-      $('poprawTytul').textContent = 'Popraw dzisiejsze godziny';
+      $('poprawTytul').textContent = 'Ustaw ręcznie';
     } else if (wToku) {
       st.className = 'status go';
       $('statusEtykieta').textContent = 'W pracy od ' + w.start;
       $('statusSub').textContent = (w.lokalizacja || '') + (w.przerwy.length ? ' · przerwy: ' + w.przerwy.map(function (p) { return p.od + '–' + p.do; }).join(', ') : '');
       liczStoper(w); tyk = setInterval(function () { liczStoper(w); }, 30000);
-      $('poprawTytul').textContent = 'Popraw dzisiejsze godziny';
+      $('poprawTytul').textContent = 'Ustaw ręcznie';
     } else if (zakonczony) {
       st.className = 'status';
       $('statusEtykieta').textContent = 'Zapisano ' + w.start + '–' + w.koniec;
@@ -628,7 +633,7 @@
       pow.className = 'powitanie koniec';
       pow.innerHTML = '<b>Jupi! Możesz iść do domu. 🎉</b>To koniec Twojego dnia pracy: ' + fmt(w.godziny) + ' h'+ (w.przerwy.length ? ' (po odjęciu przerw)' : '') + '. ' + tekstDoZobaczenia(s) +
         '<span class="mini">Pomyłka? Godziny poprawisz poniżej, tylko dziś.</span>';
-      $('poprawTytul').textContent = 'Popraw dzisiejsze godziny';
+      $('poprawTytul').textContent = 'Ustaw ręcznie';
     }
     wypelnijPoprawke(w);
   }
@@ -738,34 +743,55 @@
   }
   function pokazMiesiac(m) {
     var biezacy = m.mies === DZIS.slice(0, 7), zamkniety = m.mies < DZIS.slice(0, 7);
+    var ja = (!ADMIN || m.imie === JA);
+    $('mSuma').textContent = fmtH(m.suma);
+    $('mSumaDni').textContent = liczDni(m.dniPracy, 'dzień pracy', 'dni pracy', 'dni pracy') + (m.zdalnie ? ', w tym ' + m.zdalnie + ' HO' : '') + ' · norma ' + fmtH(m.norma) + (m.etat !== 1 ? ' (etat ' + etatTekst(m.etat) + ')' : '');
+    document.querySelector('.pod.glowny span').textContent = ja ? 'Przepracowałeś/aś w tym miesiącu' : m.imie + ' przepracował/a';
+    var zostalo = m.norma - m.suma;
+    if (zamkniety) {
+      $('mZostaloEt').textContent = 'Wynik miesiąca';
+      $('mZostalo').textContent = zostalo > 0.01 ? fmtH(zostalo) + ' poniżej normy' : 'norma wyrobiona';
+      $('mZostaloOpis').textContent = 'miesiąc zamknięty';
+    } else {
+      $('mZostaloEt').textContent = 'Zostało do normy';
+      $('mZostalo').textContent = zostalo > 0.01 ? fmtH(zostalo) : 'norma wyrobiona';
+      $('mZostaloOpis').textContent = 'do końca miesiąca, ' + (m.dniRobocze - m.dniRoboczeDoDzis) + ' dni roboczych przed Tobą';
+    }
     var odn = zamkniety ? m.norma : m.normaDoDzis;
-    $('mSuma').textContent = fmt(m.suma);
-    $('mNormaEt').textContent = zamkniety ? 'Norma' : 'Norma do dziś';
-    $('mNorma').textContent = fmt(odn) + (biezacy ? ' / ' + fmt(m.norma) : '');
-    var b = $('mBilans'); b.textContent = (m.bilans > 0 ? '+' : (m.bilans < 0 ? '−' : '')) + fmt(Math.abs(m.bilans));
-    b.className = m.bilans > 0.01 ? 'plus' : (m.bilans < -0.01 ? 'minus' : '');
+    var nad = m.suma - odn;
+    $('mNadg').textContent = nad > 0.01 ? '+' + fmtH(nad) : '0 h';
+    $('mNadgOpis').textContent = nad > 0.01 ? 'ponad normę ' + (zamkniety ? 'miesiąca' : 'do dziś') : (nad < -0.01 ? 'do normy na dziś brakuje ' + fmtH(nad) : 'równo z normą');
+    var wolneDni = (m.urlop || 0) + (m.l4 || 0) + (m.wolne || 0) + (m.odbior || 0);
+    $('mWolneDni').textContent = liczDni(wolneDni, 'dzień', 'dni', 'dni');
+    var czesci = [];
+    if (m.urlop) czesci.push('urlop ' + m.urlop); if (m.l4) czesci.push('L4 ' + m.l4); if (m.odbior) czesci.push('odbiór ' + m.odbior); if (m.wolne) czesci.push('wolne ' + m.wolne);
+    $('mWolneOpis').textContent = czesci.length ? czesci.join(' · ') : 'bez nieobecności';
     var proc = m.norma ? Math.min(100, Math.round(m.suma / m.norma * 100)) : 0;
     $('mBar').style.width = proc + '%';
-    $('mBarOpis').textContent = proc + '% normy miesiąca (' + fmt(m.norma) + ' h, ' + m.dniRobocze + ' dni roboczych)';
-    $('mDni').textContent = m.dniPracy; $('mUrlop').textContent = m.urlop; $('mL4').textContent = m.l4;
-    $('mHO').textContent = m.zdalnie;
-    $('mWolne').textContent = m.wolne; $('mOdbior').textContent = m.odbior;
-    $('mDniRob').textContent = 'Dni robocze do dziś: ' + m.dniRoboczeDoDzis + ' z ' + m.dniRobocze + (m.etat !== 1 ? ' · etat ' + etatTekst(m.etat) : '');
+    $('mBarOpis').textContent = proc + '% normy miesiąca · ' + m.dniRoboczeDoDzis + ' z ' + m.dniRobocze + ' dni roboczych za nami';
     var br = $('mBraki');
     if (m.brakujace && m.brakujace.length) {
       br.style.display = 'block';
       br.textContent = 'Dni robocze bez wpisu: ' + m.brakujace.map(function (d) { return d.slice(8) + '.' + d.slice(5, 7); }).join(', ') +
-        (ADMIN ? '' : '. Jeśli to urlop lub L4, zgłoś w zakładce Nieobecność. Przepracowane dni uzupełnia administrator.');
+        (ADMIN ? '' : '. Jeśli to urlop, L4 lub odbiór nadgodzin, zgłoś w zakładce Nieobecność. Przepracowane dni uzupełnia administrator.');
     } else br.style.display = 'none';
     var tb = $('mDniTabela'); tb.innerHTML = '';
-    var ety = { praca: 'praca', 'w toku': 'w toku', urlop: 'urlop', l4: 'L4', 'wolne-zamian': 'wolne w zamian', odbior: 'odbiór nadg.', brak: 'brak', wolny: 'wolne', dzis: 'dziś', przyszly: '' };
+    var ety = { praca: 'praca', 'w toku': 'w pracy', urlop: 'urlop', l4: 'L4', 'wolne-zamian': 'wolne w zamian', odbior: 'odbiór nadgodzin', brak: 'brak wpisu', wolny: 'wolne', dzis: 'dziś', przyszly: '' };
     var kl = { praca: 'praca', 'w toku': 'toku', urlop: 'urlop', l4: 'l4', 'wolne-zamian': 'urlop', odbior: 'urlop', brak: 'brak', wolny: 'wolny', dzis: 'dzis', przyszly: 'przyszly' };
     m.dni.slice().reverse().forEach(function (d) {
       if (d.data > m.dzis && !d.wpis) return;
       var tr = document.createElement('tr');
-      var co = '<span class="pill ' + kl[d.status] + '">' + ety[d.status] + (!d.roboczy && d.status === 'praca' ? ' (weekend)' : '') + '</span>' +
-        (d.wpis ? ' <span class="mini">' + opisWpisu(d.wpis) + '</span>' : '');
-      tr.innerHTML = '<td class="n">' + d.data.slice(8) + ' <span class="mini">' + d.dzien + '</span></td><td>' + co + '</td><td class="n">' + (d.wpis && d.wpis.godziny ? fmt(d.wpis.godziny) : '') + '</td>';
+      var w = d.wpis, co, godz = '';
+      if (w && w.typ === 'Praca') {
+        co = '<span class="pill ' + kl[d.status] + '">' + ety[d.status] + (!d.roboczy ? ' · weekend' : '') + '</span> <span class="mini">' + w.start + '–' + (w.koniec || '…') +
+          (w.przerwy.length ? ', przerwa ' + w.przerwy.map(function (p) { return p.od + '–' + (p.do || '…'); }).join(', ') : '') + (w.lokalizacja ? ' · ' + w.lokalizacja : '') + (w.uwagi ? ' · ' + w.uwagi : '') + '</span>';
+        godz = w.koniec ? fmtH(w.godziny) : '';
+      } else if (w) {
+        co = '<span class="pill ' + kl[d.status] + '">' + ety[d.status] + '</span>' + (w.uwagi ? ' <span class="mini">' + w.uwagi + '</span>' : '');
+      } else {
+        co = '<span class="pill ' + kl[d.status] + '">' + ety[d.status] + '</span>';
+      }
+      tr.innerHTML = '<td class="n dzien ' + (d.status === 'w toku' ? 'toku' : d.status) + '">' + d.data.slice(8) + ' <span class="mini">' + d.dzien + '</span></td><td>' + co + '</td><td class="n">' + godz + '</td>';
       if (ADMIN) { tr.className = 'klik'; tr.onclick = function () { adminZaladuj(m.imie, d); }; }
       tb.appendChild(tr);
     });
