@@ -53,7 +53,12 @@
   .big.start{background:var(--pom);color:var(--grafit)}
   .big.stop{background:var(--grafit);color:var(--biel)}
   .big.pauza{background:var(--biel);color:var(--grafit);border:2px solid var(--grafit)}
-  .big:disabled,.btn:disabled{opacity:.5}
+  .big:disabled{opacity:.35;cursor:default}
+  .btn:disabled{opacity:.5}
+  .powitanie{background:var(--biel);border-radius:var(--r-karta);padding:20px 18px;margin-bottom:14px;font-size:18px;line-height:1.45}
+  .powitanie b{display:block;font-size:22px;font-weight:600;margin-bottom:6px}
+  .powitanie.koniec{background:var(--pom-grad);color:var(--grafit)}
+  .powitanie .mini{display:block;margin-top:8px}
   .btn{width:100%;padding:13px 18px;border:1px solid var(--piasek);border-radius:999px;background:var(--biel);color:var(--grafit);font:inherit;font-size:15px;font-weight:600;cursor:pointer}
   .btn.primary{background:var(--pom);border-color:var(--pom);color:var(--grafit);text-transform:uppercase;letter-spacing:.04em}
   .btn.dark{background:var(--grafit);border-color:var(--grafit);color:var(--biel)}
@@ -176,40 +181,26 @@
       </div>
     </div>
 
-    <div id="dzisBrak" class="hidden">
-      <div class="card">
-        <div class="field">
-          <label>Miejsce pracy</label>
-          <div class="chips" id="lokacje"></div>
-          <input type="text" id="lokalizacja" placeholder="lub wpisz własne" style="margin-top:8px">
-        </div>
-        <details id="startSzczegoly">
-          <summary>Zacząłem/am wcześniej · uwagi</summary>
-          <div class="field" style="margin-top:8px"><label for="startRecznie">Godzina startu (puste = teraz)</label><input type="time" id="startRecznie" step="60"></div>
-          <div class="field"><label for="uwagiStart">Uwagi</label><input type="text" id="uwagiStart" placeholder="np. wyjazd do Kalisza"></div>
-        </details>
-      </div>
+    <div class="card" id="kartaMiejsce">
+      <label>Miejsce pracy</label>
+      <div class="chips" id="lokacje"></div>
+      <input type="text" id="lokalizacja" placeholder="lub wpisz własne" style="margin-top:8px">
+    </div>
+
+    <div class="powitanie hidden" id="powitanie"></div>
+
+    <div class="stack" id="przyciski">
       <button class="big start" id="btnStart">▶ Start pracy</button>
-      <p class="hint" id="hintWolny"></p>
-      <p class="hint" id="hintKarmienie" style="display:none">Przerwa na karmienie doliczy się sama po zakończeniu dnia: +1 h przy ponad 6 h pracy, +0,5 h przy 4–6 h.</p>
-      <p class="hint">Nie pracujesz dziś? Urlop i L4 zgłaszasz w zakładce <b>Nieobecność</b>.</p>
+      <button class="big pauza" id="btnPrzerwa">⏸ Przerwa</button>
+      <button class="big stop" id="btnKoniec">■ Koniec pracy</button>
+    </div>
+    <div class="stack hidden" id="przyciskiPrzerwa">
+      <button class="big start" id="btnWznow">▶ Zakończ przerwę</button>
     </div>
 
-    <div id="dzisToku" class="hidden">
-      <div class="stack">
-        <button class="big pauza" id="btnPrzerwa">⏸ Przerwa</button>
-        <button class="big start hidden" id="btnWznow">▶ Wznów pracę</button>
-        <button class="big stop" id="btnKoniec">■ Zakończ pracę</button>
-      </div>
-      <div class="card" style="margin-top:14px"><p class="mini" id="tokuOpis" style="margin:0"></p></div>
-    </div>
-
-    <div id="dzisGotowy" class="hidden">
-      <div class="card">
-        <p style="margin:0 0 6px"><strong>Dzień zapisany.</strong></p>
-        <p class="mini" id="gotowyOpis" style="margin:0"></p>
-      </div>
-    </div>
+    <p class="hint" id="hintWolny"></p>
+    <p class="hint" id="hintKarmienie" style="display:none">Przerwa na karmienie doliczy się sama po zakończeniu dnia: +1 h przy ponad 6 h pracy, +0,5 h przy 4–6 h.</p>
+    <p class="hint" id="hintNieob">Nie pracujesz dziś? Urlop, L4 i odbiór nadgodzin zgłaszasz w zakładce <b>Nieobecność</b>.</p>
 
     <details class="card" id="popraw" style="padding:12px 16px">
       <summary id="poprawTytul">Popraw dzisiejsze godziny</summary>
@@ -221,7 +212,7 @@
       </div>
       <div class="field"><label>Przerwy</label><div id="pPrzerwy"></div><button class="btn ghost" id="pDodajPrzerwe" type="button">+ dodaj przerwę</button></div>
       <div class="field"><label>Miejsce pracy</label><div class="chips" id="pLokacje"></div><input type="text" id="pLokalizacja" placeholder="lub wpisz własne" style="margin-top:8px"></div>
-      <div class="field"><label for="pUwagi">Uwagi</label><input type="text" id="pUwagi"></div>
+      <div class="field"><label for="pUwagi">Uwagi</label><input type="text" id="pUwagi" placeholder="np. wyjazd do Kalisza"></div>
       <div class="stack">
         <button class="btn dark" id="btnPopraw">Zapisz poprawkę</button>
         <button class="btn danger" id="btnUsunDzis">Usuń dzisiejszy wpis</button>
@@ -568,57 +559,80 @@
     if (!MA_EWIDENCJE) return;
     rpc('stanDnia').then(pokazStan).catch(function (e) { blad(e, 'msgDzis'); });
   }
+  function tekstDoZobaczenia(s) {
+    if (s.jutroRoboczy) return 'Widzimy się jutro!';
+    var d = new Date(s.dzis); var dow = d.getDay();
+    if (dow === 5 || dow === 6 || dow === 0) return 'Widzimy się po weekendzie!';
+    return 'Widzimy się ' + dataPL(s.nastepnyRoboczy) + '!';
+  }
   function pokazStan(s) {
     stan = s; DZIS = s.dzis;
     $('statusData').textContent = s.dzien + ', ' + dataPL(s.dzis);
     var w = s.wpis;
-    ['dzisBrak', 'dzisToku', 'dzisGotowy'].forEach(function (id) { $(id).className = 'hidden'; });
     if (tyk) { clearInterval(tyk); tyk = null; }
     if (s.otwartyWczoraj) {
       $('kartaWczoraj').className = 'card';
       $('wczorajData').textContent = dataPL(s.otwartyWczoraj.data);
       $('wczorajStart').textContent = s.otwartyWczoraj.start;
     } else $('kartaWczoraj').className = 'card hidden';
-    var st = $('status');
-    if (!w) {
+
+    var st = $('status'), pow = $('powitanie');
+    var brak = !w, praca = w && w.typ === 'Praca', wToku = praca && !w.koniec, naPrzerwie = wToku && !!w.otwartaPrzerwa, zakonczony = praca && !!w.koniec;
+    var nieobecnosc = w && w.typ !== 'Praca';
+
+    // miejsce pracy: wybór tylko przed startem
+    $('kartaMiejsce').className = brak ? 'card' : 'card hidden';
+    if (brak && !$('lokalizacja').value) { $('lokalizacja').value = s.ostatnieMiejsce || ''; zaznacz('lokacje', $('lokalizacja').value); }
+
+    // przyciski
+    $('przyciski').className = (naPrzerwie || nieobecnosc) ? 'stack hidden' : 'stack';
+    $('przyciskiPrzerwa').className = naPrzerwie ? 'stack' : 'stack hidden';
+    $('btnStart').disabled = !brak;
+    $('btnPrzerwa').disabled = !wToku;
+    $('btnKoniec').disabled = !wToku;
+
+    // karta statusu + powitanie
+    pow.className = 'powitanie hidden'; pow.innerHTML = '';
+    $('hintWolny').textContent = '';
+    if (brak) {
       st.className = 'status';
       $('statusEtykieta').textContent = 'Dziś';
       $('statusCzas').textContent = '—';
-      $('statusSub').textContent = s.roboczy ? 'Jeszcze nie zaczęto' : 'Dzień wolny od pracy';
-      $('hintWolny').textContent = s.roboczy ? '' : (WEEKEND ? 'Dziś jest dzień wolny. Praca w delegacji liczy się normalnie, a dzień wolny w zamian zgłosisz jako „Wolne” w zakładce Nieobecność.' : 'Dziś jest dzień wolny od pracy. Godziny i tak możesz zapisać.');
-      $('dzisBrak').className = '';
-      if (!$('lokalizacja').value) { $('lokalizacja').value = s.ostatnieMiejsce || ''; zaznacz('lokacje', $('lokalizacja').value); }
+      $('statusSub').textContent = s.roboczy ? 'Jeszcze nie zaczęto. Wybierz miejsce i kliknij Start.' : 'Dzień wolny od pracy';
+      $('hintWolny').textContent = s.roboczy ? '' : (WEEKEND ? 'Praca w delegacji liczy się normalnie. Dzień wolny w zamian zgłosisz jako „Wolne” w zakładce Nieobecność.' : 'Dziś jest dzień wolny od pracy. Godziny i tak możesz zapisać.');
       $('poprawTytul').textContent = 'Wpisz dzisiejsze godziny ręcznie (zapomniany Start)';
-    } else if (w.typ !== 'Praca') {
+    } else if (nieobecnosc) {
       st.className = 'status';
       $('statusEtykieta').textContent = w.typ;
       $('statusCzas').textContent = w.typ === 'Urlop' ? 'URLOP' : (w.typ === 'Wolne' ? 'WOLNE' : (w.typ === 'Odbiór nadgodzin' ? 'ODBIÓR' : 'L4'));
       $('statusSub').textContent = w.uwagi || '';
-      $('dzisGotowy').className = '';
-      $('gotowyOpis').textContent = 'Na dziś zapisano: ' + opisWpisu(w) + '. Jeśli to pomyłka, usuń wpis poniżej i kliknij Start.';
+      pow.className = 'powitanie'; pow.innerHTML = '<b>Dziś masz wolne.</b>' + opisWpisu(w) + '<span class="mini">Pomyłka? Usuń wpis w sekcji poniżej i kliknij Start.</span>';
       $('poprawTytul').textContent = 'Usuń dzisiejszy wpis';
-    } else if (!w.koniec) {
-      var naPrzerwie = !!w.otwartaPrzerwa;
-      st.className = 'status ' + (naPrzerwie ? 'pauza' : 'go');
-      $('statusEtykieta').textContent = naPrzerwie ? 'Przerwa od ' + w.otwartaPrzerwa : 'W pracy od ' + w.start;
-      $('statusSub').textContent = (w.lokalizacja || '') + (w.przerwy.length ? ' · przerwy: ' + w.przerwy.map(function (p) { return p.od + '–' + (p.do || '…'); }).join(', ') : '');
-      $('dzisToku').className = '';
-      $('btnPrzerwa').className = 'big pauza' + (naPrzerwie ? ' hidden' : '');
-      $('btnWznow').className = 'big start' + (naPrzerwie ? '' : ' hidden');
-      $('tokuOpis').textContent = 'Zapomniałeś/aś kliknąć wcześniej? Godziny poprawisz w „Popraw dzisiejsze godziny” poniżej.';
-      $('poprawTytul').textContent = 'Popraw dzisiejsze godziny';
+    } else if (naPrzerwie) {
+      st.className = 'status pauza';
+      $('statusEtykieta').textContent = 'Przerwa od ' + w.otwartaPrzerwa;
+      $('statusSub').textContent = (w.lokalizacja || '') + ' · praca od ' + w.start;
       liczStoper(w); tyk = setInterval(function () { liczStoper(w); }, 30000);
-    } else {
+      $('poprawTytul').textContent = 'Popraw dzisiejsze godziny';
+    } else if (wToku) {
+      st.className = 'status go';
+      $('statusEtykieta').textContent = 'W pracy od ' + w.start;
+      $('statusSub').textContent = (w.lokalizacja || '') + (w.przerwy.length ? ' · przerwy: ' + w.przerwy.map(function (p) { return p.od + '–' + p.do; }).join(', ') : '');
+      liczStoper(w); tyk = setInterval(function () { liczStoper(w); }, 30000);
+      $('poprawTytul').textContent = 'Popraw dzisiejsze godziny';
+    } else if (zakonczony) {
       st.className = 'status';
       $('statusEtykieta').textContent = 'Zapisano ' + w.start + '–' + w.koniec;
       $('statusCzas').textContent = fmt(w.godziny);
-      $('statusSub').textContent = w.lokalizacja || '';
-      $('dzisGotowy').className = '';
-      $('gotowyOpis').textContent = opisWpisu(w) + '. Pomyłka? Popraw poniżej (tylko dziś).';
+      $('statusSub').textContent = (w.lokalizacja || '') + (w.godzinyFaktyczne && Math.abs(w.godzinyFaktyczne - w.godziny) > 0.01 ? ' · faktycznie ' + fmt(w.godzinyFaktyczne) + ', liczone ' + fmt(w.godziny) : '');
+      pow.className = 'powitanie koniec';
+      pow.innerHTML = '<b>Jupi! Możesz iść do domu. 🎉</b>To koniec Twojego dnia pracy: ' + fmt(w.godziny) + ' h' + (w.przerwy.length ? ' (bez przerw)' : '') + '. ' + tekstDoZobaczenia(s) +
+        '<span class="mini">Pomyłka? Godziny poprawisz poniżej, tylko dziś.</span>';
       $('poprawTytul').textContent = 'Popraw dzisiejsze godziny';
     }
     wypelnijPoprawke(w);
   }
+  function zaokraglij(min) { var r = min % 30, b = min - r; return r >= 16 ? b + 30 : b; }
   function liczStoper(w) {
     var teraz = naMin(terazHHMM()), start = naMin(w.start);
     var dl = teraz - start; if (dl < 0) dl += 1440;
@@ -628,7 +642,10 @@
       var doG = p.do ? (naMin(p.do) - start + 1440) % 1440 : dl;
       if (doG > od) przerwy += doG - od;
     });
-    $('statusCzas').textContent = fmtMin(dl - przerwy);
+    var netto = Math.max(0, dl - przerwy);
+    $('statusCzas').textContent = fmtMin(netto);
+    var sub = $('statusSub').textContent.replace(/ · liczone .*$/, '');
+    $('statusSub').textContent = sub + ' · liczone ' + fmtMin(zaokraglij(netto));
   }
   function wypelnijPoprawke(w) {
     var praca = w && w.typ === 'Praca';
@@ -665,7 +682,6 @@
         return pytaj(r.pytanie).then(function (tak) {
           if (!tak) return null;
           var p2 = Object.assign({}, p || {});
-          if (r.kod === 'PRZERWA') p2.zamknijPrzerwe = true;
           if (r.kod === 'DLUGI') p2.potwierdz = true;
           if (r.kod === 'ISTNIEJE') p2.zastap = true;
           return rpc(fn, p2);
@@ -674,28 +690,22 @@
       return r;
     }).then(function (r) { if (r && r.dzis) pokazStan(r); return r; })
       .catch(function (e) { blad(e, 'msgDzis'); })
-      .then(function (r) { if (btn) btn.disabled = false; zajety(ekran, false); return r; });
+      .then(function (r) { zajety(ekran, false); if (!r && btn) btn.disabled = false; return r; });
   }
   $('btnStart').onclick = function () {
     var lok = $('lokalizacja').value.trim();
     if (!lok) { komunikat('msgDzis', 'Wybierz miejsce pracy.', 'err'); return; }
-    akcjaDzis('startPracy', { start: $('startRecznie').value, lokalizacja: lok, uwagi: $('uwagiStart').value }, this)
-      .then(function (r) {
-        if (!r) return;
-        $('startRecznie').value = ''; $('uwagiStart').value = '';
-        if (r.wpis && r.wpis.start) komunikat('msgDzis', 'Start zapisany o ' + r.wpis.start + '. Miłego dnia!', 'ok');
-        else { komunikat('msgDzis', 'Start zapisany, odświeżam stan dnia…', 'info'); setTimeout(odswiezDzis, 1200); }
-      });
+    akcjaDzis('startPracy', { lokalizacja: lok }, this).then(function (r) {
+      if (!r) return;
+      if (r.wpis && r.wpis.start) {
+        var pow = $('powitanie'); pow.className = 'powitanie';
+        pow.innerHTML = '<b>Twój dzień pracy wystartował o ' + r.wpis.start + '.</b>Życzymy miłego dnia! Przerwę i koniec zaznaczysz przyciskami poniżej.';
+      } else { komunikat('msgDzis', 'Start zapisany, odświeżam stan dnia…', 'info'); setTimeout(odswiezDzis, 1200); }
+    });
   };
   $('btnPrzerwa').onclick = function () { akcjaDzis('przerwaStart', null, this); };
   $('btnWznow').onclick = function () { akcjaDzis('przerwaStop', null, this); };
-  $('btnKoniec').onclick = function () {
-    var self = this;
-    pytaj('Zakończyć pracę o ' + terazHHMM() + '?').then(function (tak) {
-      if (!tak) return;
-      akcjaDzis('koniecPracy', {}, self).then(function (r) { if (r && r.wpis && r.wpis.koniec) komunikat('msgDzis', 'Dzień zapisany: ' + fmt(r.wpis.godziny) + ' h.', 'ok'); });
-    });
-  };
+  $('btnKoniec').onclick = function () { akcjaDzis('koniecPracy', {}, this); };
   $('btnWczorajZamknij').onclick = function () {
     var k = $('wczorajKoniec').value;
     if (!k) { komunikat('msgDzis', 'Podaj godzinę zakończenia wczorajszego dnia.', 'err'); return; }
@@ -714,7 +724,7 @@
     pytaj('Usunąć wpis z ' + dataPL(data) + '?').then(function (tak) {
       if (!tak) return;
       self.disabled = true;
-      rpc('usunWpis', data).then(function () { komunikat('msgDzis', 'Wpis usunięty.', 'ok'); $('popraw').open = false; odswiezDzis(); })
+      rpc('usunWpis', data).then(function () { komunikat('msgDzis', 'Wpis usunięty.', 'ok'); $('popraw').open = false; $('lokalizacja').value = ''; odswiezDzis(); })
         .catch(function (e) { blad(e, 'msgDzis'); }).then(function () { self.disabled = false; });
     });
   };

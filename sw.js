@@ -1,6 +1,6 @@
 /* Ewidencja RM — service worker. Trzyma powłokę aplikacji w pamięci, żeby ikona otwierała się od razu.
    Dane zawsze idą do arkusza przez sieć. Po zmianie plików podbij WERSJA. */
-const WERSJA = 'ewidencja-rm-v3';
+const WERSJA = 'ewidencja-rm-v4';
 const POWLOKA = ['./', './index.html', './manifest.webmanifest', './ikony/icon-192.png', './ikony/icon-512.png',
                  './ikony/apple-touch-icon.png', './logo-ciemne-tlo.png', './logo-jasne-tlo.png'];
 
