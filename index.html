@@ -108,7 +108,7 @@
   .pod.glowny small{color:#E6E6E6}
   .dzien{border-left:4px solid var(--piasek);padding-left:8px}
   .dzien.praca{border-left-color:var(--pom)} .dzien.toku{border-left-color:var(--pom2)}
-  .dzien.urlop,.dzien.l4,.dzien.odbior,.dzien.wolne-zamian{border-left-color:var(--grafit)}
+  .dzien.urlop,.dzien.l4,.dzien.odbior,.dzien.inne,.dzien.wolne-zamian{border-left-color:var(--grafit)}
   .dzien.brak{border-left-color:var(--pom2);background:#FFF8F2}
   .dzien.wolny,.dzien.dzis{border-left-color:var(--piasek)}
   .kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
@@ -274,7 +274,7 @@
     <button class="btn primary" id="btnNieob" style="padding:16px;font-size:16px">Zapisz nieobecność</button>
     <p class="hint">Zapisują się tylko dni robocze. Dni, które już mają wpis, zostaną pominięte. Pojedynczy dzień: od = do.</p>
     <p class="hint" id="hintWolne" style="display:none">„Wolne” to dzień roboczy wolny w zamian za pracę w weekend lub w święto. Godziny z weekendu wpisujesz w zakładce Dziś, w sekcji „Popraw godziny”, wybierając datę.</p>
-    <p class="hint">„Odbieram nadgodziny” to dzień wolny za wypracowane wcześniej nadgodziny. Liczy się jako 0 h przy pełnej normie, więc bilans miesiąca spada o 8 h za każdy taki dzień.</p>
+    <p class="hint">„Odbiór nadgodzin” to dzień wolny za wypracowane wcześniej nadgodziny: 0 h przy pełnej normie. „Inne” to dni płatne poza urlopem i L4: oddanie krwi, opieka nad dzieckiem z art. 188 KP. Dla „inne” opisz powód w uwagach.</p>
     <div class="msg" id="msgNieob"></div>
   </section>
 
@@ -531,7 +531,7 @@
       $('mOsoba').value = mOsoba; if (MA_EWIDENCJE) $('nOsoba').value = JA;
       $('aData').value = DZIS;
       chips('aLokacje', LOKALIZACJE, '', function (v) { $('aLokalizacja').value = v; });
-      chips('aTypy', ['Praca', 'Urlop', 'L4', 'Wolne', 'Odbiór nadgodzin'], aTyp, function (v) { aTyp = v; aRodzaj = ''; aPrzelacz(); });
+      chips('aTypy', ['Praca', 'Urlop', 'L4', 'Odbiór nadgodzin', 'Inne', 'Wolne'], aTyp, function (v) { aTyp = v; aRodzaj = ''; aPrzelacz(); });
     }
     var nTypyLista = Object.keys(RODZAJE).filter(function (t) { return t !== 'Wolne' || WEEKEND || ADMIN; });
     chips('nTypy', nTypyLista, nTyp, function (v) { nTyp = v; nRodzaj = ''; rodzajeDla(v, 'nRodzaje', function (r) { nRodzaj = r; }); });
@@ -609,7 +609,7 @@
     } else if (nieobecnosc) {
       st.className = 'status';
       $('statusEtykieta').textContent = w.typ;
-      $('statusCzas').textContent = w.typ === 'Urlop' ? 'URLOP' : (w.typ === 'Wolne' ? 'WOLNE' : (w.typ === 'Odbiór nadgodzin' ? 'ODBIÓR' : 'L4'));
+      $('statusCzas').textContent = w.typ === 'Urlop' ? 'URLOP' : (w.typ === 'Wolne' ? 'WOLNE' : (w.typ === 'Odbiór nadgodzin' ? 'ODBIÓR' : (w.typ === 'Inne' ? 'WOLNE' : 'L4')));
       $('statusSub').textContent = w.uwagi || '';
       pow.className = 'powitanie'; pow.innerHTML = '<b>Dziś masz wolne.</b>' + opisWpisu(w) + '<span class="mini">Pomyłka? Usuń wpis w sekcji poniżej i kliknij Start.</span>';
       $('poprawTytul').textContent = 'Ustaw ręcznie / usuń wpis';
@@ -761,10 +761,10 @@
     var nad = m.suma - odn;
     $('mNadg').textContent = nad > 0.01 ? '+' + fmtH(nad) : '0 h';
     $('mNadgOpis').textContent = nad > 0.01 ? 'ponad normę ' + (zamkniety ? 'miesiąca' : 'do dziś') : (nad < -0.01 ? 'do normy na dziś brakuje ' + fmtH(nad) : 'równo z normą');
-    var wolneDni = (m.urlop || 0) + (m.l4 || 0) + (m.wolne || 0) + (m.odbior || 0);
+    var wolneDni = (m.urlop || 0) + (m.l4 || 0) + (m.wolne || 0) + (m.odbior || 0) + (m.inne || 0);
     $('mWolneDni').textContent = liczDni(wolneDni, 'dzień', 'dni', 'dni');
     var czesci = [];
-    if (m.urlop) czesci.push('urlop ' + m.urlop); if (m.l4) czesci.push('L4 ' + m.l4); if (m.odbior) czesci.push('odbiór ' + m.odbior); if (m.wolne) czesci.push('wolne ' + m.wolne);
+    if (m.urlop) czesci.push('urlop ' + m.urlop); if (m.l4) czesci.push('L4 ' + m.l4); if (m.odbior) czesci.push('odbiór ' + m.odbior); if (m.inne) czesci.push('inne ' + m.inne); if (m.wolne) czesci.push('wolne ' + m.wolne);
     $('mWolneOpis').textContent = czesci.length ? czesci.join(' · ') : 'bez nieobecności';
     var proc = m.norma ? Math.min(100, Math.round(m.suma / m.norma * 100)) : 0;
     $('mBar').style.width = proc + '%';
@@ -776,8 +776,8 @@
         (ADMIN ? '' : '. Jeśli to urlop, L4 lub odbiór nadgodzin, zgłoś w zakładce Nieobecność. Przepracowane dni uzupełnia administrator.');
     } else br.style.display = 'none';
     var tb = $('mDniTabela'); tb.innerHTML = '';
-    var ety = { praca: 'praca', 'w toku': 'w pracy', urlop: 'urlop', l4: 'L4', 'wolne-zamian': 'wolne w zamian', odbior: 'odbiór nadgodzin', brak: 'brak wpisu', wolny: 'wolne', dzis: 'dziś', przyszly: '' };
-    var kl = { praca: 'praca', 'w toku': 'toku', urlop: 'urlop', l4: 'l4', 'wolne-zamian': 'urlop', odbior: 'urlop', brak: 'brak', wolny: 'wolny', dzis: 'dzis', przyszly: 'przyszly' };
+    var ety = { praca: 'praca', 'w toku': 'w pracy', urlop: 'urlop', l4: 'L4', 'wolne-zamian': 'wolne w zamian', odbior: 'odbiór nadgodzin', inne: 'inne', brak: 'brak wpisu', wolny: 'wolne', dzis: 'dziś', przyszly: '' };
+    var kl = { praca: 'praca', 'w toku': 'toku', urlop: 'urlop', l4: 'l4', 'wolne-zamian': 'urlop', odbior: 'urlop', inne: 'urlop', brak: 'brak', wolny: 'wolny', dzis: 'dzis', przyszly: 'przyszly' };
     m.dni.slice().reverse().forEach(function (d) {
       if (d.data > m.dzis && !d.wpis) return;
       var tr = document.createElement('tr');
@@ -831,6 +831,7 @@
     var p = { typ: nTyp, rodzaj: nRodzaj, od: $('nOd').value, do: $('nDo').value, uwagi: $('nUwagi').value };
     if (ADMIN) p.imie = $('nOsoba').value;
     if (!nRodzaj && (RODZAJE[nTyp] || []).length) { komunikat('msgNieob', 'Wybierz rodzaj.', 'err'); return; }
+    if (nTyp === 'Inne' && /^inne/.test(nRodzaj) && !p.uwagi.trim()) { komunikat('msgNieob', 'Przy „inne” wpisz w uwagach, co to za dzień, np. „szkolenie BHP”. Księgowość musi to widzieć.', 'err'); return; }
     var opis = nTyp + (nRodzaj ? ' (' + nRodzaj + ')' : '') + ' ' + dataPL(p.od) + (p.do !== p.od ? ' – ' + dataPL(p.do) : '') + (p.imie ? ' dla: ' + p.imie : '');
     pytaj('Zapisać: ' + opis + '?').then(function (tak) {
       if (!tak) return;
