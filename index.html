@@ -184,9 +184,8 @@
           <input type="text" id="lokalizacja" placeholder="lub wpisz własne" style="margin-top:8px">
         </div>
         <details id="startSzczegoly">
-          <summary>Zacząłem/am wcześniej · nadgodziny · uwagi</summary>
+          <summary>Zacząłem/am wcześniej · uwagi</summary>
           <div class="field" style="margin-top:8px"><label for="startRecznie">Godzina startu (puste = teraz)</label><input type="time" id="startRecznie" step="60"></div>
-          <div class="field"><label>Nadgodziny</label><div class="chips" id="flagiStart"></div></div>
           <div class="field"><label for="uwagiStart">Uwagi</label><input type="text" id="uwagiStart" placeholder="np. wyjazd do Kalisza"></div>
         </details>
       </div>
@@ -222,8 +221,6 @@
       </div>
       <div class="field"><label>Przerwy</label><div id="pPrzerwy"></div><button class="btn ghost" id="pDodajPrzerwe" type="button">+ dodaj przerwę</button></div>
       <div class="field"><label>Miejsce pracy</label><div class="chips" id="pLokacje"></div><input type="text" id="pLokalizacja" placeholder="lub wpisz własne" style="margin-top:8px"></div>
-      <div class="field"><label>Nadgodziny</label><div class="chips" id="pFlagi"></div>
-        <p class="hint">„Robię nadgodziny” = dziś pracuję ponad normę. „Odbieram nadgodziny” = dziś pracuję krócej lub wcale, bo odbieram wcześniej wypracowane godziny.</p></div>
       <div class="field"><label for="pUwagi">Uwagi</label><input type="text" id="pUwagi"></div>
       <div class="stack">
         <button class="btn dark" id="btnPopraw">Zapisz poprawkę</button>
@@ -256,14 +253,10 @@
       </div>
       <div class="kpi" style="margin-top:8px">
         <div><span>w tym HO</span><b id="mHO">—</b></div>
-        <div><span>Dni z nadg.</span><b id="mNadg">—</b></div>
-        <div><span>Odbiór nadg.</span><b id="mOdbior">—</b></div>
-      </div>
-      <div class="kpi" style="margin-top:8px">
         <div><span>Wolne (w zamian)</span><b id="mWolne">—</b></div>
         <div><span>Etat</span><b id="mEtat">—</b></div>
-        <div><span>Dni rob. do dziś</span><b id="mDniRob">—</b></div>
       </div>
+      <p class="mini" id="mDniRob" style="margin:8px 0 0"></p>
       <div class="msg info" id="mBraki" style="display:none"></div>
     </div>
     <div class="card" style="padding:8px 12px">
@@ -322,7 +315,6 @@
         </div>
         <div class="field"><label>Przerwy</label><div id="aPrzerwy"></div><button class="btn ghost" id="aDodajPrzerwe" type="button">+ dodaj przerwę</button></div>
         <div class="field"><label>Miejsce pracy</label><div class="chips" id="aLokacje"></div><input type="text" id="aLokalizacja" placeholder="lub wpisz własne" style="margin-top:8px"></div>
-        <div class="field"><label>Nadgodziny</label><div class="chips" id="aFlagi"></div></div>
       </div>
       <div id="aNieob" class="hidden"><div class="field"><label>Rodzaj</label><div class="chips" id="aRodzaje"></div></div></div>
       <div class="field"><label for="aUwagi">Uwagi</label><input type="text" id="aUwagi"></div>
@@ -361,9 +353,8 @@
   var $ = function (id) { return document.getElementById(id); };
   var KLUCZ = '', JA = '', ADMIN = false, MA_EWIDENCJE = false, OSOBY = [], LOKALIZACJE = [], RODZAJE = {}, DZIS = '';
   var ETAT = 1, KARMIENIE = false, WEEKEND = false, WEEKEND_DNI = 7;
-  var FLAGI = [['', 'brak'], ['robię', 'Robię nadgodziny'], ['odbieram', 'Odbieram nadgodziny']];
   var stan = null, tyk = null, mies = '', zMies = '', mOsoba = '';
-  var nTyp = 'Urlop', nRodzaj = '', aTyp = 'Praca', aRodzaj = '', flagaStart = '', pFlaga = '', aFlaga = '';
+  var nTyp = 'Urlop', nRodzaj = '', aTyp = 'Praca', aRodzaj = '';
   var ZAKLADKI = [];
 
   /* ---------- API ---------- */
@@ -427,7 +418,6 @@
     var s = w.start + '–' + (w.koniec || '…');
     if (w.przerwy && w.przerwy.length) s += ' bez ' + w.przerwy.map(function (p) { return p.od + '–' + (p.do || '…'); }).join(', ');
     if (w.lokalizacja) s += ' · ' + w.lokalizacja;
-    if (w.flaga) s += ' · nadg.: ' + w.flaga;
     if (w.uwagi) s += ' · ' + w.uwagi;
     return s;
   }
@@ -526,8 +516,6 @@
   function wypelnijListy() {
     chips('lokacje', LOKALIZACJE, '', function (v) { $('lokalizacja').value = v; });
     chips('pLokacje', LOKALIZACJE, '', function (v) { $('pLokalizacja').value = v; });
-    chips('flagiStart', FLAGI, '', function (v) { flagaStart = v; });
-    chips('pFlagi', FLAGI, '', function (v) { pFlaga = v; });
     $('hintKarmienie').style.display = KARMIENIE ? '' : 'none';
     $('pDataBox').style.display = WEEKEND ? '' : 'none';
     if (WEEKEND) {
@@ -546,7 +534,6 @@
       $('mOsoba').value = mOsoba; if (MA_EWIDENCJE) $('nOsoba').value = JA;
       $('aData').value = DZIS;
       chips('aLokacje', LOKALIZACJE, '', function (v) { $('aLokalizacja').value = v; });
-      chips('aFlagi', FLAGI, '', function (v) { aFlaga = v; });
       chips('aTypy', ['Praca', 'Urlop', 'L4', 'Wolne'], aTyp, function (v) { aTyp = v; aRodzaj = ''; aPrzelacz(); });
     }
     var nTypyLista = Object.keys(RODZAJE).filter(function (t) { return t !== 'Wolne' || WEEKEND || ADMIN; });
@@ -597,7 +584,7 @@
       $('statusEtykieta').textContent = 'Dziś';
       $('statusCzas').textContent = '—';
       $('statusSub').textContent = s.roboczy ? 'Jeszcze nie zaczęto' : 'Dzień wolny od pracy';
-      $('hintWolny').textContent = s.roboczy ? '' : (WEEKEND ? 'Dziś jest dzień wolny. Praca w delegacji liczy się normalnie, a dzień wolny w zamian zgłosisz jako „Wolne” w zakładce Nieobecność.' : 'Dziś jest dzień wolny. Jeśli pracujesz, zaznacz „Robię nadgodziny” w szczegółach.');
+      $('hintWolny').textContent = s.roboczy ? '' : (WEEKEND ? 'Dziś jest dzień wolny. Praca w delegacji liczy się normalnie, a dzień wolny w zamian zgłosisz jako „Wolne” w zakładce Nieobecność.' : 'Dziś jest dzień wolny od pracy. Godziny i tak możesz zapisać.');
       $('dzisBrak').className = '';
       if (!$('lokalizacja').value) { $('lokalizacja').value = s.ostatnieMiejsce || ''; zaznacz('lokacje', $('lokalizacja').value); }
       $('poprawTytul').textContent = 'Wpisz dzisiejsze godziny ręcznie (zapomniany Start)';
@@ -624,7 +611,7 @@
       st.className = 'status';
       $('statusEtykieta').textContent = 'Zapisano ' + w.start + '–' + w.koniec;
       $('statusCzas').textContent = fmt(w.godziny);
-      $('statusSub').textContent = (w.lokalizacja || '') + (w.flaga ? ' · nadgodziny: ' + w.flaga : '');
+      $('statusSub').textContent = w.lokalizacja || '';
       $('dzisGotowy').className = '';
       $('gotowyOpis').textContent = opisWpisu(w) + '. Pomyłka? Popraw poniżej (tylko dziś).';
       $('poprawTytul').textContent = 'Popraw dzisiejsze godziny';
@@ -648,7 +635,6 @@
     $('pKoniec').value = praca ? w.koniec : '';
     $('pLokalizacja').value = praca ? w.lokalizacja : ((stan && stan.ostatnieMiejsce) || '');
     zaznacz('pLokacje', $('pLokalizacja').value);
-    pFlaga = praca ? w.flaga : ''; zaznacz('pFlagi', pFlaga);
     $('pUwagi').value = praca ? w.uwagi : '';
     rysujPrzerwy('pPrzerwy', praca ? w.przerwy : []);
     var tylkoUsun = w && w.typ !== 'Praca';
@@ -692,8 +678,13 @@
   $('btnStart').onclick = function () {
     var lok = $('lokalizacja').value.trim();
     if (!lok) { komunikat('msgDzis', 'Wybierz miejsce pracy.', 'err'); return; }
-    akcjaDzis('startPracy', { start: $('startRecznie').value, lokalizacja: lok, flaga: flagaStart, uwagi: $('uwagiStart').value }, this)
-      .then(function (r) { if (r) { komunikat('msgDzis', 'Start zapisany. Miłego dnia!', 'ok'); $('startRecznie').value = ''; $('uwagiStart').value = ''; } });
+    akcjaDzis('startPracy', { start: $('startRecznie').value, lokalizacja: lok, uwagi: $('uwagiStart').value }, this)
+      .then(function (r) {
+        if (!r) return;
+        $('startRecznie').value = ''; $('uwagiStart').value = '';
+        if (r.wpis && r.wpis.start) komunikat('msgDzis', 'Start zapisany o ' + r.wpis.start + '. Miłego dnia!', 'ok');
+        else { komunikat('msgDzis', 'Start zapisany, odświeżam stan dnia…', 'info'); setTimeout(odswiezDzis, 1200); }
+      });
   };
   $('btnPrzerwa').onclick = function () { akcjaDzis('przerwaStart', null, this); };
   $('btnWznow').onclick = function () { akcjaDzis('przerwaStop', null, this); };
@@ -710,7 +701,7 @@
     akcjaDzis('koniecPracy', { koniec: k }, this).then(function (r) { if (r) komunikat('msgDzis', 'Wczorajszy dzień zamknięty.', 'ok'); });
   };
   $('btnPopraw').onclick = function () {
-    var p = { start: $('pStart').value, koniec: $('pKoniec').value, przerwy: zbierzPrzerwy('pPrzerwy'), lokalizacja: $('pLokalizacja').value.trim(), flaga: pFlaga, uwagi: $('pUwagi').value };
+    var p = { start: $('pStart').value, koniec: $('pKoniec').value, przerwy: zbierzPrzerwy('pPrzerwy'), lokalizacja: $('pLokalizacja').value.trim(), uwagi: $('pUwagi').value };
     if (WEEKEND && $('pData').value && $('pData').value !== DZIS) p.data = $('pData').value;
     akcjaDzis('poprawDzis', p, this).then(function (r) {
       if (r) { komunikat('msgDzis', p.data ? 'Zapisano pracę z ' + dataPL(p.data) + '. Sprawdź w zakładce Miesiąc.' : 'Poprawka zapisana.', 'ok'); $('popraw').open = false; if (WEEKEND) $('pData').value = DZIS; }
@@ -746,8 +737,8 @@
     $('mBar').style.width = proc + '%';
     $('mBarOpis').textContent = proc + '% normy miesiąca (' + fmt(m.norma) + ' h, ' + m.dniRobocze + ' dni roboczych)';
     $('mDni').textContent = m.dniPracy; $('mUrlop').textContent = m.urlop; $('mL4').textContent = m.l4;
-    $('mHO').textContent = m.zdalnie; $('mNadg').textContent = m.nadgodziny; $('mOdbior').textContent = m.odbior;
-    $('mWolne').textContent = m.wolne; $('mEtat').textContent = etatTekst(m.etat) || '1'; $('mDniRob').textContent = m.dniRoboczeDoDzis + ' / ' + m.dniRobocze;
+    $('mHO').textContent = m.zdalnie;
+    $('mWolne').textContent = m.wolne; $('mEtat').textContent = etatTekst(m.etat) || '1'; $('mDniRob').textContent = 'Dni robocze do dziś: ' + m.dniRoboczeDoDzis + ' z ' + m.dniRobocze;
     var br = $('mBraki');
     if (m.brakujace && m.brakujace.length) {
       br.style.display = 'block';
@@ -849,14 +840,13 @@
     $('aStart').value = w && w.typ === 'Praca' ? w.start : ''; $('aKoniec').value = w && w.typ === 'Praca' ? w.koniec : '';
     rysujPrzerwy('aPrzerwy', w && w.typ === 'Praca' ? w.przerwy : []);
     $('aLokalizacja').value = w ? w.lokalizacja : ''; zaznacz('aLokacje', $('aLokalizacja').value);
-    aFlaga = w ? w.flaga : ''; zaznacz('aFlagi', aFlaga);
     $('aUwagi').value = w && w.typ === 'Praca' ? w.uwagi : '';
     $('zWpis').scrollIntoView({ behavior: 'smooth' });
   }
   $('btnAdminZapisz').onclick = function () {
     var self = this; komunikat('msgZespol', '');
     var p = { imie: $('aOsoba').value, data: $('aData').value, typ: aTyp, uwagi: $('aUwagi').value };
-    if (aTyp === 'Praca') { p.start = $('aStart').value; p.koniec = $('aKoniec').value; p.przerwy = zbierzPrzerwy('aPrzerwy'); p.lokalizacja = $('aLokalizacja').value.trim(); p.flaga = aFlaga; }
+    if (aTyp === 'Praca') { p.start = $('aStart').value; p.koniec = $('aKoniec').value; p.przerwy = zbierzPrzerwy('aPrzerwy'); p.lokalizacja = $('aLokalizacja').value.trim(); }
     else p.rodzaj = aRodzaj;
     var wyslij = function (pp) {
       self.disabled = true;
