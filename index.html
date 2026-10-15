@@ -626,7 +626,7 @@
       $('statusCzas').textContent = fmt(w.godziny);
       $('statusSub').textContent = (w.lokalizacja || '') + (w.godzinyFaktyczne && Math.abs(w.godzinyFaktyczne - w.godziny) > 0.01 ? ' · faktycznie ' + fmt(w.godzinyFaktyczne) + ', liczone ' + fmt(w.godziny) : '');
       pow.className = 'powitanie koniec';
-      pow.innerHTML = '<b>Jupi! Możesz iść do domu. 🎉</b>To koniec Twojego dnia pracy: ' + fmt(w.godziny) + ' h' + (w.przerwy.length ? ' (bez przerw)' : '') + '. ' + tekstDoZobaczenia(s) +
+      pow.innerHTML = '<b>Jupi! Możesz iść do domu. 🎉</b>To koniec Twojego dnia pracy: ' + fmt(w.godziny) + ' h'+ (w.przerwy.length ? ' (po odjęciu przerw)' : '') + '. ' + tekstDoZobaczenia(s) +
         '<span class="mini">Pomyłka? Godziny poprawisz poniżej, tylko dziś.</span>';
       $('poprawTytul').textContent = 'Popraw dzisiejsze godziny';
     }
