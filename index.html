@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ewidencja RM</title>
+<meta name="description" content="Ewidencja czasu pracy — Fundacja Pomocy Humanitarnej Redemptoris Missio">
+<meta name="theme-color" content="#383838">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Ewidencja RM">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="ikony/favicon-64.png">
+<link rel="apple-touch-icon" href="ikony/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600&display=swap">
+<style>
+  /* Paleta i typografia: Klucz komunikacji Fundacji Redemptoris Missio, wersja 1.0 (09.2026) */
+  :root{
+    --grafit:#383838; --szary:#6A6A6A; --piasek:#E3DDD1; --bez:#F3F1EA; --jasna:#F8F8F8; --biel:#FFFFFF;
+    --pom:#FFA142; --pom2:#E87229; --pom-grad:linear-gradient(180deg,#FFA545 0%,#F38D36 100%);
+    --r-duze:40px; --r-karta:20px; --r-pole:12px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--bez);color:var(--grafit);font:16px/1.5 Roboto,-apple-system,"Segoe UI",Arial,sans-serif;-webkit-font-smoothing:antialiased;padding-bottom:48px;font-variant-numeric:tabular-nums}
+  header{background:var(--grafit);color:var(--biel);padding:12px 18px calc(12px + env(safe-area-inset-top))}
+  header .top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  header img{height:34px;width:auto;display:block}
+  header .kto{font-size:15px;font-weight:600;text-align:right;line-height:1.25}
+  header .kto small{display:block;font-weight:300;font-size:12px;color:#C9C9C9}
+  nav{display:flex;gap:8px;margin-top:12px}
+  nav button{flex:1;padding:10px 6px;border:1px solid #6A6A6A;background:transparent;color:#E6E6E6;border-radius:999px;font:inherit;font-size:13px;font-weight:600;cursor:pointer;letter-spacing:.02em}
+  nav button[aria-selected=true]{background:var(--pom);color:var(--grafit);border-color:var(--pom)}
+  main{max-width:520px;margin:0 auto;padding:16px}
+  .ekran{display:none}
+  .ekran.on{display:block}
+  .card{background:var(--biel);border-radius:var(--r-karta);padding:16px;margin-bottom:14px}
+  .card.piasek{background:var(--piasek)}
+  label{display:block;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--szary);margin:0 0 6px}
+  .field{margin-bottom:14px}
+  .field:last-child{margin-bottom:0}
+  select,input[type=text],input[type=date],input[type=time]{width:100%;padding:12px;border:1px solid var(--piasek);border-radius:var(--r-pole);background:var(--biel);color:var(--grafit);font:inherit;font-size:17px}
+  select:focus,input:focus,button:focus-visible{outline:2px solid var(--pom2);outline-offset:1px}
+  .chips{display:flex;gap:8px;flex-wrap:wrap}
+  .chip{flex:1 1 auto;min-width:64px;padding:10px 14px;border:1px solid var(--piasek);background:var(--biel);border-radius:999px;font:inherit;font-size:15px;color:var(--grafit);cursor:pointer}
+  .chip[aria-pressed=true]{background:var(--grafit);color:var(--biel);border-color:var(--grafit)}
+  .row{display:flex;gap:10px}
+  .row>div{flex:1}
+  .big{width:100%;padding:18px;border:0;border-radius:999px;font:inherit;font-size:18px;font-weight:600;cursor:pointer;letter-spacing:.04em;text-transform:uppercase}
+  .big.start{background:var(--pom);color:var(--grafit)}
+  .big.stop{background:var(--grafit);color:var(--biel)}
+  .big.pauza{background:var(--biel);color:var(--grafit);border:2px solid var(--grafit)}
+  .big:disabled,.btn:disabled{opacity:.5}
+  .btn{width:100%;padding:13px 18px;border:1px solid var(--piasek);border-radius:999px;background:var(--biel);color:var(--grafit);font:inherit;font-size:15px;font-weight:600;cursor:pointer}
+  .btn.primary{background:var(--pom);border-color:var(--pom);color:var(--grafit);text-transform:uppercase;letter-spacing:.04em}
+  .btn.dark{background:var(--grafit);border-color:var(--grafit);color:var(--biel)}
+  .btn.danger{color:var(--pom2);border-color:var(--piasek)}
+  .btn.ghost{border:0;background:transparent;color:var(--pom2);text-align:left;padding:8px 0;width:auto;font-size:14px}
+  .stack>*{margin-bottom:10px}
+  .stack>*:last-child{margin-bottom:0}
+  .status{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;background:var(--grafit);color:var(--biel);border-radius:var(--r-karta);padding:16px 18px;margin-bottom:14px}
+  .status span{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#C9C9C9;display:block}
+  .status strong{font-size:40px;font-weight:600;letter-spacing:-.02em;line-height:1.1}
+  .status .sub{font-size:14px;font-weight:300;color:#E6E6E6;margin-top:4px}
+  .status.go{background:var(--pom-grad);color:var(--grafit)} .status.go span{color:#5a3a1a} .status.go .sub{color:var(--grafit);font-weight:400}
+  .status.pauza{background:var(--piasek);color:var(--grafit)} .status.pauza span{color:var(--szary)} .status.pauza .sub{color:var(--grafit);font-weight:400}
+  .msg{margin-top:12px;padding:12px 16px;border-radius:var(--r-pole);font-size:15px;display:none}
+  .msg.ok{display:block;background:var(--piasek);color:var(--grafit)}
+  .msg.err{display:block;background:var(--biel);border-left:4px solid var(--pom2);color:var(--grafit)}
+  .msg.info{display:block;background:var(--biel);border-left:4px solid var(--pom);color:var(--grafit)}
+  details{margin-top:4px}
+  summary{font-size:15px;color:var(--grafit);cursor:pointer;padding:8px 0;font-weight:600;list-style:none;display:flex;align-items:center;gap:8px}
+  summary::before{content:"";width:8px;height:8px;border-right:2px solid var(--pom2);border-bottom:2px solid var(--pom2);transform:rotate(-45deg);transition:transform .15s;margin-left:2px}
+  details[open] summary::before{transform:rotate(45deg)}
+  .hint{font-size:14px;color:var(--szary);margin:8px 0 0;font-weight:300}
+  .hint b{font-weight:600;color:var(--grafit)}
+  .hidden{display:none !important}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  td,th{padding:9px 6px;border-bottom:1px solid var(--piasek);text-align:left;vertical-align:top}
+  th{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--szary);font-weight:600}
+  td.n,th.n{text-align:right;white-space:nowrap}
+  tr.klik{cursor:pointer}
+  tr.klik:active{background:var(--jasna)}
+  .pill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap;border:1px solid transparent}
+  .pill.praca{background:var(--piasek);color:var(--grafit)}
+  .pill.toku{background:var(--pom);color:var(--grafit)}
+  .pill.urlop{background:var(--biel);color:var(--grafit);border-color:var(--grafit)}
+  .pill.l4{background:var(--grafit);color:var(--biel)}
+  .pill.brak{background:var(--biel);color:var(--pom2);border-color:var(--pom2)}
+  .pill.wolny{background:var(--jasna);color:var(--szary)}
+  .pill.dzis{background:var(--biel);color:var(--grafit);border:1px dashed var(--grafit)}
+  .kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .kpi div{background:var(--piasek);border-radius:14px;padding:10px 12px 8px}
+  .kpi span{display:block;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--szary);font-weight:600}
+  .kpi b{font-size:20px;font-weight:600}
+  .kpi b.plus{color:var(--grafit)} .kpi b.minus{color:var(--pom2)}
+  .bar{height:8px;background:var(--piasek);border-radius:999px;overflow:hidden;margin:12px 0 4px}
+  .bar i{display:block;height:100%;background:var(--pom)}
+  .mnav{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .mnav button{border:1px solid var(--piasek);background:var(--biel);border-radius:999px;width:44px;height:44px;font:inherit;font-size:20px;cursor:pointer;color:var(--grafit)}
+  .mnav strong{font-size:18px;font-weight:600}
+  .przerwa-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+  .przerwa-row input{flex:1}
+  .przerwa-row button{border:1px solid var(--piasek);background:var(--biel);border-radius:999px;width:40px;height:40px;font:inherit;cursor:pointer;color:var(--pom2)}
+  .modal-bg{position:fixed;inset:0;background:rgba(56,56,56,.6);display:none;align-items:flex-end;justify-content:center;z-index:9}
+  .modal-bg.on{display:flex}
+  .modal{background:var(--biel);border-radius:var(--r-duze) var(--r-duze) 0 0;padding:24px 20px calc(24px + env(safe-area-inset-bottom));width:100%;max-width:520px}
+  .modal p{margin:0 0 18px;font-size:17px}
+  .modal .row button{flex:1}
+  .mini{font-size:13px;color:var(--szary);font-weight:300}
+  .ladowanie{opacity:.55;pointer-events:none}
+  /* ekran klucza */
+  #ekran-klucz{display:none;min-height:100vh;padding:32px 20px}
+  #ekran-klucz.on{display:block}
+  #ekran-klucz .logo{width:min(320px,80%);margin:8px auto 28px;display:block}
+  #ekran-klucz h1{font-size:28px;font-weight:600;line-height:1.3;margin:0 0 6px;letter-spacing:-.01em}
+  #ekran-klucz h1 em{font-style:normal;color:var(--pom2)}
+  #ekran-klucz p{margin:0 0 18px;color:var(--szary);font-weight:300}
+  .instal{background:var(--biel);border-radius:var(--r-karta);padding:14px 16px;margin-bottom:14px;font-size:14px;display:none}
+  .instal.on{display:block}
+  .instal b{font-weight:600}
+  .instal button{float:right;border:0;background:transparent;color:var(--pom2);font:inherit;font-weight:600;cursor:pointer;padding:0 0 0 12px}
+  .offline{background:var(--grafit);color:var(--biel);text-align:center;font-size:13px;padding:6px;display:none}
+  .offline.on{display:block}
+</style>
+</head>
+<body>
+
+<div class="offline" id="offline">Brak sieci. Zapis zadziała, gdy telefon wróci do zasięgu.</div>
+
+<!-- ===================== EKRAN KLUCZA ===================== -->
+<section id="ekran-klucz">
+  <img class="logo" src="logo-jasne-tlo.png" alt="Redemptoris Missio — Fundacja Pomocy Humanitarnej">
+  <h1>Ewidencja czasu <em>pracy</em></h1>
+  <p>Otwórz link, który dostałeś od administratora, albo wklej poniżej swój klucz. Aplikacja zapamięta go na tym telefonie.</p>
+  <div class="card">
+    <div class="field"><label for="kluczPole">Klucz</label><input type="text" id="kluczPole" placeholder="64 znaki z zakładki Linki" autocomplete="off" autocapitalize="off" spellcheck="false"></div>
+    <button class="btn primary" id="btnKlucz" style="padding:16px">Wejdź</button>
+    <div class="msg" id="msgKlucz"></div>
+  </div>
+  <p class="hint">Masz kod QR? Zeskanuj go aparatem telefonu, otworzy się właściwy link.</p>
+</section>
+
+<div id="app" class="hidden">
+<header>
+  <div class="top">
+    <img src="logo-ciemne-tlo.png" alt="Redemptoris Missio">
+    <div class="kto" id="kto"></div>
+  </div>
+  <nav id="nav"></nav>
+</header>
+
+<main>
+  <div class="instal" id="instal">
+    <button id="instalZamknij" aria-label="zamknij">✕</button>
+    <b>Dodaj do ekranu głównego</b>, żeby mieć ikonę jak aplikację.<br>
+    <span id="instalJak"></span>
+  </div>
+
+  <!-- ===================== DZIŚ ===================== -->
+  <section class="ekran" id="ekran-dzis">
+    <div class="status" id="status">
+      <div><span id="statusEtykieta">Dziś</span><strong id="statusCzas">—</strong><div class="sub" id="statusSub"></div></div>
+      <div style="text-align:right"><span>Data</span><div id="statusData" style="font-weight:600"></div></div>
+    </div>
+
+    <div class="card hidden" id="kartaWczoraj">
+      <p style="margin:0 0 10px"><strong>Niezamknięty dzień z <span id="wczorajData"></span></strong><br>
+      <span class="mini">Start <span id="wczorajStart"></span>. Podaj, o której skończyła się praca.</span></p>
+      <div class="row">
+        <div><input type="time" id="wczorajKoniec" step="60"></div>
+        <div><button class="btn dark" id="btnWczorajZamknij">Zakończ tamten dzień</button></div>
+      </div>
+    </div>
+
+    <div id="dzisBrak" class="hidden">
+      <div class="card">
+        <div class="field">
+          <label>Miejsce pracy</label>
+          <div class="chips" id="lokacje"></div>
+          <input type="text" id="lokalizacja" placeholder="lub wpisz własne" style="margin-top:8px">
+        </div>
+        <details id="startSzczegoly">
+          <summary>Zacząłem/am wcześniej · nadgodziny · uwagi</summary>
+          <div class="field" style="margin-top:8px"><label for="startRecznie">Godzina startu (puste = teraz)</label><input type="time" id="startRecznie" step="60"></div>
+          <div class="field"><label>Nadgodziny</label><div class="chips" id="flagiStart"></div></div>
+          <div class="field"><label for="uwagiStart">Uwagi</label><input type="text" id="uwagiStart" placeholder="np. wyjazd do Kalisza"></div>
+        </details>
+      </div>
+      <button class="big start" id="btnStart">▶ Start pracy</button>
+      <p class="hint" id="hintWolny"></p>
+      <p class="hint" id="hintKarmienie" style="display:none">Przerwa na karmienie doliczy się sama po zakończeniu dnia: +1 h przy ponad 6 h pracy, +0,5 h przy 4–6 h.</p>
+      <p class="hint">Nie pracujesz dziś? Urlop i L4 zgłaszasz w zakładce <b>Nieobecność</b>.</p>
+    </div>
+
+    <div id="dzisToku" class="hidden">
+      <div class="stack">
+        <button class="big pauza" id="btnPrzerwa">⏸ Przerwa</button>
+        <button class="big start hidden" id="btnWznow">▶ Wznów pracę</button>
+        <button class="big stop" id="btnKoniec">■ Zakończ pracę</button>
+      </div>
+      <div class="card" style="margin-top:14px"><p class="mini" id="tokuOpis" style="margin:0"></p></div>
+    </div>
+
+    <div id="dzisGotowy" class="hidden">
+      <div class="card">
+        <p style="margin:0 0 6px"><strong>Dzień zapisany.</strong></p>
+        <p class="mini" id="gotowyOpis" style="margin:0"></p>
+      </div>
+    </div>
+
+    <details class="card" id="popraw" style="padding:12px 16px">
+      <summary id="poprawTytul">Popraw dzisiejsze godziny</summary>
+      <p class="hint" style="margin-top:6px" id="poprawHint">Poprawki tylko dla dzisiejszego dnia. Wczorajsze i starsze zmienia administrator.</p>
+      <div class="field" id="pDataBox" style="margin-top:12px;display:none"><label for="pData">Dzień (dziś albo weekend / święto wstecz)</label><input type="date" id="pData"></div>
+      <div class="row field" style="margin-top:12px">
+        <div><label for="pStart">Start</label><input type="time" id="pStart" step="60"></div>
+        <div><label for="pKoniec">Koniec</label><input type="time" id="pKoniec" step="60"></div>
+      </div>
+      <div class="field"><label>Przerwy</label><div id="pPrzerwy"></div><button class="btn ghost" id="pDodajPrzerwe" type="button">+ dodaj przerwę</button></div>
+      <div class="field"><label>Miejsce pracy</label><div class="chips" id="pLokacje"></div><input type="text" id="pLokalizacja" placeholder="lub wpisz własne" style="margin-top:8px"></div>
+      <div class="field"><label>Nadgodziny</label><div class="chips" id="pFlagi"></div>
+        <p class="hint">„Robię nadgodziny” = dziś pracuję ponad normę. „Odbieram nadgodziny” = dziś pracuję krócej lub wcale, bo odbieram wcześniej wypracowane godziny.</p></div>
+      <div class="field"><label for="pUwagi">Uwagi</label><input type="text" id="pUwagi"></div>
+      <div class="stack">
+        <button class="btn dark" id="btnPopraw">Zapisz poprawkę</button>
+        <button class="btn danger" id="btnUsunDzis">Usuń dzisiejszy wpis</button>
+      </div>
+    </details>
+    <div class="msg" id="msgDzis"></div>
+  </section>
+
+  <!-- ===================== MIESIĄC ===================== -->
+  <section class="ekran" id="ekran-miesiac">
+    <div class="card hidden" id="mOsobaBox"><label for="mOsoba">Pracownik</label><select id="mOsoba"></select></div>
+    <div class="mnav">
+      <button id="mPrev" aria-label="Poprzedni miesiąc">‹</button>
+      <strong id="mNazwa">—</strong>
+      <button id="mNext" aria-label="Następny miesiąc">›</button>
+    </div>
+    <div class="card" id="mPods">
+      <div class="kpi">
+        <div><span>Godziny</span><b id="mSuma">—</b></div>
+        <div><span id="mNormaEt">Norma</span><b id="mNorma">—</b></div>
+        <div><span>Bilans</span><b id="mBilans">—</b></div>
+      </div>
+      <div class="bar"><i id="mBar" style="width:0"></i></div>
+      <p class="mini" id="mBarOpis" style="margin:0 0 10px"></p>
+      <div class="kpi">
+        <div><span>Dni pracy</span><b id="mDni">—</b></div>
+        <div><span>Urlop</span><b id="mUrlop">—</b></div>
+        <div><span>L4</span><b id="mL4">—</b></div>
+      </div>
+      <div class="kpi" style="margin-top:8px">
+        <div><span>w tym HO</span><b id="mHO">—</b></div>
+        <div><span>Dni z nadg.</span><b id="mNadg">—</b></div>
+        <div><span>Odbiór nadg.</span><b id="mOdbior">—</b></div>
+      </div>
+      <div class="kpi" style="margin-top:8px">
+        <div><span>Wolne (w zamian)</span><b id="mWolne">—</b></div>
+        <div><span>Etat</span><b id="mEtat">—</b></div>
+        <div><span>Dni rob. do dziś</span><b id="mDniRob">—</b></div>
+      </div>
+      <div class="msg info" id="mBraki" style="display:none"></div>
+    </div>
+    <div class="card" style="padding:8px 12px">
+      <table><thead><tr><th>Dzień</th><th>Co</th><th class="n">Godz.</th></tr></thead><tbody id="mDniTabela"></tbody></table>
+    </div>
+    <div class="row" style="margin-bottom:10px">
+      <div><button class="btn" id="btnDrukuj">Karta do druku</button></div>
+      <div><button class="btn" id="btnPdf">PDF na Dysk</button></div>
+    </div>
+    <div class="msg" id="msgMiesiac"></div>
+  </section>
+
+  <!-- ===================== NIEOBECNOŚĆ ===================== -->
+  <section class="ekran" id="ekran-nieob">
+    <div class="card hidden" id="nOsobaBox"><label for="nOsoba">Pracownik</label><select id="nOsoba"></select></div>
+    <div class="card">
+      <div class="field"><label>Typ</label><div class="chips" id="nTypy"></div></div>
+      <div class="field"><label>Rodzaj</label><div class="chips" id="nRodzaje"></div></div>
+      <div class="row field">
+        <div><label for="nOd">Od</label><input type="date" id="nOd"></div>
+        <div><label for="nDo">Do</label><input type="date" id="nDo"></div>
+      </div>
+      <p class="hint" id="nPodglad"></p>
+      <div class="field"><label for="nUwagi">Uwagi (opcjonalnie)</label><input type="text" id="nUwagi"></div>
+    </div>
+    <button class="btn primary" id="btnNieob" style="padding:16px;font-size:16px">Zapisz nieobecność</button>
+    <p class="hint">Zapisują się tylko dni robocze. Dni, które już mają wpis, zostaną pominięte. Pojedynczy dzień: od = do.</p>
+    <p class="hint" id="hintWolne" style="display:none">„Wolne” to dzień roboczy wolny w zamian za pracę w weekend lub w święto. Godziny z weekendu wpisujesz w zakładce Dziś, w sekcji „Popraw godziny”, wybierając datę.</p>
+    <div class="msg" id="msgNieob"></div>
+  </section>
+
+  <!-- ===================== ZESPÓŁ (admin) ===================== -->
+  <section class="ekran" id="ekran-zespol">
+    <div class="mnav">
+      <button id="zPrev" aria-label="Poprzedni miesiąc">‹</button>
+      <strong id="zNazwa">—</strong>
+      <button id="zNext" aria-label="Następny miesiąc">›</button>
+    </div>
+    <p class="mini" id="zInfo" style="margin:0 0 10px"></p>
+    <div class="card" style="padding:8px 12px">
+      <table>
+        <thead><tr><th>Kto</th><th class="n">Godz.</th><th class="n">Bilans</th><th class="n">Braki</th><th>Dziś</th></tr></thead>
+        <tbody id="zTabela"></tbody>
+      </table>
+      <p class="hint">Kliknij osobę, żeby zobaczyć jej miesiąc i kartę.</p>
+    </div>
+    <details class="card" id="zWpis" style="padding:12px 16px">
+      <summary>Wpis ręczny za pracownika (dowolna data)</summary>
+      <div class="field" style="margin-top:10px"><label for="aOsoba">Pracownik</label><select id="aOsoba"></select></div>
+      <div class="field"><label for="aData">Dzień</label><input type="date" id="aData"></div>
+      <div class="field"><label>Typ</label><div class="chips" id="aTypy"></div></div>
+      <div id="aPraca">
+        <div class="row field">
+          <div><label for="aStart">Start</label><input type="time" id="aStart" step="60"></div>
+          <div><label for="aKoniec">Koniec</label><input type="time" id="aKoniec" step="60"></div>
+        </div>
+        <div class="field"><label>Przerwy</label><div id="aPrzerwy"></div><button class="btn ghost" id="aDodajPrzerwe" type="button">+ dodaj przerwę</button></div>
+        <div class="field"><label>Miejsce pracy</label><div class="chips" id="aLokacje"></div><input type="text" id="aLokalizacja" placeholder="lub wpisz własne" style="margin-top:8px"></div>
+        <div class="field"><label>Nadgodziny</label><div class="chips" id="aFlagi"></div></div>
+      </div>
+      <div id="aNieob" class="hidden"><div class="field"><label>Rodzaj</label><div class="chips" id="aRodzaje"></div></div></div>
+      <div class="field"><label for="aUwagi">Uwagi</label><input type="text" id="aUwagi"></div>
+      <div class="stack">
+        <button class="btn dark" id="btnAdminZapisz">Zapisz wpis</button>
+        <button class="btn danger" id="btnAdminUsun">Usuń wpis z tego dnia</button>
+      </div>
+    </details>
+    <div class="stack">
+      <button class="btn" id="btnPrzelicz">Przelicz kartę miesiąca w arkuszu</button>
+      <a class="btn" id="linkArkusz" href="#" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none">Otwórz arkusz</a>
+    </div>
+    <p class="hint">Linki, klucze i kody QR pracowników: w arkuszu, menu <b>Ewidencja → Linki pracowników</b>.</p>
+    <div class="msg" id="msgZespol"></div>
+  </section>
+
+  <p class="hint" style="text-align:center;margin-top:24px"><button class="btn ghost" id="btnWyloguj" style="text-align:center;width:100%">Wyloguj z tego telefonu</button></p>
+</main>
+</div>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <p id="modalTekst"></p>
+    <div class="row">
+      <button class="btn" id="modalNie">Nie</button>
+      <button class="btn primary" id="modalTak">Tak</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* ================== KONFIGURACJA ==================
+     Wklej tu adres wdrożonej aplikacji internetowej Apps Script (Wdróż → Zarządzaj wdrożeniami → adres kończący się na /exec). */
+  var API_URL = window.EWIDENCJA_API || 'https://script.google.com/macros/s/AKfycbyLutB10hRDZcwN7k3GEMEHiS1oDghjcLS56J1puD3JJYOMKx5IBJ_69iq7Irv7E_-H/exec';
+
+  var $ = function (id) { return document.getElementById(id); };
+  var KLUCZ = '', JA = '', ADMIN = false, MA_EWIDENCJE = false, OSOBY = [], LOKALIZACJE = [], RODZAJE = {}, DZIS = '';
+  var ETAT = 1, KARMIENIE = false, WEEKEND = false, WEEKEND_DNI = 7;
+  var FLAGI = [['', 'brak'], ['robię', 'Robię nadgodziny'], ['odbieram', 'Odbieram nadgodziny']];
+  var stan = null, tyk = null, mies = '', zMies = '', mOsoba = '';
+  var nTyp = 'Urlop', nRodzaj = '', aTyp = 'Praca', aRodzaj = '', flagaStart = '', pFlaga = '', aFlaga = '';
+  var ZAKLADKI = [];
+
+  /* ---------- API ---------- */
+  function rpc(fn) {
+    var args = [].slice.call(arguments, 1);
+    return fetch(API_URL, {
+      method: 'POST', redirect: 'follow',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ k: KLUCZ, fn: fn, args: args })
+    }).then(function (r) {
+      if (!r.ok) throw new Error('Serwer odpowiedział błędem ' + r.status + '. Spróbuj za chwilę.');
+      return r.json();
+    }).then(function (j) {
+      if (!j.ok) throw new Error(j.error || 'Nieznany błąd.');
+      return j.result;
+    }).catch(function (e) {
+      if (e instanceof TypeError) throw new Error('Brak połączenia. Sprawdź sieć i spróbuj ponownie.');
+      throw e;
+    });
+  }
+  function blad(e, msgId) {
+    var t = (e && e.message) || String(e) || 'Coś poszło nie tak. Spróbuj ponownie.';
+    if (t.indexOf('SESJA:') === 0) { t = t.slice(6).trim(); wyloguj(t); return; }
+    komunikat(msgId, t, 'err');
+  }
+  function komunikat(id, tekst, klasa) { var el = $(id); el.className = 'msg' + (klasa ? ' ' + klasa : ''); el.textContent = tekst || ''; }
+  function pytaj(tekst) {
+    return new Promise(function (res) {
+      $('modalTekst').textContent = tekst;
+      $('modalBg').className = 'modal-bg on';
+      $('modalTak').onclick = function () { $('modalBg').className = 'modal-bg'; res(true); };
+      $('modalNie').onclick = function () { $('modalBg').className = 'modal-bg'; res(false); };
+    });
+  }
+  function zajety(el, tak) { el.className = el.className.replace(' ladowanie', '') + (tak ? ' ladowanie' : ''); }
+  function fmt(h) { var m = Math.round((h || 0) * 60); return Math.floor(m / 60) + ':' + ('0' + (m % 60)).slice(-2); }
+  function fmtMin(min) { if (min < 0) min = 0; return Math.floor(min / 60) + ':' + ('0' + (min % 60)).slice(-2); }
+  function naMin(t) { var c = t.split(':'); return Number(c[0]) * 60 + Number(c[1]); }
+  function terazHHMM() { var d = new Date(); return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2); }
+  function dataPL(d) { return d.slice(8) + '.' + d.slice(5, 7) + '.' + d.slice(0, 4); }
+  function etatTekst(e) { return e === 1 ? '' : (e === 0.5 ? '1/2' : (e === 0.875 ? '7/8' : (e === 0.75 ? '3/4' : String(e).replace('.', ',')))); }
+  function nazwaMies(m) {
+    var n = ['Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec', 'Lipiec', 'Sierpień', 'Wrzesień', 'Październik', 'Listopad', 'Grudzień'];
+    return n[Number(m.slice(5, 7)) - 1] + ' ' + m.slice(0, 4);
+  }
+  function przesunMies(m, o) { var d = new Date(Number(m.slice(0, 4)), Number(m.slice(5, 7)) - 1 + o, 1); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2); }
+  function chips(id, lista, wybrane, onPick) {
+    var box = $(id); box.innerHTML = '';
+    lista.forEach(function (v) {
+      var val = Array.isArray(v) ? v[0] : v, lab = Array.isArray(v) ? v[1] : v;
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = lab; b.dataset.val = val;
+      b.setAttribute('aria-pressed', val === wybrane);
+      b.onclick = function () { onPick(val); zaznacz(id, val); };
+      box.appendChild(b);
+    });
+  }
+  function zaznacz(id, val) { Array.prototype.forEach.call($(id).children, function (c) { c.setAttribute('aria-pressed', c.dataset.val === val); }); }
+  function opisWpisu(w) {
+    if (!w) return '';
+    if (w.typ !== 'Praca') return w.typ + (w.uwagi ? ' · ' + w.uwagi : '');
+    var s = w.start + '–' + (w.koniec || '…');
+    if (w.przerwy && w.przerwy.length) s += ' bez ' + w.przerwy.map(function (p) { return p.od + '–' + (p.do || '…'); }).join(', ');
+    if (w.lokalizacja) s += ' · ' + w.lokalizacja;
+    if (w.flaga) s += ' · nadg.: ' + w.flaga;
+    if (w.uwagi) s += ' · ' + w.uwagi;
+    return s;
+  }
+  function zapamietaj(k, v) { try { if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) {} }
+  function odczytaj(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+
+  /* ---------- KLUCZ / START ---------- */
+  function wyloguj(powod) {
+    zapamietaj('ewidencja_klucz', null);
+    KLUCZ = '';
+    $('app').className = 'hidden';
+    $('ekran-klucz').className = 'on';
+    if (powod) komunikat('msgKlucz', powod, 'err');
+  }
+  function uruchom(k) {
+    KLUCZ = k;
+    komunikat('msgKlucz', '');
+    zajety($('ekran-klucz'), true);
+    return rpc('konfig').then(function (c) {
+      zapamietaj('ewidencja_klucz', k);
+      JA = c.imie; ADMIN = c.admin; MA_EWIDENCJE = c.maEwidencje; OSOBY = c.osoby; LOKALIZACJE = c.lokalizacje; RODZAJE = c.rodzaje;
+      DZIS = c.dzisiaj; ETAT = c.etat; KARMIENIE = c.karmienie; WEEKEND = c.weekend; WEEKEND_DNI = c.weekendDni;
+      mies = DZIS.slice(0, 7); zMies = mies; mOsoba = MA_EWIDENCJE ? JA : (OSOBY[0] || JA);
+      $('ekran-klucz').className = '';
+      $('app').className = '';
+      zbudujUI();
+    }).catch(function (e) {
+      var t = (e && e.message) || String(e);
+      if (t.indexOf('SESJA:') === 0) t = t.slice(6).trim();
+      komunikat('msgKlucz', t, 'err');
+    }).then(function () { zajety($('ekran-klucz'), false); });
+  }
+  $('btnKlucz').onclick = function () {
+    var k = $('kluczPole').value.trim().toLowerCase();
+    var m = /[0-9a-f]{40,64}/.exec(k); if (m) k = m[0];
+    if (!/^[0-9a-f]{40,64}$/.test(k)) { komunikat('msgKlucz', 'To nie wygląda na klucz. Wklej cały ciąg 64 znaków albo otwórz link.', 'err'); return; }
+    uruchom(k);
+  };
+  $('btnWyloguj').onclick = function () { pytaj('Wylogować? Żeby wejść ponownie, będzie potrzebny link lub klucz.').then(function (t) { if (t) wyloguj(''); }); };
+
+  (function start() {
+    var u = new URL(location.href);
+    var k = (u.searchParams.get('k') || '').toLowerCase();
+    if (k) { u.searchParams.delete('k'); history.replaceState(null, '', u.pathname + (u.search || '') + u.hash); }
+    else k = odczytaj('ewidencja_klucz') || '';
+    if (k) uruchom(k); else $('ekran-klucz').className = 'on';
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function () {});
+    var pokazOffline = function () { $('offline').className = 'offline' + (navigator.onLine ? '' : ' on'); };
+    window.addEventListener('online', pokazOffline); window.addEventListener('offline', pokazOffline); pokazOffline();
+  })();
+
+  /* ---------- UI ---------- */
+  var zbudowane = false;
+  function zbudujUI() {
+    $('kto').innerHTML = '<span>' + JA + '</span><small>' + (ADMIN ? 'administrator' : 'ewidencja czasu') + (ETAT !== 1 ? ' · etat ' + etatTekst(ETAT) : '') + '</small>';
+    ZAKLADKI = [];
+    if (MA_EWIDENCJE) ZAKLADKI.push(['dzis', 'Dziś']);
+    ZAKLADKI.push(['miesiac', 'Miesiąc']);
+    ZAKLADKI.push(['nieob', 'Nieobecność']);
+    if (ADMIN) ZAKLADKI.push(['zespol', 'Zespół']);
+    $('nav').innerHTML = '';
+    ZAKLADKI.forEach(function (z) {
+      var b = document.createElement('button'); b.textContent = z[1]; b.dataset.ekran = z[0];
+      b.onclick = function () { pokaz(z[0]); };
+      $('nav').appendChild(b);
+    });
+    if (!zbudowane) { zbudujFormularze(); zbudowane = true; }
+    wypelnijListy();
+    podpowiedzInstalacji();
+    var e = odczytaj('ewidencja_ekran');
+    var dostepne = ZAKLADKI.map(function (z) { return z[0]; });
+    if (!e || dostepne.indexOf(e) === -1) e = dostepne[0];
+    if (MA_EWIDENCJE) e = 'dzis'; else if (ADMIN) e = 'zespol';
+    pokaz(e);
+  }
+  function pokaz(nazwa) {
+    Array.prototype.forEach.call($('nav').children, function (b) { b.setAttribute('aria-selected', b.dataset.ekran === nazwa); });
+    ['dzis', 'miesiac', 'nieob', 'zespol'].forEach(function (e) { $('ekran-' + e).className = 'ekran' + (e === nazwa ? ' on' : ''); });
+    zapamietaj('ewidencja_ekran', nazwa);
+    if (nazwa === 'dzis') odswiezDzis();
+    if (nazwa === 'miesiac') ladujMiesiac();
+    if (nazwa === 'zespol') ladujZespol();
+  }
+  function podpowiedzInstalacji() {
+    var standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    if (standalone || odczytaj('ewidencja_instal') === 'nie') return;
+    var ua = navigator.userAgent || '';
+    var ios = /iPhone|iPad|iPod/.test(ua);
+    $('instalJak').textContent = ios
+      ? 'iPhone: w Safari dotknij ikonę Udostępnij (kwadrat ze strzałką), potem „Do ekranu początkowego”.'
+      : 'Android: w Chrome dotknij menu ⋮ w prawym górnym rogu, potem „Dodaj do ekranu głównego” lub „Zainstaluj aplikację”.';
+    $('instal').className = 'instal on';
+    $('instalZamknij').onclick = function () { $('instal').className = 'instal'; zapamietaj('ewidencja_instal', 'nie'); };
+  }
+
+  function wypelnijListy() {
+    chips('lokacje', LOKALIZACJE, '', function (v) { $('lokalizacja').value = v; });
+    chips('pLokacje', LOKALIZACJE, '', function (v) { $('pLokalizacja').value = v; });
+    chips('flagiStart', FLAGI, '', function (v) { flagaStart = v; });
+    chips('pFlagi', FLAGI, '', function (v) { pFlaga = v; });
+    $('hintKarmienie').style.display = KARMIENIE ? '' : 'none';
+    $('pDataBox').style.display = WEEKEND ? '' : 'none';
+    if (WEEKEND) {
+      $('pData').max = DZIS; $('pData').value = DZIS;
+      var minD = new Date(DZIS); minD.setDate(minD.getDate() - WEEKEND_DNI);
+      $('pData').min = minD.toISOString().slice(0, 10);
+      $('poprawHint').textContent = 'Dzień roboczy poprawisz tylko dziś. Pracę z soboty, niedzieli lub święta możesz dopisać do ' + WEEKEND_DNI + ' dni wstecz (delegacja).';
+    }
+    // miesiąc / nieobecność / admin
+    ['mOsoba', 'nOsoba', 'aOsoba'].forEach(function (id) { $(id).innerHTML = ''; });
+    if (ADMIN) {
+      $('mOsobaBox').className = 'card'; $('nOsobaBox').className = 'card';
+      var lista = OSOBY.slice(); if (MA_EWIDENCJE && lista.indexOf(JA) === -1) lista.unshift(JA);
+      lista.forEach(function (o) { var op = document.createElement('option'); op.value = o; op.textContent = o; $('mOsoba').appendChild(op); });
+      OSOBY.forEach(function (o) { ['nOsoba', 'aOsoba'].forEach(function (id) { var op = document.createElement('option'); op.value = o; op.textContent = o; $(id).appendChild(op); }); });
+      $('mOsoba').value = mOsoba; if (MA_EWIDENCJE) $('nOsoba').value = JA;
+      $('aData').value = DZIS;
+      chips('aLokacje', LOKALIZACJE, '', function (v) { $('aLokalizacja').value = v; });
+      chips('aFlagi', FLAGI, '', function (v) { aFlaga = v; });
+      chips('aTypy', ['Praca', 'Urlop', 'L4', 'Wolne'], aTyp, function (v) { aTyp = v; aRodzaj = ''; aPrzelacz(); });
+    }
+    var nTypyLista = Object.keys(RODZAJE).filter(function (t) { return t !== 'Wolne' || WEEKEND || ADMIN; });
+    chips('nTypy', nTypyLista, nTyp, function (v) { nTyp = v; nRodzaj = ''; rodzajeDla(v, 'nRodzaje', function (r) { nRodzaj = r; }); });
+    rodzajeDla(nTyp, 'nRodzaje', function (r) { nRodzaj = r; });
+    $('nOd').value = DZIS; $('nDo').value = DZIS; podgladNieob();
+    $('hintWolne').style.display = (WEEKEND || ADMIN) ? '' : 'none';
+  }
+
+  function zbudujFormularze() {
+    $('lokalizacja').addEventListener('input', function () { zaznacz('lokacje', $('lokalizacja').value); });
+    $('pLokalizacja').addEventListener('input', function () { zaznacz('pLokacje', $('pLokalizacja').value); });
+    $('aLokalizacja').addEventListener('input', function () { zaznacz('aLokacje', $('aLokalizacja').value); });
+    $('pDodajPrzerwe').onclick = function () { dodajPrzerwe('pPrzerwy', '', ''); };
+    $('aDodajPrzerwe').onclick = function () { dodajPrzerwe('aPrzerwy', '', ''); };
+    $('pData').onchange = function () {
+      if ($('pData').value !== DZIS) { $('pStart').value = ''; $('pKoniec').value = ''; rysujPrzerwy('pPrzerwy', []); if (!$('pLokalizacja').value) { $('pLokalizacja').value = 'Delegacja'; zaznacz('pLokacje', 'Delegacja'); } }
+      else wypelnijPoprawke(stan && stan.wpis);
+    };
+    $('mPrev').onclick = function () { mies = przesunMies(mies, -1); ladujMiesiac(); };
+    $('mNext').onclick = function () { mies = przesunMies(mies, 1); ladujMiesiac(); };
+    $('mOsoba').onchange = function () { mOsoba = $('mOsoba').value; ladujMiesiac(); };
+    $('zPrev').onclick = function () { zMies = przesunMies(zMies, -1); ladujZespol(); };
+    $('zNext').onclick = function () { zMies = przesunMies(zMies, 1); ladujZespol(); };
+    $('nOd').onchange = function () { if ($('nDo').value < $('nOd').value) $('nDo').value = $('nOd').value; podgladNieob(); };
+    $('nDo').onchange = podgladNieob;
+  }
+
+  /* ---------- DZIŚ ---------- */
+  function odswiezDzis() {
+    if (!MA_EWIDENCJE) return;
+    rpc('stanDnia').then(pokazStan).catch(function (e) { blad(e, 'msgDzis'); });
+  }
+  function pokazStan(s) {
+    stan = s; DZIS = s.dzis;
+    $('statusData').textContent = s.dzien + ', ' + dataPL(s.dzis);
+    var w = s.wpis;
+    ['dzisBrak', 'dzisToku', 'dzisGotowy'].forEach(function (id) { $(id).className = 'hidden'; });
+    if (tyk) { clearInterval(tyk); tyk = null; }
+    if (s.otwartyWczoraj) {
+      $('kartaWczoraj').className = 'card';
+      $('wczorajData').textContent = dataPL(s.otwartyWczoraj.data);
+      $('wczorajStart').textContent = s.otwartyWczoraj.start;
+    } else $('kartaWczoraj').className = 'card hidden';
+    var st = $('status');
+    if (!w) {
+      st.className = 'status';
+      $('statusEtykieta').textContent = 'Dziś';
+      $('statusCzas').textContent = '—';
+      $('statusSub').textContent = s.roboczy ? 'Jeszcze nie zaczęto' : 'Dzień wolny od pracy';
+      $('hintWolny').textContent = s.roboczy ? '' : (WEEKEND ? 'Dziś jest dzień wolny. Praca w delegacji liczy się normalnie, a dzień wolny w zamian zgłosisz jako „Wolne” w zakładce Nieobecność.' : 'Dziś jest dzień wolny. Jeśli pracujesz, zaznacz „Robię nadgodziny” w szczegółach.');
+      $('dzisBrak').className = '';
+      if (!$('lokalizacja').value) { $('lokalizacja').value = s.ostatnieMiejsce || ''; zaznacz('lokacje', $('lokalizacja').value); }
+      $('poprawTytul').textContent = 'Wpisz dzisiejsze godziny ręcznie (zapomniany Start)';
+    } else if (w.typ !== 'Praca') {
+      st.className = 'status';
+      $('statusEtykieta').textContent = w.typ;
+      $('statusCzas').textContent = w.typ === 'Urlop' ? 'URLOP' : (w.typ === 'Wolne' ? 'WOLNE' : 'L4');
+      $('statusSub').textContent = w.uwagi || '';
+      $('dzisGotowy').className = '';
+      $('gotowyOpis').textContent = 'Na dziś zapisano: ' + opisWpisu(w) + '. Jeśli to pomyłka, usuń wpis poniżej i kliknij Start.';
+      $('poprawTytul').textContent = 'Usuń dzisiejszy wpis';
+    } else if (!w.koniec) {
+      var naPrzerwie = !!w.otwartaPrzerwa;
+      st.className = 'status ' + (naPrzerwie ? 'pauza' : 'go');
+      $('statusEtykieta').textContent = naPrzerwie ? 'Przerwa od ' + w.otwartaPrzerwa : 'W pracy od ' + w.start;
+      $('statusSub').textContent = (w.lokalizacja || '') + (w.przerwy.length ? ' · przerwy: ' + w.przerwy.map(function (p) { return p.od + '–' + (p.do || '…'); }).join(', ') : '');
+      $('dzisToku').className = '';
+      $('btnPrzerwa').className = 'big pauza' + (naPrzerwie ? ' hidden' : '');
+      $('btnWznow').className = 'big start' + (naPrzerwie ? '' : ' hidden');
+      $('tokuOpis').textContent = 'Zapomniałeś/aś kliknąć wcześniej? Godziny poprawisz w „Popraw dzisiejsze godziny” poniżej.';
+      $('poprawTytul').textContent = 'Popraw dzisiejsze godziny';
+      liczStoper(w); tyk = setInterval(function () { liczStoper(w); }, 30000);
+    } else {
+      st.className = 'status';
+      $('statusEtykieta').textContent = 'Zapisano ' + w.start + '–' + w.koniec;
+      $('statusCzas').textContent = fmt(w.godziny);
+      $('statusSub').textContent = (w.lokalizacja || '') + (w.flaga ? ' · nadgodziny: ' + w.flaga : '');
+      $('dzisGotowy').className = '';
+      $('gotowyOpis').textContent = opisWpisu(w) + '. Pomyłka? Popraw poniżej (tylko dziś).';
+      $('poprawTytul').textContent = 'Popraw dzisiejsze godziny';
+    }
+    wypelnijPoprawke(w);
+  }
+  function liczStoper(w) {
+    var teraz = naMin(terazHHMM()), start = naMin(w.start);
+    var dl = teraz - start; if (dl < 0) dl += 1440;
+    var przerwy = 0;
+    (w.przerwy || []).forEach(function (p) {
+      var od = (naMin(p.od) - start + 1440) % 1440;
+      var doG = p.do ? (naMin(p.do) - start + 1440) % 1440 : dl;
+      if (doG > od) przerwy += doG - od;
+    });
+    $('statusCzas').textContent = fmtMin(dl - przerwy);
+  }
+  function wypelnijPoprawke(w) {
+    var praca = w && w.typ === 'Praca';
+    $('pStart').value = praca ? w.start : '';
+    $('pKoniec').value = praca ? w.koniec : '';
+    $('pLokalizacja').value = praca ? w.lokalizacja : ((stan && stan.ostatnieMiejsce) || '');
+    zaznacz('pLokacje', $('pLokalizacja').value);
+    pFlaga = praca ? w.flaga : ''; zaznacz('pFlagi', pFlaga);
+    $('pUwagi').value = praca ? w.uwagi : '';
+    rysujPrzerwy('pPrzerwy', praca ? w.przerwy : []);
+    var tylkoUsun = w && w.typ !== 'Praca';
+    Array.prototype.forEach.call($('popraw').querySelectorAll('.field, .row, #btnPopraw'), function (el) {
+      if (el.id === 'pDataBox') return;
+      el.style.display = tylkoUsun ? 'none' : '';
+    });
+    $('btnUsunDzis').style.display = w ? '' : 'none';
+  }
+  function rysujPrzerwy(id, lista) { $(id).innerHTML = ''; (lista || []).forEach(function (p) { dodajPrzerwe(id, p.od, p.do); }); }
+  function dodajPrzerwe(id, od, doG) {
+    var row = document.createElement('div'); row.className = 'przerwa-row';
+    row.innerHTML = '<input type="time" step="60" class="od" value="' + (od || '') + '"><span class="mini">–</span>' +
+      '<input type="time" step="60" class="do" value="' + (doG || '') + '"><button type="button" aria-label="usuń">✕</button>';
+    row.querySelector('button').onclick = function () { row.remove(); };
+    $(id).appendChild(row);
+  }
+  function zbierzPrzerwy(id) {
+    return Array.prototype.map.call($(id).querySelectorAll('.przerwa-row'), function (r) { return { od: r.querySelector('.od').value, do: r.querySelector('.do').value }; });
+  }
+  function akcjaDzis(fn, p, btn) {
+    komunikat('msgDzis', '');
+    if (btn) btn.disabled = true;
+    var ekran = $('ekran-dzis'); zajety(ekran, true);
+    return rpc(fn, p).then(function (r) {
+      if (r && r.pytanie) {
+        return pytaj(r.pytanie).then(function (tak) {
+          if (!tak) return null;
+          var p2 = Object.assign({}, p || {});
+          if (r.kod === 'PRZERWA') p2.zamknijPrzerwe = true;
+          if (r.kod === 'DLUGI') p2.potwierdz = true;
+          if (r.kod === 'ISTNIEJE') p2.zastap = true;
+          return rpc(fn, p2);
+        });
+      }
+      return r;
+    }).then(function (r) { if (r && r.dzis) pokazStan(r); return r; })
+      .catch(function (e) { blad(e, 'msgDzis'); })
+      .then(function (r) { if (btn) btn.disabled = false; zajety(ekran, false); return r; });
+  }
+  $('btnStart').onclick = function () {
+    var lok = $('lokalizacja').value.trim();
+    if (!lok) { komunikat('msgDzis', 'Wybierz miejsce pracy.', 'err'); return; }
+    akcjaDzis('startPracy', { start: $('startRecznie').value, lokalizacja: lok, flaga: flagaStart, uwagi: $('uwagiStart').value }, this)
+      .then(function (r) { if (r) { komunikat('msgDzis', 'Start zapisany. Miłego dnia!', 'ok'); $('startRecznie').value = ''; $('uwagiStart').value = ''; } });
+  };
+  $('btnPrzerwa').onclick = function () { akcjaDzis('przerwaStart', null, this); };
+  $('btnWznow').onclick = function () { akcjaDzis('przerwaStop', null, this); };
+  $('btnKoniec').onclick = function () {
+    var self = this;
+    pytaj('Zakończyć pracę o ' + terazHHMM() + '?').then(function (tak) {
+      if (!tak) return;
+      akcjaDzis('koniecPracy', {}, self).then(function (r) { if (r && r.wpis && r.wpis.koniec) komunikat('msgDzis', 'Dzień zapisany: ' + fmt(r.wpis.godziny) + ' h.', 'ok'); });
+    });
+  };
+  $('btnWczorajZamknij').onclick = function () {
+    var k = $('wczorajKoniec').value;
+    if (!k) { komunikat('msgDzis', 'Podaj godzinę zakończenia wczorajszego dnia.', 'err'); return; }
+    akcjaDzis('koniecPracy', { koniec: k }, this).then(function (r) { if (r) komunikat('msgDzis', 'Wczorajszy dzień zamknięty.', 'ok'); });
+  };
+  $('btnPopraw').onclick = function () {
+    var p = { start: $('pStart').value, koniec: $('pKoniec').value, przerwy: zbierzPrzerwy('pPrzerwy'), lokalizacja: $('pLokalizacja').value.trim(), flaga: pFlaga, uwagi: $('pUwagi').value };
+    if (WEEKEND && $('pData').value && $('pData').value !== DZIS) p.data = $('pData').value;
+    akcjaDzis('poprawDzis', p, this).then(function (r) {
+      if (r) { komunikat('msgDzis', p.data ? 'Zapisano pracę z ' + dataPL(p.data) + '. Sprawdź w zakładce Miesiąc.' : 'Poprawka zapisana.', 'ok'); $('popraw').open = false; if (WEEKEND) $('pData').value = DZIS; }
+    });
+  };
+  $('btnUsunDzis').onclick = function () {
+    var self = this;
+    var data = (WEEKEND && $('pData').value) ? $('pData').value : DZIS;
+    pytaj('Usunąć wpis z ' + dataPL(data) + '?').then(function (tak) {
+      if (!tak) return;
+      self.disabled = true;
+      rpc('usunWpis', data).then(function () { komunikat('msgDzis', 'Wpis usunięty.', 'ok'); $('popraw').open = false; odswiezDzis(); })
+        .catch(function (e) { blad(e, 'msgDzis'); }).then(function () { self.disabled = false; });
+    });
+  };
+
+  /* ---------- MIESIĄC ---------- */
+  function ladujMiesiac() {
+    $('mNazwa').textContent = nazwaMies(mies);
+    komunikat('msgMiesiac', '');
+    var ekran = $('ekran-miesiac'); zajety(ekran, true);
+    rpc('mojMiesiac', mies, ADMIN ? mOsoba : null).then(pokazMiesiac).catch(function (e) { blad(e, 'msgMiesiac'); }).then(function () { zajety(ekran, false); });
+  }
+  function pokazMiesiac(m) {
+    var biezacy = m.mies === DZIS.slice(0, 7), zamkniety = m.mies < DZIS.slice(0, 7);
+    var odn = zamkniety ? m.norma : m.normaDoDzis;
+    $('mSuma').textContent = fmt(m.suma);
+    $('mNormaEt').textContent = zamkniety ? 'Norma' : 'Norma do dziś';
+    $('mNorma').textContent = fmt(odn) + (biezacy ? ' / ' + fmt(m.norma) : '');
+    var b = $('mBilans'); b.textContent = (m.bilans > 0 ? '+' : (m.bilans < 0 ? '−' : '')) + fmt(Math.abs(m.bilans));
+    b.className = m.bilans > 0.01 ? 'plus' : (m.bilans < -0.01 ? 'minus' : '');
+    var proc = m.norma ? Math.min(100, Math.round(m.suma / m.norma * 100)) : 0;
+    $('mBar').style.width = proc + '%';
+    $('mBarOpis').textContent = proc + '% normy miesiąca (' + fmt(m.norma) + ' h, ' + m.dniRobocze + ' dni roboczych)';
+    $('mDni').textContent = m.dniPracy; $('mUrlop').textContent = m.urlop; $('mL4').textContent = m.l4;
+    $('mHO').textContent = m.zdalnie; $('mNadg').textContent = m.nadgodziny; $('mOdbior').textContent = m.odbior;
+    $('mWolne').textContent = m.wolne; $('mEtat').textContent = etatTekst(m.etat) || '1'; $('mDniRob').textContent = m.dniRoboczeDoDzis + ' / ' + m.dniRobocze;
+    var br = $('mBraki');
+    if (m.brakujace && m.brakujace.length) {
+      br.style.display = 'block';
+      br.textContent = 'Dni robocze bez wpisu: ' + m.brakujace.map(function (d) { return d.slice(8) + '.' + d.slice(5, 7); }).join(', ') +
+        (ADMIN ? '' : '. Jeśli to urlop lub L4, zgłoś w zakładce Nieobecność. Przepracowane dni uzupełnia administrator.');
+    } else br.style.display = 'none';
+    var tb = $('mDniTabela'); tb.innerHTML = '';
+    var ety = { praca: 'praca', 'w toku': 'w toku', urlop: 'urlop', l4: 'L4', odbior: 'wolne w zamian', brak: 'brak', wolny: 'wolne', dzis: 'dziś', przyszly: '' };
+    var kl = { praca: 'praca', 'w toku': 'toku', urlop: 'urlop', l4: 'l4', odbior: 'urlop', brak: 'brak', wolny: 'wolny', dzis: 'dzis', przyszly: 'przyszly' };
+    m.dni.slice().reverse().forEach(function (d) {
+      if (d.data > m.dzis && !d.wpis) return;
+      var tr = document.createElement('tr');
+      var co = '<span class="pill ' + kl[d.status] + '">' + ety[d.status] + (!d.roboczy && d.status === 'praca' ? ' (weekend)' : '') + '</span>' +
+        (d.wpis ? ' <span class="mini">' + opisWpisu(d.wpis) + '</span>' : '');
+      tr.innerHTML = '<td class="n">' + d.data.slice(8) + ' <span class="mini">' + d.dzien + '</span></td><td>' + co + '</td><td class="n">' + (d.wpis && d.wpis.godziny ? fmt(d.wpis.godziny) : '') + '</td>';
+      if (ADMIN) { tr.className = 'klik'; tr.onclick = function () { adminZaladuj(m.imie, d); }; }
+      tb.appendChild(tr);
+    });
+  }
+  $('btnDrukuj').onclick = function () {
+    var self = this; self.disabled = true;
+    var okno = window.open('', '_blank');
+    rpc('kartaHtml', mies, ADMIN ? mOsoba : null).then(function (html) {
+      if (!okno) { komunikat('msgMiesiac', 'Przeglądarka zablokowała nowe okno. Zezwól na wyskakujące okna i spróbuj ponownie.', 'err'); return; }
+      okno.document.open(); okno.document.write(html); okno.document.close();
+      setTimeout(function () { try { okno.focus(); okno.print(); } catch (e) {} }, 400);
+    }).catch(function (e) { if (okno) okno.close(); blad(e, 'msgMiesiac'); }).then(function () { self.disabled = false; });
+  };
+  $('btnPdf').onclick = function () {
+    var self = this; self.disabled = true;
+    rpc('zapiszKartePdf', mies, ADMIN ? mOsoba : null).then(function (r) {
+      $('msgMiesiac').className = 'msg ok';
+      $('msgMiesiac').innerHTML = 'Zapisano na Dysku: <a href="' + r.url + '" target="_blank" rel="noopener">' + r.nazwa.replace(/</g, '&lt;') + '</a>';
+    }).catch(function (e) { blad(e, 'msgMiesiac'); }).then(function () { self.disabled = false; });
+  };
+
+  /* ---------- NIEOBECNOŚĆ ---------- */
+  function rodzajeDla(typ, id, cb) { chips(id, RODZAJE[typ] || [], '', cb); }
+  function podgladNieob() {
+    var od = $('nOd').value, doD = $('nDo').value;
+    if (!od || !doD || doD < od) { $('nPodglad').textContent = ''; return; }
+    var a = new Date(od), b = new Date(doD), n = 0, rob = 0;
+    for (var d = new Date(a); d <= b; d.setDate(d.getDate() + 1)) { n++; if (d.getDay() !== 0 && d.getDay() !== 6) rob++; }
+    $('nPodglad').textContent = n + ' dni kalendarzowych, ok. ' + rob + ' roboczych (święta odejmie serwer).';
+  }
+  $('btnNieob').onclick = function () {
+    var self = this; komunikat('msgNieob', '');
+    var p = { typ: nTyp, rodzaj: nRodzaj, od: $('nOd').value, do: $('nDo').value, uwagi: $('nUwagi').value };
+    if (ADMIN) p.imie = $('nOsoba').value;
+    if (!nRodzaj) { komunikat('msgNieob', 'Wybierz rodzaj.', 'err'); return; }
+    var opis = nTyp + ' (' + nRodzaj + ') ' + dataPL(p.od) + (p.do !== p.od ? ' – ' + dataPL(p.do) : '') + (p.imie ? ' dla: ' + p.imie : '');
+    pytaj('Zapisać: ' + opis + '?').then(function (tak) {
+      if (!tak) return;
+      self.disabled = true;
+      rpc('zapiszNieobecnosc', p).then(function (r) {
+        var t = 'Zapisano ' + r.zapisane.length + ' dni.';
+        if (r.pominiete.length) t += ' Pominięto (już mają wpis): ' + r.pominiete.map(dataPL).join(', ') + '.';
+        if (!r.zapisane.length && !r.pominiete.length) t = 'W tym zakresie nie ma dni roboczych.';
+        komunikat('msgNieob', t, r.zapisane.length ? 'ok' : 'info');
+        $('nUwagi').value = '';
+      }).catch(function (e) { blad(e, 'msgNieob'); }).then(function () { self.disabled = false; });
+    });
+  };
+
+  /* ---------- ZESPÓŁ ---------- */
+  function aPrzelacz() {
+    $('aPraca').className = aTyp === 'Praca' ? '' : 'hidden';
+    $('aNieob').className = aTyp === 'Praca' ? 'hidden' : '';
+    if (aTyp !== 'Praca') rodzajeDla(aTyp, 'aRodzaje', function (r) { aRodzaj = r; });
+  }
+  function ladujZespol(zostawKomunikat) {
+    $('zNazwa').textContent = nazwaMies(zMies);
+    if (!zostawKomunikat) komunikat('msgZespol', '');
+    var ekran = $('ekran-zespol'); zajety(ekran, true);
+    rpc('przegladZespolu', zMies).then(pokazZespol).catch(function (e) { blad(e, 'msgZespol'); }).then(function () { zajety(ekran, false); });
+  }
+  function pokazZespol(z) {
+    $('linkArkusz').href = z.arkuszUrl;
+    $('zInfo').textContent = 'Norma ' + fmt(z.norma) + ' h (' + z.dniRobocze + ' dni rob.)' + (z.zamkniety ? '' : ' · do dziś ' + fmt(z.normaDoDzis) + ' h') + ' · dziś ' + dataPL(z.dzis) + (z.dzisRoboczy ? '' : ' (wolne)');
+    var tb = $('zTabela'); tb.innerHTML = '';
+    z.osoby.forEach(function (o) {
+      var tr = document.createElement('tr'); tr.className = 'klik';
+      var bil = (o.bilans > 0 ? '+' : (o.bilans < 0 ? '−' : '')) + fmt(Math.abs(o.bilans));
+      tr.innerHTML = '<td><b>' + o.imie + '</b>' + (o.etat !== 1 ? ' <span class="mini">' + etatTekst(o.etat) + '</span>' : '') + (o.urlop || o.l4 ? '<br><span class="mini">urlop ' + o.urlop + ' · L4 ' + o.l4 + '</span>' : '') + '</td>' +
+        '<td class="n">' + fmt(o.godziny) + '</td>' +
+        '<td class="n" style="color:' + (o.bilans < -0.01 ? 'var(--pom2)' : 'inherit') + '">' + bil + '</td>' +
+        '<td class="n">' + (o.brakujace.length ? '<span class="pill brak">' + o.brakujace.length + '</span>' : '0') + '</td>' +
+        '<td class="mini">' + (o.dzis || (z.dzisRoboczy ? '—' : '')) + '</td>';
+      tr.onclick = function () { mOsoba = o.imie; $('mOsoba').value = o.imie; mies = zMies; pokaz('miesiac'); };
+      tb.appendChild(tr);
+    });
+  }
+  function adminZaladuj(imie, d) {
+    pokaz('zespol');
+    $('zWpis').open = true;
+    $('aOsoba').value = imie; $('aData').value = d.data;
+    var w = d.wpis;
+    aTyp = w ? w.typ : 'Praca'; zaznacz('aTypy', aTyp); aPrzelacz();
+    $('aStart').value = w && w.typ === 'Praca' ? w.start : ''; $('aKoniec').value = w && w.typ === 'Praca' ? w.koniec : '';
+    rysujPrzerwy('aPrzerwy', w && w.typ === 'Praca' ? w.przerwy : []);
+    $('aLokalizacja').value = w ? w.lokalizacja : ''; zaznacz('aLokacje', $('aLokalizacja').value);
+    aFlaga = w ? w.flaga : ''; zaznacz('aFlagi', aFlaga);
+    $('aUwagi').value = w && w.typ === 'Praca' ? w.uwagi : '';
+    $('zWpis').scrollIntoView({ behavior: 'smooth' });
+  }
+  $('btnAdminZapisz').onclick = function () {
+    var self = this; komunikat('msgZespol', '');
+    var p = { imie: $('aOsoba').value, data: $('aData').value, typ: aTyp, uwagi: $('aUwagi').value };
+    if (aTyp === 'Praca') { p.start = $('aStart').value; p.koniec = $('aKoniec').value; p.przerwy = zbierzPrzerwy('aPrzerwy'); p.lokalizacja = $('aLokalizacja').value.trim(); p.flaga = aFlaga; }
+    else p.rodzaj = aRodzaj;
+    var wyslij = function (pp) {
+      self.disabled = true;
+      return rpc('zapiszZaKogos', pp).then(function (r) {
+        if (r && r.pytanie) {
+          return pytaj(r.pytanie).then(function (tak) {
+            if (!tak) return null;
+            var p2 = Object.assign({}, pp); if (r.kod === 'ISTNIEJE') p2.zastap = true; if (r.kod === 'DLUGI') p2.potwierdz = true;
+            self.disabled = false; return wyslij(p2);
+          });
+        }
+        if (r) { komunikat('msgZespol', 'Zapisano: ' + r.imie + ', ' + dataPL(r.data) + ', ' + (r.typ === 'Praca' ? fmt(r.godziny) + ' h' : r.typ) + '.', 'ok'); ladujZespol(true); }
+        return r;
+      }).catch(function (e) { blad(e, 'msgZespol'); }).then(function (r) { self.disabled = false; return r; });
+    };
+    wyslij(p);
+  };
+  $('btnAdminUsun').onclick = function () {
+    var self = this, imie = $('aOsoba').value, data = $('aData').value;
+    pytaj('Usunąć wpis ' + imie + ' z ' + dataPL(data) + '?').then(function (tak) {
+      if (!tak) return;
+      self.disabled = true;
+      rpc('usunWpis', data, imie).then(function () { komunikat('msgZespol', 'Wpis usunięty.', 'ok'); ladujZespol(true); })
+        .catch(function (e) { blad(e, 'msgZespol'); }).then(function () { self.disabled = false; });
+    });
+  };
+  $('btnPrzelicz').onclick = function () {
+    var self = this; self.disabled = true;
+    rpc('przeliczKarte', zMies).then(function () { komunikat('msgZespol', 'Karta ' + zMies + ' i „Razem” przeliczone.', 'ok'); })
+      .catch(function (e) { blad(e, 'msgZespol'); }).then(function () { self.disabled = false; });
+  };
+</script>
+</body>
+</html>

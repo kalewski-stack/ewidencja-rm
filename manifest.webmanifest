@@ -1,0 +1,17 @@
+{
+  "name": "Ewidencja czasu pracy — Redemptoris Missio",
+  "short_name": "Ewidencja RM",
+  "description": "Start, przerwa, koniec pracy. Fundacja Pomocy Humanitarnej Redemptoris Missio.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F3F1EA",
+  "theme_color": "#383838",
+  "lang": "pl",
+  "icons": [
+    { "src": "ikony/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "ikony/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "ikony/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
