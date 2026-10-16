@@ -262,19 +262,19 @@
   <section class="ekran" id="ekran-nieob">
     <div class="card hidden" id="nOsobaBox"><label for="nOsoba">Pracownik</label><select id="nOsoba"></select></div>
     <div class="card">
-      <div class="field"><label>Typ</label><div class="chips" id="nTypy"></div></div>
-      <div class="field"><label>Rodzaj</label><div class="chips" id="nRodzaje"></div></div>
+      <div class="field"><label>Nie ma mnie, bo</label><div class="chips" id="nTypy"></div></div>
+      <div class="field" id="nRodzajeBox" style="display:none"><label>Rodzaj</label><div class="chips" id="nRodzaje"></div></div>
+      <div class="field"><label for="nUwagi" id="nUwagiEt">Powód / uwagi</label><input type="text" id="nUwagi" placeholder="np. urlop na żądanie"></div>
       <div class="row field">
         <div><label for="nOd">Od</label><input type="date" id="nOd"></div>
         <div><label for="nDo">Do</label><input type="date" id="nDo"></div>
       </div>
       <p class="hint" id="nPodglad"></p>
-      <div class="field"><label for="nUwagi">Uwagi (opcjonalnie)</label><input type="text" id="nUwagi"></div>
     </div>
     <button class="btn primary" id="btnNieob" style="padding:16px;font-size:16px">Zapisz nieobecność</button>
     <p class="hint">Zapisują się tylko dni robocze. Dni, które już mają wpis, zostaną pominięte. Pojedynczy dzień: od = do.</p>
     <p class="hint" id="hintWolne" style="display:none">„Wolne” to dzień roboczy wolny w zamian za pracę w weekend lub w święto. Godziny z weekendu wpisujesz w zakładce Dziś, w sekcji „Popraw godziny”, wybierając datę.</p>
-    <p class="hint">„Odbiór nadgodzin” to dzień wolny za wypracowane wcześniej nadgodziny: 0 h przy pełnej normie. „Inne” to dni płatne poza urlopem i L4: oddanie krwi, opieka nad dzieckiem z art. 188 KP. Dla „inne” opisz powód w uwagach.</p>
+    <p class="hint">„Odbiór nadgodzin” to dzień wolny za wypracowane wcześniej nadgodziny (0 h przy pełnej normie). „Inne” to dni płatne poza urlopem i L4, np. oddanie krwi albo opieka nad dzieckiem z art. 188 KP. Przy „Inne” powód jest obowiązkowy.</p>
     <div class="msg" id="msgNieob"></div>
   </section>
 
@@ -306,7 +306,7 @@
         <div class="field"><label>Przerwy</label><div id="aPrzerwy"></div><button class="btn ghost" id="aDodajPrzerwe" type="button">+ dodaj przerwę</button></div>
         <div class="field"><label>Miejsce pracy</label><div class="chips" id="aLokacje"></div><input type="text" id="aLokalizacja" placeholder="lub wpisz własne" style="margin-top:8px"></div>
       </div>
-      <div id="aNieob" class="hidden"><div class="field"><label>Rodzaj</label><div class="chips" id="aRodzaje"></div></div></div>
+      <div id="aNieob" class="hidden"><div class="field" id="aRodzajeBox" style="display:none"><label>Rodzaj</label><div class="chips" id="aRodzaje"></div></div></div>
       <div class="field"><label for="aUwagi">Uwagi</label><input type="text" id="aUwagi"></div>
       <div class="stack">
         <button class="btn dark" id="btnAdminZapisz">Zapisz wpis</button>
@@ -347,7 +347,7 @@
 
   var $ = function (id) { return document.getElementById(id); };
   var KLUCZ = '', JA = '', ADMIN = false, MA_EWIDENCJE = false, OSOBY = [], LOKALIZACJE = [], RODZAJE = {}, DZIS = '';
-  var ETAT = 1, KARMIENIE = false, WEEKEND = false, WEEKEND_DNI = 7;
+  var ETAT = 1, KARMIENIE = false, WEEKEND = false, WEEKEND_DNI = 7, ZAOKR = 0, ZAOKR_OD = 26;
   var stan = null, tyk = null, mies = '', zMies = '', mOsoba = '';
   var nTyp = 'Urlop', nRodzaj = '', aTyp = 'Praca', aRodzaj = '';
   var ZAKLADKI = [];
@@ -436,7 +436,7 @@
     return rpc('konfig').then(function (c) {
       zapamietaj('ewidencja_klucz', k);
       JA = c.imie; ADMIN = c.admin; MA_EWIDENCJE = c.maEwidencje; OSOBY = c.osoby; LOKALIZACJE = c.lokalizacje; RODZAJE = c.rodzaje;
-      DZIS = c.dzisiaj; ETAT = c.etat; KARMIENIE = c.karmienie; WEEKEND = c.weekend; WEEKEND_DNI = c.weekendDni;
+      DZIS = c.dzisiaj; ETAT = c.etat; KARMIENIE = c.karmienie; WEEKEND = c.weekend; WEEKEND_DNI = c.weekendDni; ZAOKR = c.zaokraglanie || 0; ZAOKR_OD = c.zaokraglanieOd || 26;
       mies = DZIS.slice(0, 7); zMies = mies; mOsoba = MA_EWIDENCJE ? JA : (OSOBY[0] || JA);
       $('ekran-klucz').className = '';
       $('app').className = '';
@@ -637,7 +637,7 @@
     }
     wypelnijPoprawke(w);
   }
-  function zaokraglij(min) { var r = min % 30, b = min - r; return r >= 26 ? b + 30 : b; }
+  function zaokraglij(min) { if (!ZAOKR) return min; var r = min % ZAOKR, b = min - r; return r >= ZAOKR_OD ? b + ZAOKR : b; }
   function liczStoper(w) {
     var teraz = naMin(terazHHMM()), start = naMin(w.start);
     var dl = teraz - start; if (dl < 0) dl += 1440;
@@ -649,8 +649,7 @@
     });
     var netto = Math.max(0, dl - przerwy);
     $('statusCzas').textContent = fmtMin(netto);
-    var sub = $('statusSub').textContent.replace(/ · liczone .*$/, '');
-    $('statusSub').textContent = sub + ' · liczone ' + fmtMin(zaokraglij(netto));
+    if (ZAOKR) { var sub = $('statusSub').textContent.replace(/ · liczone .*$/, ''); $('statusSub').textContent = sub + ' · liczone ' + fmtMin(zaokraglij(netto)); }
   }
   function wypelnijPoprawke(w) {
     var praca = w && w.typ === 'Praca';
@@ -814,10 +813,15 @@
   };
 
   /* ---------- NIEOBECNOŚĆ ---------- */
+  var PODPOWIEDZI = { 'Urlop': 'np. wypoczynkowy, na żądanie, okolicznościowy', 'L4': 'np. chorobowe, opieka nad chorym dzieckiem', 'Odbiór nadgodzin': 'opcjonalnie', 'Inne': 'np. oddanie krwi, opieka nad dzieckiem (art. 188 KP)', 'Wolne': 'np. za sobotę w delegacji' };
   function rodzajeDla(typ, id, cb) {
     var lista = RODZAJE[typ] || [];
     chips(id, lista, '', cb);
     var box = $(id).parentNode; if (box) box.style.display = lista.length ? '' : 'none';
+    if (id === 'nRodzaje') {
+      $('nUwagi').placeholder = PODPOWIEDZI[typ] || '';
+      $('nUwagiEt').textContent = typ === 'Inne' ? 'Powód (wymagany)' : 'Powód / uwagi';
+    }
   }
   function podgladNieob() {
     var od = $('nOd').value, doD = $('nDo').value;
@@ -831,8 +835,8 @@
     var p = { typ: nTyp, rodzaj: nRodzaj, od: $('nOd').value, do: $('nDo').value, uwagi: $('nUwagi').value };
     if (ADMIN) p.imie = $('nOsoba').value;
     if (!nRodzaj && (RODZAJE[nTyp] || []).length) { komunikat('msgNieob', 'Wybierz rodzaj.', 'err'); return; }
-    if (nTyp === 'Inne' && /^inne/.test(nRodzaj) && !p.uwagi.trim()) { komunikat('msgNieob', 'Przy „inne” wpisz w uwagach, co to za dzień, np. „szkolenie BHP”. Księgowość musi to widzieć.', 'err'); return; }
-    var opis = nTyp + (nRodzaj ? ' (' + nRodzaj + ')' : '') + ' ' + dataPL(p.od) + (p.do !== p.od ? ' – ' + dataPL(p.do) : '') + (p.imie ? ' dla: ' + p.imie : '');
+    if (nTyp === 'Inne' && !p.uwagi.trim()) { komunikat('msgNieob', 'Przy „Inne” wpisz powód, np. „oddanie krwi”. Księgowość musi to widzieć.', 'err'); return; }
+    var opis = nTyp + (nRodzaj ? ' (' + nRodzaj + ')' : '') + (p.uwagi.trim() ? ' – ' + p.uwagi.trim() : '') + ' ' + dataPL(p.od) + (p.do !== p.od ? ' – ' + dataPL(p.do) : '') + (p.imie ? ' dla: ' + p.imie : '');
     pytaj('Zapisać: ' + opis + '?').then(function (tak) {
       if (!tak) return;
       self.disabled = true;
