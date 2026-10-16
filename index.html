@@ -793,7 +793,13 @@
     $('mWolneOpis').textContent = (czesci.length ? czesci.join(' · ') : 'bez nieobecności') + (pelne.nieobecnosciGodz > 0.01 ? ' · zaliczone jak praca: ' + fmtH(pelne.nieobecnosciGodz) : '');
     var u = m.urlopRok;
     $('mUrlopEt').textContent = 'Wykorzystany urlop w roku ' + m.mies.slice(0, 4);
-    if (u) {
+    if (u && u.godzinowo) {
+      // niepełny etat: pula w godzinach, dzień urlopu = norma dzienna (art. 154 § 2 KP)
+      $('mUrlop').innerHTML = '<em>' + fmtH(u.wykorzystaneGodz) + '</em> z przysługujących ' + fmtH(u.przyslugujeGodz);
+      $('mUrlopOpis').textContent = liczDni(u.wykorzystane, 'dzień urlopu', 'dni urlopu', 'dni urlopu') + ' po ' + fmtH(u.normaDzienna) +
+        ' · ' + (u.zostaloGodz > 0.01 ? 'zostało ' + fmtH(u.zostaloGodz) + ' (' + liczDni(Math.floor(u.zostaloDni), 'dzień', 'dni', 'dni') + ')' : 'cały urlop wykorzystany') +
+        (u.zaplanowane ? ' · w tym ' + liczDni(u.zaplanowane, 'dzień zaplanowany', 'dni zaplanowane', 'dni zaplanowanych') + ' na później' : '');
+    } else if (u) {
       $('mUrlop').innerHTML = '<em>' + liczDni(u.wykorzystane, 'dzień', 'dni', 'dni') + '</em> z przysługujących ' + u.przysluguje;
       $('mUrlopOpis').textContent = (u.zostalo > 0 ? 'zostało ' + liczDni(u.zostalo, 'dzień', 'dni', 'dni') : 'cały urlop wykorzystany') +
         (u.zaplanowane ? ' · w tym ' + liczDni(u.zaplanowane, 'dzień zaplanowany', 'dni zaplanowane', 'dni zaplanowanych') + ' na później' : '');
@@ -934,7 +940,7 @@
     z.osoby.forEach(function (o) {
       var tr = document.createElement('tr'); tr.className = 'klik';
       var rz = o.rozliczenie || {};
-      tr.innerHTML = '<td><b>' + o.imie + '</b>' + (o.etat !== 1 ? ' <span class="mini">' + etatTekst(o.etat) + '</span>' : '') + '<br><span class="mini">urlop w roku ' + (o.urlopRok ? o.urlopRok.wykorzystane + '/' + o.urlopRok.przysluguje : '—') + (o.urlop || o.l4 || o.inne || o.odbior ? ' · w mies.: urlop ' + (o.urlop || 0) + ', L4 ' + (o.l4 || 0) + (o.odbior ? ', odbiór ' + o.odbior : '') + (o.inne ? ', inne ' + o.inne : '') : '') + '</span></td>' +
+      tr.innerHTML = '<td><b>' + o.imie + '</b>' + (o.etat !== 1 ? ' <span class="mini">' + etatTekst(o.etat) + '</span>' : '') + '<br><span class="mini">urlop w roku ' + (o.urlopRok ? (o.urlopRok.godzinowo ? fmtH(o.urlopRok.wykorzystaneGodz) + ' / ' + fmtH(o.urlopRok.przyslugujeGodz) : o.urlopRok.wykorzystane + '/' + o.urlopRok.przysluguje + ' dni') : '—') + (o.urlop || o.l4 || o.inne || o.odbior ? ' · w mies.: urlop ' + (o.urlop || 0) + ', L4 ' + (o.l4 || 0) + (o.odbior ? ', odbiór ' + o.odbior : '') + (o.inne ? ', inne ' + o.inne : '') : '') + '</span></td>' +
         '<td class="n">' + fmtH(rz.razem != null ? rz.razem : o.godziny) + '</td>' +
         '<td class="n" style="color:' + (rz.nadgodziny > 0.01 ? 'var(--pom2)' : 'inherit') + '">' + (rz.nadgodziny > 0.01 ? '+' + fmtH(rz.nadgodziny) : '0 h 00 min') + '</td>' +
         '<td class="n">' + fmtH(rz.zostalo || 0) + '</td>' +
