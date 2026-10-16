@@ -104,6 +104,8 @@
   .pod{background:var(--piasek);border-radius:14px;padding:12px 14px 10px}
   .pod.glowny{grid-column:1 / -1;background:var(--grafit);color:var(--biel)}
   .pod.szeroki{grid-column:1 / -1;background:var(--bez);border:1px solid var(--piasek)}
+  tr.tydzien td{background:var(--bez);font-size:12px;color:var(--grafit);border-top:2px solid var(--piasek);padding-top:8px;padding-bottom:8px}
+  tr.tydzien td b{font-weight:600}
   .pod.szeroki b em{font-style:normal;color:var(--pom2)}
   .pod span{display:block;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--szary);font-weight:600}
   .pod.glowny span{color:#C9C9C9}
@@ -763,7 +765,7 @@
     var biezacy = m.mies === DZIS.slice(0, 7), zamkniety = m.mies < DZIS.slice(0, 7);
     var ja = (!ADMIN || m.imie === JA);
     $('mSuma').textContent = fmtH(m.suma);
-    $('mSumaDni').textContent = liczDni(m.dniPracy, 'dzień pracy', 'dni pracy', 'dni pracy') + (m.zdalnie ? ', w tym ' + m.zdalnie + ' HO' : '') + ' · norma dzienna ' + fmtH((m.rozliczenie || {}).normaDzienna || 8) + (m.etat !== 1 ? ' (etat ' + etatTekst(m.etat) + ')' : '');
+    $('mSumaDni').textContent = liczDni(m.dniPracy, 'dzień pracy', 'dni pracy', 'dni pracy') + (m.zdalnie ? ', w tym ' + m.zdalnie + ' HO' : '') + ((m.rozliczenie || {}).tryb === 'tydzien' ? ' · norma tygodniowa ' + fmtH(m.rozliczenie.normaTygodniowa) : ' · norma dzienna ' + fmtH((m.rozliczenie || {}).normaDzienna || 8)) + (m.etat !== 1 ? ' (etat ' + etatTekst(m.etat) + ')' : '');
     document.querySelector('.pod.glowny span').textContent = ja ? 'Przepracowałeś/aś w tym miesiącu' : m.imie + ' przepracował/a';
     var roz = m.rozliczenie || {};
     var pelne = m.rozliczeniePelne || roz;
@@ -778,7 +780,10 @@
     }
     var nad = roz.nadgodziny || 0;
     $('mNadg').textContent = nad > 0.01 ? '+' + fmtH(nad) : '0 h 00 min';
-    $('mNadgOpis').textContent = (roz.pokryte > 0.01 ? fmtH(roz.pokryte) + ' poszło na krótsze dni i odbiory · ' : '') + 'norma dzienna ' + fmtH(roz.normaDzienna) + (roz.luki - roz.pokryte > 0.01 ? ' · krótsze dni bez pokrycia: ' + fmtH(roz.luki - roz.pokryte) : '');
+    var tyg = roz.tryb === 'tydzien';
+    $('mNadgOpis').textContent = (roz.pokryte > 0.01 ? fmtH(roz.pokryte) + ' poszło na ' + (tyg ? 'krótsze tygodnie' : 'krótsze dni') + ' i odbiory · ' : '') +
+      (tyg ? 'liczone z sumy tygodnia, norma ' + fmtH(roz.normaTygodniowa) + '/tydz.' : 'norma dzienna ' + fmtH(roz.normaDzienna)) +
+      (roz.luki - roz.pokryte > 0.01 ? ' · ' + (tyg ? 'krótsze tygodnie' : 'krótsze dni') + ' bez pokrycia: ' + fmtH(roz.luki - roz.pokryte) : '');
     var wolneDni = (m.urlop || 0) + (m.l4 || 0) + (m.wolne || 0) + (m.odbior || 0) + (m.inne || 0);
     $('mWolneDni').textContent = liczDni(wolneDni, 'dzień', 'dni', 'dni');
     var czesci = [];
@@ -804,8 +809,22 @@
     var tb = $('mDniTabela'); tb.innerHTML = '';
     var ety = { praca: 'praca', 'w toku': 'w pracy', urlop: 'urlop', l4: 'L4', 'wolne-zamian': 'wolne w zamian', odbior: 'odbiór nadgodzin', inne: 'inne', brak: 'brak wpisu', wolny: 'wolne', dzis: 'dziś', przyszly: '' };
     var kl = { praca: 'praca', 'w toku': 'toku', urlop: 'urlop', l4: 'l4', 'wolne-zamian': 'urlop', odbior: 'urlop', inne: 'urlop', brak: 'brak', wolny: 'wolny', dzis: 'dzis', przyszly: 'przyszly' };
+    var tygodnie = (roz.tryb === 'tydzien' && roz.tygodnie) ? roz.tygodnie : [];
+    var tygPokazany = {};
     m.dni.slice().reverse().forEach(function (d) {
       if (d.data > m.dzis && !d.wpis) return;
+      tygodnie.forEach(function (t) {
+        if (d.data < t.od || d.data > t.do || tygPokazany[t.od]) return;
+        tygPokazany[t.od] = true;
+        var trT = document.createElement('tr'); trT.className = 'tydzien';
+        var r = t.roznica || 0, opis;
+        if (!t.zamkniety) opis = (t.dniPracy || t.nieobecnosci ? 'w toku · ' : 'bez wpisów · ') + 'do normy ' + fmtH(Math.max(0, t.normaPoNieobecnosciach - t.godziny));
+        else if (Math.abs(r) < 0.01) opis = 'norma wyrobiona';
+        else opis = (r > 0 ? '<span style="color:var(--pom2)">+' : '<span style="color:var(--szary)">−') + fmtH(Math.abs(r)) + '</span>';
+        trT.innerHTML = '<td colspan="2"><b>Tydzień ' + t.od.slice(8) + '–' + t.do.slice(8) + '.' + t.do.slice(5, 7) + '</b> <span class="mini">norma ' + fmtH(t.normaPoNieobecnosciach) + (t.nieobecnosci ? ' (po nieobecnościach)' : '') + '</span></td>' +
+          '<td class="n"><b>' + fmtH(t.godziny) + '</b><br><span class="mini">' + opis + '</span></td>';
+        tb.appendChild(trT);
+      });
       var tr = document.createElement('tr');
       var w = d.wpis, co, godz = '';
       if (w && w.typ === 'Praca') {
