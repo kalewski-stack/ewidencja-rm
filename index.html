@@ -769,10 +769,7 @@
     }
     var nad = roz.nadgodziny || 0;
     $('mNadg').textContent = nad > 0.01 ? '+' + fmtH(nad) : fmtH(0);
-    var tyg = roz.tryb === 'tydzien';
-    $('mNadgOpis').textContent = (roz.pokryte > 0.01 ? fmtH(roz.pokryte) + ' poszło na ' + (tyg ? 'krótsze tygodnie' : 'krótsze dni') + ' i odbiory · ' : '') +
-      (tyg ? 'liczone z sumy tygodnia, norma ' + fmtH(roz.normaTygodniowa) + '/tydz.' : 'norma dzienna ' + fmtH(roz.normaDzienna)) +
-      (roz.luki - roz.pokryte > 0.01 ? ' · ' + (tyg ? 'krótsze tygodnie' : 'krótsze dni') + ' bez pokrycia: ' + fmtH(roz.luki - roz.pokryte) : '');
+    $('mNadgOpis').textContent = '';
     var wolneDni = (m.urlop || 0) + (m.l4 || 0) + (m.wolne || 0) + (m.odbior || 0) + (m.inne || 0);
     $('mWolneDni').textContent = liczDni(wolneDni, 'dzień', 'dni', 'dni');
     var czesci = [];
