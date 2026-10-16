@@ -764,19 +764,21 @@
   function pokazMiesiac(m) {
     var biezacy = m.mies === DZIS.slice(0, 7), zamkniety = m.mies < DZIS.slice(0, 7);
     var ja = (!ADMIN || m.imie === JA);
-    $('mSuma').textContent = fmtH(m.suma);
-    $('mSumaDni').textContent = liczDni(m.dniPracy, 'dzień pracy', 'dni pracy', 'dni pracy') + (m.zdalnie ? ', w tym ' + m.zdalnie + ' HO' : '') + ((m.rozliczenie || {}).tryb === 'tydzien' ? ' · norma tygodniowa ' + fmtH(m.rozliczenie.normaTygodniowa) : ' · norma dzienna ' + fmtH((m.rozliczenie || {}).normaDzienna || 8)) + (m.etat !== 1 ? ' (etat ' + etatTekst(m.etat) + ')' : '');
+    var rozS = m.rozliczenie || {};
+    $('mSuma').textContent = fmtH(rozS.razem != null ? rozS.razem : m.suma);
+    $('mSumaDni').textContent = (rozS.nieobecnosciGodz > 0.01 ? 'praca ' + fmtH(m.suma) + ' + urlop/L4/inne ' + fmtH(rozS.nieobecnosciGodz) + ' · ' : '') +
+      liczDni(m.dniPracy, 'dzień pracy', 'dni pracy', 'dni pracy') + (m.zdalnie ? ', w tym ' + m.zdalnie + ' HO' : '') + ((m.rozliczenie || {}).tryb === 'tydzien' ? ' · norma tygodniowa ' + fmtH(m.rozliczenie.normaTygodniowa) : ' · norma dzienna ' + fmtH((m.rozliczenie || {}).normaDzienna || 8)) + (m.etat !== 1 ? ' (etat ' + etatTekst(m.etat) + ')' : '');
     document.querySelector('.pod.glowny span').textContent = ja ? 'Przepracowałeś/aś w tym miesiącu' : m.imie + ' przepracował/a';
     var roz = m.rozliczenie || {};
     var pelne = m.rozliczeniePelne || roz;
     if (zamkniety) {
       $('mZostaloEt').textContent = 'Wynik miesiąca';
       $('mZostalo').textContent = roz.zostalo > 0.01 ? fmtH(roz.zostalo) + ' poniżej normy' : 'norma wyrobiona';
-      $('mZostaloOpis').textContent = 'norma ' + fmtH(roz.norma) + (roz.nieobecnosciGodz ? ', po nieobecnościach ' + fmtH(roz.normaPoNieobecnosciach) : '');
+      $('mZostaloOpis').textContent = 'norma ' + fmtH(roz.norma) + (roz.obnizenieNormy ? ', po obniżeniu ' + fmtH(roz.normaPoNieobecnosciach) : '') + ' · zaliczone ' + fmtH(roz.zaliczone);
     } else {
       $('mZostaloEt').textContent = 'Zostało do normy';
       $('mZostalo').textContent = pelne.zostalo > 0.01 ? fmtH(pelne.zostalo) : 'norma wyrobiona';
-      $('mZostaloOpis').textContent = 'norma ' + fmtH(pelne.norma) + (pelne.nieobecnosciGodz ? ', po nieobecnościach ' + fmtH(pelne.normaPoNieobecnosciach) : '') + ' · ' + (m.dniRobocze - m.dniRoboczeDoDzis) + ' dni roboczych przed Tobą';
+      $('mZostaloOpis').textContent = 'norma ' + fmtH(pelne.norma) + (pelne.obnizenieNormy ? ', po obniżeniu ' + fmtH(pelne.normaPoNieobecnosciach) : '') + ' · ' + (m.dniRobocze - m.dniRoboczeDoDzis) + ' dni roboczych przed Tobą';
     }
     var nad = roz.nadgodziny || 0;
     $('mNadg').textContent = nad > 0.01 ? '+' + fmtH(nad) : '0 h 00 min';
@@ -788,7 +790,7 @@
     $('mWolneDni').textContent = liczDni(wolneDni, 'dzień', 'dni', 'dni');
     var czesci = [];
     if (m.urlop) czesci.push('urlop ' + m.urlop); if (m.l4) czesci.push('L4 ' + m.l4); if (m.odbior) czesci.push('odbiór ' + m.odbior); if (m.inne) czesci.push('inne ' + m.inne); if (m.wolne) czesci.push('wolne ' + m.wolne);
-    $('mWolneOpis').textContent = czesci.length ? czesci.join(' · ') : 'bez nieobecności';
+    $('mWolneOpis').textContent = (czesci.length ? czesci.join(' · ') : 'bez nieobecności') + (pelne.nieobecnosciGodz > 0.01 ? ' · zaliczone jak praca: ' + fmtH(pelne.nieobecnosciGodz) : '');
     var u = m.urlopRok;
     $('mUrlopEt').textContent = 'Wykorzystany urlop w roku ' + m.mies.slice(0, 4);
     if (u) {
@@ -818,11 +820,11 @@
         tygPokazany[t.od] = true;
         var trT = document.createElement('tr'); trT.className = 'tydzien';
         var r = t.roznica || 0, opis;
-        if (!t.zamkniety) opis = (t.dniPracy || t.nieobecnosci ? 'w toku · ' : 'bez wpisów · ') + 'do normy ' + fmtH(Math.max(0, t.normaPoNieobecnosciach - t.godziny));
+        if (!t.zamkniety) opis = (t.dniPracy || t.nieobecnosci ? 'w toku · ' : 'bez wpisów · ') + 'do normy ' + fmtH(Math.max(0, t.normaPoNieobecnosciach - t.razem));
         else if (Math.abs(r) < 0.01) opis = 'norma wyrobiona';
         else opis = (r > 0 ? '<span style="color:var(--pom2)">+' : '<span style="color:var(--szary)">−') + fmtH(Math.abs(r)) + '</span>';
-        trT.innerHTML = '<td colspan="2"><b>Tydzień ' + t.od.slice(8) + '–' + t.do.slice(8) + '.' + t.do.slice(5, 7) + '</b> <span class="mini">norma ' + fmtH(t.normaPoNieobecnosciach) + (t.nieobecnosci ? ' (po nieobecnościach)' : '') + '</span></td>' +
-          '<td class="n"><b>' + fmtH(t.godziny) + '</b><br><span class="mini">' + opis + '</span></td>';
+        trT.innerHTML = '<td colspan="2"><b>Tydzień ' + t.od.slice(8) + '–' + t.do.slice(8) + '.' + t.do.slice(5, 7) + '</b> <span class="mini">norma ' + fmtH(t.normaPoNieobecnosciach) + (t.nieobecnosci ? ' · w tym urlop/L4 ' + fmtH(t.nieobecnosci) : '') + '</span></td>' +
+          '<td class="n"><b>' + fmtH(t.razem) + '</b><br><span class="mini">' + opis + '</span></td>';
         tb.appendChild(trT);
       });
       var tr = document.createElement('tr');
@@ -833,6 +835,7 @@
         godz = w.koniec ? fmtH(w.godziny) + (d.roznica !== null && d.roznica !== undefined && Math.abs(d.roznica) > 0.01 ? '<br><span class="mini" style="color:' + (d.roznica > 0 ? 'var(--pom2)' : 'var(--szary)') + '">' + (d.roznica > 0 ? '+' : '−') + fmtH(Math.abs(d.roznica)) + '</span>' : '') : '';
       } else if (w) {
         co = '<span class="pill ' + kl[d.status] + '">' + ety[d.status] + '</span>' + (w.uwagi ? ' <span class="mini">' + w.uwagi + '</span>' : '');
+        if (w.typ !== 'Odbiór nadgodzin' && d.roboczy && (roz.tryb !== 'tydzien' || w.typ !== 'Wolne')) godz = '<span class="mini">' + fmtH(roz.normaDzienna || 8) + ' zaliczone</span>';
       } else {
         co = '<span class="pill ' + kl[d.status] + '">' + ety[d.status] + '</span>';
       }
@@ -932,7 +935,7 @@
       var tr = document.createElement('tr'); tr.className = 'klik';
       var rz = o.rozliczenie || {};
       tr.innerHTML = '<td><b>' + o.imie + '</b>' + (o.etat !== 1 ? ' <span class="mini">' + etatTekst(o.etat) + '</span>' : '') + '<br><span class="mini">urlop w roku ' + (o.urlopRok ? o.urlopRok.wykorzystane + '/' + o.urlopRok.przysluguje : '—') + (o.urlop || o.l4 || o.inne || o.odbior ? ' · w mies.: urlop ' + (o.urlop || 0) + ', L4 ' + (o.l4 || 0) + (o.odbior ? ', odbiór ' + o.odbior : '') + (o.inne ? ', inne ' + o.inne : '') : '') + '</span></td>' +
-        '<td class="n">' + fmtH(o.godziny) + '</td>' +
+        '<td class="n">' + fmtH(rz.razem != null ? rz.razem : o.godziny) + '</td>' +
         '<td class="n" style="color:' + (rz.nadgodziny > 0.01 ? 'var(--pom2)' : 'inherit') + '">' + (rz.nadgodziny > 0.01 ? '+' + fmtH(rz.nadgodziny) : '0 h 00 min') + '</td>' +
         '<td class="n">' + fmtH(rz.zostalo || 0) + '</td>' +
         '<td class="n">' + (o.brakujace.length ? '<span class="pill brak">' + o.brakujace.length + '</span>' : '0') + '</td>' +
