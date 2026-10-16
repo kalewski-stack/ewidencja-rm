@@ -103,6 +103,8 @@
   .pods{display:grid;grid-template-columns:1fr 1fr;gap:8px}
   .pod{background:var(--piasek);border-radius:14px;padding:12px 14px 10px}
   .pod.glowny{grid-column:1 / -1;background:var(--grafit);color:var(--biel)}
+  .pod.szeroki{grid-column:1 / -1;background:var(--bez);border:1px solid var(--piasek)}
+  .pod.szeroki b em{font-style:normal;color:var(--pom2)}
   .pod span{display:block;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--szary);font-weight:600}
   .pod.glowny span{color:#C9C9C9}
   .pod b{display:block;font-size:22px;font-weight:600;margin-top:2px;line-height:1.2}
@@ -254,6 +256,7 @@
         <div class="pod"><span id="mZostaloEt">Zostało do normy</span><b id="mZostalo">—</b><small id="mZostaloOpis"></small></div>
         <div class="pod"><span>Nadgodziny</span><b id="mNadg">—</b><small id="mNadgOpis"></small></div>
         <div class="pod"><span>Dni wolne</span><b id="mWolneDni">—</b><small id="mWolneOpis"></small></div>
+        <div class="pod szeroki"><span id="mUrlopEt">Wykorzystany urlop w tym roku</span><b id="mUrlop">—</b><small id="mUrlopOpis"></small></div>
       </div>
       <div class="bar"><i id="mBar" style="width:0"></i></div>
       <p class="mini" id="mBarOpis" style="margin:0"></p>
@@ -781,6 +784,13 @@
     var czesci = [];
     if (m.urlop) czesci.push('urlop ' + m.urlop); if (m.l4) czesci.push('L4 ' + m.l4); if (m.odbior) czesci.push('odbiór ' + m.odbior); if (m.inne) czesci.push('inne ' + m.inne); if (m.wolne) czesci.push('wolne ' + m.wolne);
     $('mWolneOpis').textContent = czesci.length ? czesci.join(' · ') : 'bez nieobecności';
+    var u = m.urlopRok;
+    $('mUrlopEt').textContent = 'Wykorzystany urlop w roku ' + m.mies.slice(0, 4);
+    if (u) {
+      $('mUrlop').innerHTML = '<em>' + liczDni(u.wykorzystane, 'dzień', 'dni', 'dni') + '</em> z przysługujących ' + u.przysluguje;
+      $('mUrlopOpis').textContent = (u.zostalo > 0 ? 'zostało ' + liczDni(u.zostalo, 'dzień', 'dni', 'dni') : 'cały urlop wykorzystany') +
+        (u.zaplanowane ? ' · w tym ' + liczDni(u.zaplanowane, 'dzień zaplanowany', 'dni zaplanowane', 'dni zaplanowanych') + ' na później' : '');
+    } else { $('mUrlop').textContent = '—'; $('mUrlopOpis').textContent = ''; }
     var normaCel = pelne.normaPoNieobecnosciach || m.norma;
     var proc = normaCel ? Math.min(100, Math.round((pelne.zaliczone || 0) / normaCel * 100)) : 0;
     $('mBar').style.width = proc + '%';
@@ -902,7 +912,7 @@
     z.osoby.forEach(function (o) {
       var tr = document.createElement('tr'); tr.className = 'klik';
       var rz = o.rozliczenie || {};
-      tr.innerHTML = '<td><b>' + o.imie + '</b>' + (o.etat !== 1 ? ' <span class="mini">' + etatTekst(o.etat) + '</span>' : '') + (o.urlop || o.l4 || o.inne || o.odbior ? '<br><span class="mini">urlop ' + (o.urlop || 0) + ' · L4 ' + (o.l4 || 0) + (o.odbior ? ' · odbiór ' + o.odbior : '') + (o.inne ? ' · inne ' + o.inne : '') + '</span>' : '') + '</td>' +
+      tr.innerHTML = '<td><b>' + o.imie + '</b>' + (o.etat !== 1 ? ' <span class="mini">' + etatTekst(o.etat) + '</span>' : '') + '<br><span class="mini">urlop w roku ' + (o.urlopRok ? o.urlopRok.wykorzystane + '/' + o.urlopRok.przysluguje : '—') + (o.urlop || o.l4 || o.inne || o.odbior ? ' · w mies.: urlop ' + (o.urlop || 0) + ', L4 ' + (o.l4 || 0) + (o.odbior ? ', odbiór ' + o.odbior : '') + (o.inne ? ', inne ' + o.inne : '') : '') + '</span></td>' +
         '<td class="n">' + fmtH(o.godziny) + '</td>' +
         '<td class="n" style="color:' + (rz.nadgodziny > 0.01 ? 'var(--pom2)' : 'inherit') + '">' + (rz.nadgodziny > 0.01 ? '+' + fmtH(rz.nadgodziny) : '0 h 00 min') + '</td>' +
         '<td class="n">' + fmtH(rz.zostalo || 0) + '</td>' +
