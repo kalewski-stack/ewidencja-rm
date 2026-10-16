@@ -385,10 +385,9 @@
     });
   }
   function zajety(el, tak) { el.className = el.className.replace(' ladowanie', '') + (tak ? ' ladowanie' : ''); }
-  function fmt(h) { var m = Math.round((h || 0) * 60); return Math.floor(m / 60) + ':' + ('0' + (m % 60)).slice(-2); }
-  function fmtH(h) { var m = Math.round(Math.abs(h || 0) * 60), g = Math.floor(m / 60), r = m % 60; return r ? (g ? g + ' h ' + r + ' min' : r + ' min') : g + ' h'; }
+    function fmtH(h) { var m = Math.round(Math.abs(h || 0) * 60); return Math.floor(m / 60) + ' h ' + ('0' + (m % 60)).slice(-2) + ' min'; }
   function liczDni(n, j, m, w) { n = Number(n) || 0; if (n === 1) return n + ' ' + j; var r = n % 10, s = n % 100; return n + ' ' + ((r >= 2 && r <= 4 && (s < 12 || s > 14)) ? m : w); }
-  function fmtMin(min) { if (min < 0) min = 0; return Math.floor(min / 60) + ':' + ('0' + (min % 60)).slice(-2); }
+  function fmtMin(min) { if (min < 0) min = 0; return Math.floor(min / 60) + ' h ' + ('0' + (min % 60)).slice(-2) + ' min'; }
   function naMin(t) { var c = t.split(':'); return Number(c[0]) * 60 + Number(c[1]); }
   function terazHHMM() { var d = new Date(); return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2); }
   function dataPL(d) { return d.slice(8) + '.' + d.slice(5, 7) + '.' + d.slice(0, 4); }
@@ -628,10 +627,10 @@
     } else if (zakonczony) {
       st.className = 'status';
       $('statusEtykieta').textContent = 'Zapisano ' + w.start + '–' + w.koniec;
-      $('statusCzas').textContent = fmt(w.godziny);
-      $('statusSub').textContent = (w.lokalizacja || '') + (w.godzinyFaktyczne && Math.abs(w.godzinyFaktyczne - w.godziny) > 0.01 ? ' · faktycznie ' + fmt(w.godzinyFaktyczne) + ', liczone ' + fmt(w.godziny) : '');
+      $('statusCzas').textContent = fmtH(w.godziny);
+      $('statusSub').textContent = (w.lokalizacja || '') + (w.godzinyFaktyczne && Math.abs(w.godzinyFaktyczne - w.godziny) > 0.01 ? ' · faktycznie ' + fmtH(w.godzinyFaktyczne) + ', liczone ' + fmtH(w.godziny) : '');
       pow.className = 'powitanie koniec';
-      pow.innerHTML = '<b>Jupi! Możesz iść do domu. 🎉</b>To koniec Twojego dnia pracy: ' + fmt(w.godziny) + ' h'+ (w.przerwy.length ? ' (po odjęciu przerw)' : '') + '. ' + tekstDoZobaczenia(s) +
+      pow.innerHTML = '<b>Jupi! Możesz iść do domu. 🎉</b>To koniec Twojego dnia pracy: ' + fmtH(w.godziny) + ' h'+ (w.przerwy.length ? ' (po odjęciu przerw)' : '') + '. ' + tekstDoZobaczenia(s) +
         '<span class="mini">Pomyłka? Godziny poprawisz poniżej, tylko dziś.</span>';
       $('poprawTytul').textContent = 'Ustaw ręcznie';
     }
@@ -758,7 +757,7 @@
     }
     var odn = zamkniety ? m.norma : m.normaDoDzis;
     var nad = m.suma - odn;
-    $('mNadg').textContent = nad > 0.01 ? '+' + fmtH(nad) : '0 h';
+    $('mNadg').textContent = nad > 0.01 ? '+' + fmtH(nad) : '0 h 00 min';
     $('mNadgOpis').textContent = nad > 0.01 ? 'ponad normę ' + (zamkniety ? 'miesiąca' : 'do dziś') : (nad < -0.01 ? 'do normy na dziś brakuje ' + fmtH(nad) : 'równo z normą');
     var wolneDni = (m.urlop || 0) + (m.l4 || 0) + (m.wolne || 0) + (m.odbior || 0) + (m.inne || 0);
     $('mWolneDni').textContent = liczDni(wolneDni, 'dzień', 'dni', 'dni');
@@ -880,13 +879,13 @@
   }
   function pokazZespol(z) {
     $('linkArkusz').href = z.arkuszUrl;
-    $('zInfo').textContent = 'Norma ' + fmt(z.norma) + ' h (' + z.dniRobocze + ' dni rob.)' + (z.zamkniety ? '' : ' · do dziś ' + fmt(z.normaDoDzis) + ' h') + ' · dziś ' + dataPL(z.dzis) + (z.dzisRoboczy ? '' : ' (wolne)');
+    $('zInfo').textContent = 'Norma ' + fmtH(z.norma) + ' (' + z.dniRobocze + ' dni rob.)' + (z.zamkniety ? '' : ' · do dziś ' + fmtH(z.normaDoDzis) + ' h') + ' · dziś ' + dataPL(z.dzis) + (z.dzisRoboczy ? '' : ' (wolne)');
     var tb = $('zTabela'); tb.innerHTML = '';
     z.osoby.forEach(function (o) {
       var tr = document.createElement('tr'); tr.className = 'klik';
-      var bil = (o.bilans > 0 ? '+' : (o.bilans < 0 ? '−' : '')) + fmt(Math.abs(o.bilans));
+      var bil = (o.bilans > 0 ? '+' : (o.bilans < 0 ? '−' : '')) + fmtH(Math.abs(o.bilans));
       tr.innerHTML = '<td><b>' + o.imie + '</b>' + (o.etat !== 1 ? ' <span class="mini">' + etatTekst(o.etat) + '</span>' : '') + (o.urlop || o.l4 ? '<br><span class="mini">urlop ' + o.urlop + ' · L4 ' + o.l4 + '</span>' : '') + '</td>' +
-        '<td class="n">' + fmt(o.godziny) + '</td>' +
+        '<td class="n">' + fmtH(o.godziny) + '</td>' +
         '<td class="n" style="color:' + (o.bilans < -0.01 ? 'var(--pom2)' : 'inherit') + '">' + bil + '</td>' +
         '<td class="n">' + (o.brakujace.length ? '<span class="pill brak">' + o.brakujace.length + '</span>' : '0') + '</td>' +
         '<td class="mini">' + (o.dzis || (z.dzisRoboczy ? '—' : '')) + '</td>';
@@ -921,7 +920,7 @@
             self.disabled = false; return wyslij(p2);
           });
         }
-        if (r) { komunikat('msgZespol', 'Zapisano: ' + r.imie + ', ' + dataPL(r.data) + ', ' + (r.typ === 'Praca' ? fmt(r.godziny) + ' h' : r.typ) + '.', 'ok'); ladujZespol(true); }
+        if (r) { komunikat('msgZespol', 'Zapisano: ' + r.imie + ', ' + dataPL(r.data) + ', ' + (r.typ === 'Praca' ? fmtH(r.godziny) : r.typ) + '.', 'ok'); ladujZespol(true); }
         return r;
       }).catch(function (e) { blad(e, 'msgZespol'); }).then(function (r) { self.disabled = false; return r; });
     };
