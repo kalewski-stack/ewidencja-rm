@@ -47,6 +47,9 @@
   .chips{display:flex;gap:8px;flex-wrap:wrap}
   .chip{flex:1 1 auto;min-width:64px;padding:10px 14px;border:1px solid var(--piasek);background:var(--biel);border-radius:999px;font:inherit;font-size:15px;color:var(--grafit);cursor:pointer}
   .chip[aria-pressed=true]{background:var(--grafit);color:var(--biel);border-color:var(--grafit)}
+  .chips.miejsca{display:grid;grid-template-columns:repeat(6,1fr)}
+  .chips.miejsca .chip{grid-column:span 2;min-width:0}
+  .chips.miejsca .chip:nth-child(n+4){grid-column:span 3}
   .row{display:flex;gap:10px}
   .row>div{flex:1}
   .big{width:100%;padding:18px;border:0;border-radius:999px;font:inherit;font-size:18px;font-weight:600;cursor:pointer;letter-spacing:.04em;text-transform:uppercase}
@@ -191,9 +194,17 @@
     </div>
 
     <div class="card" id="kartaMiejsce">
-      <label>Miejsce pracy</label>
-      <div class="chips" id="lokacje"></div>
-      <input type="text" id="lokalizacja" placeholder="lub wpisz własne" style="margin-top:8px">
+      <div class="field">
+        <label>Miejsce pracy</label>
+        <div class="chips miejsca" id="lokacje"></div>
+        <input type="text" id="lokalizacja" placeholder="lub wpisz własne" style="margin-top:8px">
+      </div>
+      <div class="field"><label for="uwagiStart">Uwagi (opcjonalnie)</label><input type="text" id="uwagiStart" placeholder="np. wyjazd do Kalisza, szkolenie"></div>
+    </div>
+    <div class="card hidden" id="kartaUwagi">
+      <label for="uwagiDnia">Uwagi do dzisiejszego dnia (opcjonalnie)</label>
+      <input type="text" id="uwagiDnia" placeholder="np. wyjazd do Kalisza, szkolenie">
+      <p class="hint" style="margin-top:6px">Zapiszą się razem z Koniec pracy.</p>
     </div>
 
     <div class="powitanie hidden" id="powitanie"></div>
@@ -219,7 +230,7 @@
         <div><label for="pKoniec">Koniec</label><input type="time" id="pKoniec" step="60"></div>
       </div>
       <div class="field"><label>Przerwy</label><div id="pPrzerwy"></div><button class="btn ghost" id="pDodajPrzerwe" type="button">+ dodaj przerwę</button></div>
-      <div class="field"><label>Miejsce pracy</label><div class="chips" id="pLokacje"></div><input type="text" id="pLokalizacja" placeholder="lub wpisz własne" style="margin-top:8px"></div>
+      <div class="field"><label>Miejsce pracy</label><div class="chips miejsca" id="pLokacje"></div><input type="text" id="pLokalizacja" placeholder="lub wpisz własne" style="margin-top:8px"></div>
       <div class="field"><label for="pUwagi">Uwagi</label><input type="text" id="pUwagi" placeholder="np. wyjazd do Kalisza"></div>
       <div class="stack">
         <button class="btn dark" id="btnPopraw">Zapisz poprawkę</button>
@@ -288,7 +299,7 @@
     <p class="mini" id="zInfo" style="margin:0 0 10px"></p>
     <div class="card" style="padding:8px 12px">
       <table>
-        <thead><tr><th>Kto</th><th class="n">Godz.</th><th class="n">Bilans</th><th class="n">Braki</th><th>Dziś</th></tr></thead>
+        <thead><tr><th>Kto</th><th class="n">Godz.</th><th class="n">Nadg.</th><th class="n">Do normy</th><th class="n">Braki</th><th>Dziś</th></tr></thead>
         <tbody id="zTabela"></tbody>
       </table>
       <p class="hint">Kliknij osobę, żeby zobaczyć jej miesiąc i kartę.</p>
@@ -304,7 +315,7 @@
           <div><label for="aKoniec">Koniec</label><input type="time" id="aKoniec" step="60"></div>
         </div>
         <div class="field"><label>Przerwy</label><div id="aPrzerwy"></div><button class="btn ghost" id="aDodajPrzerwe" type="button">+ dodaj przerwę</button></div>
-        <div class="field"><label>Miejsce pracy</label><div class="chips" id="aLokacje"></div><input type="text" id="aLokalizacja" placeholder="lub wpisz własne" style="margin-top:8px"></div>
+        <div class="field"><label>Miejsce pracy</label><div class="chips miejsca" id="aLokacje"></div><input type="text" id="aLokalizacja" placeholder="lub wpisz własne" style="margin-top:8px"></div>
       </div>
       <div id="aNieob" class="hidden"><div class="field" id="aRodzajeBox" style="display:none"><label>Rodzaj</label><div class="chips" id="aRodzaje"></div></div></div>
       <div class="field"><label for="aUwagi">Uwagi</label><input type="text" id="aUwagi"></div>
@@ -584,8 +595,10 @@
     var brak = !w, praca = w && w.typ === 'Praca', wToku = praca && !w.koniec, naPrzerwie = wToku && !!w.otwartaPrzerwa, zakonczony = praca && !!w.koniec;
     var nieobecnosc = w && w.typ !== 'Praca';
 
-    // miejsce pracy: wybór tylko przed startem
+    // miejsce pracy i uwagi: wybór przed startem; w trakcie dnia osobne pole uwag
     $('kartaMiejsce').className = brak ? 'card' : 'card hidden';
+    $('kartaUwagi').className = wToku ? 'card' : 'card hidden';
+    if (wToku && document.activeElement !== $('uwagiDnia')) $('uwagiDnia').value = w.uwagi || '';
     if (brak && !$('lokalizacja').value) { $('lokalizacja').value = s.ostatnieMiejsce || ''; zaznacz('lokacje', $('lokalizacja').value); }
 
     // przyciski
@@ -698,8 +711,9 @@
   $('btnStart').onclick = function () {
     var lok = $('lokalizacja').value.trim();
     if (!lok) { komunikat('msgDzis', 'Wybierz miejsce pracy.', 'err'); return; }
-    akcjaDzis('startPracy', { lokalizacja: lok }, this).then(function (r) {
+    akcjaDzis('startPracy', { lokalizacja: lok, uwagi: $('uwagiStart').value }, this).then(function (r) {
       if (!r) return;
+      $('uwagiStart').value = '';
       if (r.wpis && r.wpis.start) {
         var pow = $('powitanie'); pow.className = 'powitanie';
         pow.innerHTML = '<b>Twój dzień pracy wystartował o ' + r.wpis.start + '.</b>Życzymy miłego dnia! Przerwę i koniec zaznaczysz przyciskami poniżej.';
@@ -708,7 +722,10 @@
   };
   $('btnPrzerwa').onclick = function () { akcjaDzis('przerwaStart', null, this); };
   $('btnWznow').onclick = function () { akcjaDzis('przerwaStop', null, this); };
-  $('btnKoniec').onclick = function () { akcjaDzis('koniecPracy', {}, this); };
+  $('btnKoniec').onclick = function () {
+    var p = {}; var u = $('uwagiDnia').value.trim(); if (u || (stan && stan.wpis && stan.wpis.uwagi)) p.uwagi = u;
+    akcjaDzis('koniecPracy', p, this);
+  };
   $('btnWczorajZamknij').onclick = function () {
     var k = $('wczorajKoniec').value;
     if (!k) { komunikat('msgDzis', 'Podaj godzinę zakończenia wczorajszego dnia.', 'err'); return; }
@@ -743,30 +760,31 @@
     var biezacy = m.mies === DZIS.slice(0, 7), zamkniety = m.mies < DZIS.slice(0, 7);
     var ja = (!ADMIN || m.imie === JA);
     $('mSuma').textContent = fmtH(m.suma);
-    $('mSumaDni').textContent = liczDni(m.dniPracy, 'dzień pracy', 'dni pracy', 'dni pracy') + (m.zdalnie ? ', w tym ' + m.zdalnie + ' HO' : '') + ' · norma ' + fmtH(m.norma) + (m.etat !== 1 ? ' (etat ' + etatTekst(m.etat) + ')' : '');
+    $('mSumaDni').textContent = liczDni(m.dniPracy, 'dzień pracy', 'dni pracy', 'dni pracy') + (m.zdalnie ? ', w tym ' + m.zdalnie + ' HO' : '') + ' · norma dzienna ' + fmtH((m.rozliczenie || {}).normaDzienna || 8) + (m.etat !== 1 ? ' (etat ' + etatTekst(m.etat) + ')' : '');
     document.querySelector('.pod.glowny span').textContent = ja ? 'Przepracowałeś/aś w tym miesiącu' : m.imie + ' przepracował/a';
-    var zostalo = m.norma - m.suma;
+    var roz = m.rozliczenie || {};
+    var pelne = m.rozliczeniePelne || roz;
     if (zamkniety) {
       $('mZostaloEt').textContent = 'Wynik miesiąca';
-      $('mZostalo').textContent = zostalo > 0.01 ? fmtH(zostalo) + ' poniżej normy' : 'norma wyrobiona';
-      $('mZostaloOpis').textContent = 'miesiąc zamknięty';
+      $('mZostalo').textContent = roz.zostalo > 0.01 ? fmtH(roz.zostalo) + ' poniżej normy' : 'norma wyrobiona';
+      $('mZostaloOpis').textContent = 'norma ' + fmtH(roz.norma) + (roz.nieobecnosciGodz ? ', po nieobecnościach ' + fmtH(roz.normaPoNieobecnosciach) : '');
     } else {
       $('mZostaloEt').textContent = 'Zostało do normy';
-      $('mZostalo').textContent = zostalo > 0.01 ? fmtH(zostalo) : 'norma wyrobiona';
-      $('mZostaloOpis').textContent = 'do końca miesiąca, ' + (m.dniRobocze - m.dniRoboczeDoDzis) + ' dni roboczych przed Tobą';
+      $('mZostalo').textContent = pelne.zostalo > 0.01 ? fmtH(pelne.zostalo) : 'norma wyrobiona';
+      $('mZostaloOpis').textContent = 'norma ' + fmtH(pelne.norma) + (pelne.nieobecnosciGodz ? ', po nieobecnościach ' + fmtH(pelne.normaPoNieobecnosciach) : '') + ' · ' + (m.dniRobocze - m.dniRoboczeDoDzis) + ' dni roboczych przed Tobą';
     }
-    var odn = zamkniety ? m.norma : m.normaDoDzis;
-    var nad = m.suma - odn;
+    var nad = roz.nadgodziny || 0;
     $('mNadg').textContent = nad > 0.01 ? '+' + fmtH(nad) : '0 h 00 min';
-    $('mNadgOpis').textContent = nad > 0.01 ? 'ponad normę ' + (zamkniety ? 'miesiąca' : 'do dziś') : (nad < -0.01 ? 'do normy na dziś brakuje ' + fmtH(nad) : 'równo z normą');
+    $('mNadgOpis').textContent = (roz.pokryte > 0.01 ? fmtH(roz.pokryte) + ' poszło na krótsze dni i odbiory · ' : '') + 'norma dzienna ' + fmtH(roz.normaDzienna) + (roz.luki - roz.pokryte > 0.01 ? ' · krótsze dni bez pokrycia: ' + fmtH(roz.luki - roz.pokryte) : '');
     var wolneDni = (m.urlop || 0) + (m.l4 || 0) + (m.wolne || 0) + (m.odbior || 0) + (m.inne || 0);
     $('mWolneDni').textContent = liczDni(wolneDni, 'dzień', 'dni', 'dni');
     var czesci = [];
     if (m.urlop) czesci.push('urlop ' + m.urlop); if (m.l4) czesci.push('L4 ' + m.l4); if (m.odbior) czesci.push('odbiór ' + m.odbior); if (m.inne) czesci.push('inne ' + m.inne); if (m.wolne) czesci.push('wolne ' + m.wolne);
     $('mWolneOpis').textContent = czesci.length ? czesci.join(' · ') : 'bez nieobecności';
-    var proc = m.norma ? Math.min(100, Math.round(m.suma / m.norma * 100)) : 0;
+    var normaCel = pelne.normaPoNieobecnosciach || m.norma;
+    var proc = normaCel ? Math.min(100, Math.round((pelne.zaliczone || 0) / normaCel * 100)) : 0;
     $('mBar').style.width = proc + '%';
-    $('mBarOpis').textContent = proc + '% normy miesiąca · ' + m.dniRoboczeDoDzis + ' z ' + m.dniRobocze + ' dni roboczych za nami';
+    $('mBarOpis').textContent = proc + '% normy zaliczone · ' + m.dniRoboczeDoDzis + ' z ' + m.dniRobocze + ' dni roboczych za nami';
     var br = $('mBraki');
     if (m.brakujace && m.brakujace.length) {
       br.style.display = 'block';
@@ -783,7 +801,7 @@
       if (w && w.typ === 'Praca') {
         co = '<span class="pill ' + kl[d.status] + '">' + ety[d.status] + (!d.roboczy ? ' · weekend' : '') + '</span> <span class="mini">' + w.start + '–' + (w.koniec || '…') +
           (w.przerwy.length ? ', przerwa ' + w.przerwy.map(function (p) { return p.od + '–' + (p.do || '…'); }).join(', ') : '') + (w.lokalizacja ? ' · ' + w.lokalizacja : '') + (w.uwagi ? ' · ' + w.uwagi : '') + '</span>';
-        godz = w.koniec ? fmtH(w.godziny) : '';
+        godz = w.koniec ? fmtH(w.godziny) + (d.roznica !== null && d.roznica !== undefined && Math.abs(d.roznica) > 0.01 ? '<br><span class="mini" style="color:' + (d.roznica > 0 ? 'var(--pom2)' : 'var(--szary)') + '">' + (d.roznica > 0 ? '+' : '−') + fmtH(Math.abs(d.roznica)) + '</span>' : '') : '';
       } else if (w) {
         co = '<span class="pill ' + kl[d.status] + '">' + ety[d.status] + '</span>' + (w.uwagi ? ' <span class="mini">' + w.uwagi + '</span>' : '');
       } else {
@@ -883,10 +901,11 @@
     var tb = $('zTabela'); tb.innerHTML = '';
     z.osoby.forEach(function (o) {
       var tr = document.createElement('tr'); tr.className = 'klik';
-      var bil = (o.bilans > 0 ? '+' : (o.bilans < 0 ? '−' : '')) + fmtH(Math.abs(o.bilans));
-      tr.innerHTML = '<td><b>' + o.imie + '</b>' + (o.etat !== 1 ? ' <span class="mini">' + etatTekst(o.etat) + '</span>' : '') + (o.urlop || o.l4 ? '<br><span class="mini">urlop ' + o.urlop + ' · L4 ' + o.l4 + '</span>' : '') + '</td>' +
+      var rz = o.rozliczenie || {};
+      tr.innerHTML = '<td><b>' + o.imie + '</b>' + (o.etat !== 1 ? ' <span class="mini">' + etatTekst(o.etat) + '</span>' : '') + (o.urlop || o.l4 || o.inne || o.odbior ? '<br><span class="mini">urlop ' + (o.urlop || 0) + ' · L4 ' + (o.l4 || 0) + (o.odbior ? ' · odbiór ' + o.odbior : '') + (o.inne ? ' · inne ' + o.inne : '') + '</span>' : '') + '</td>' +
         '<td class="n">' + fmtH(o.godziny) + '</td>' +
-        '<td class="n" style="color:' + (o.bilans < -0.01 ? 'var(--pom2)' : 'inherit') + '">' + bil + '</td>' +
+        '<td class="n" style="color:' + (rz.nadgodziny > 0.01 ? 'var(--pom2)' : 'inherit') + '">' + (rz.nadgodziny > 0.01 ? '+' + fmtH(rz.nadgodziny) : '0 h 00 min') + '</td>' +
+        '<td class="n">' + fmtH(rz.zostalo || 0) + '</td>' +
         '<td class="n">' + (o.brakujace.length ? '<span class="pill brak">' + o.brakujace.length + '</span>' : '0') + '</td>' +
         '<td class="mini">' + (o.dzis || (z.dzisRoboczy ? '—' : '')) + '</td>';
       tr.onclick = function () { mOsoba = o.imie; $('mOsoba').value = o.imie; mies = zMies; pokaz('miesiac'); };
