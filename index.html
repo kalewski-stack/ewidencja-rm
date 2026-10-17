@@ -211,7 +211,11 @@ section { padding-block: 72px; }
 .ph span { font-family: var(--font-display); font-size: 20px; letter-spacing: .03em; text-transform: uppercase; color: var(--fg); }
 .ph small { display: block; color: var(--fg-3); margin-top: 6px; font-size: 13px; }
 .ph::after { content: "ZDJĘCIE"; position: absolute; top: 10px; left: 10px; font-size: 11px; letter-spacing: .14em; color: var(--neon); border: 1px solid var(--neon-2); padding: 2px 6px; border-radius: 3px; }
-.gallery img { aspect-ratio: 4/5; object-fit: cover; border-radius: var(--radius); width: 100%; }
+.gallery figure, .about-photo { margin: 0; position: relative; min-width: 0; }
+.gallery figcaption, .about-photo figcaption { position: absolute; left: 0; right: 0; bottom: 0; padding: 28px 14px 12px; border-radius: 0 0 var(--radius) var(--radius);
+  background: linear-gradient(transparent, rgba(6,10,6,.88)); font-family: var(--font-display); font-size: 19px; letter-spacing: .03em; text-transform: uppercase; color: var(--fg); }
+.gallery img, .about-photo img { aspect-ratio: 4/5; object-fit: cover; border-radius: var(--radius); width: 100%; border: 1px solid var(--line); }
+.about-photo { max-width: 460px; width: 100%; justify-self: center; }
 @media (max-width: 640px) { .gallery { grid-template-columns: 1fr 1fr; } }
 .ig-cta { margin-top: 24px; display: flex; flex-wrap: wrap; gap: 14px; align-items: center; color: var(--fg-2); }
 
@@ -448,16 +452,15 @@ footer nav { display: flex; flex-wrap: wrap; gap: 18px; }
       <h2>Galeria</h2>
       <p class="lead">Zdjęcia prac z salonu. Więcej na bieżąco na Instagramie.</p>
     </div>
-    <!-- TODO ZDJĘCIA: każdy <div class="ph"> zamień na
-         <img src="img/praca-1.jpg" alt="Skin fade z teksturowaną górą" width="800" height="1000" loading="lazy">
-         Zdjęcia w pionie 4:5 (np. 800×1000 px), JPG do 300 KB. -->
+    <!-- TODO ZDJĘCIA: to są ZDJĘCIA PRZYKŁADOWE (makieta, licencje CC, autorzy w img/przyklady/ZRODLA.md).
+         Przed startem podmień na własne prace: wrzuć pliki do img/ i zmień src. Format pionowy 4:5 (np. 800×1000 px), JPG do 300 KB. -->
     <div class="gallery">
-      <div class="ph"><div><span>Skin fade</span><small>zdjęcie pracy 4:5</small></div></div>
-      <div class="ph"><div><span>Crop</span><small>zdjęcie pracy 4:5</small></div></div>
-      <div class="ph"><div><span>Broda + fade</span><small>zdjęcie pracy 4:5</small></div></div>
-      <div class="ph"><div><span>Golenie brzytwą</span><small>zdjęcie z salonu</small></div></div>
-      <div class="ph"><div><span>Wnętrze salonu</span><small>fotel, lustro, neon</small></div></div>
-      <div class="ph"><div><span>Barber</span><small>portret przy pracy</small></div></div>
+      <figure><img src="img/przyklady/skin-fade.jpg" alt="Skin fade maszynką, cieniowanie od skóry" width="544" height="680" loading="lazy"><figcaption>Skin fade</figcaption></figure>
+      <figure><img src="img/przyklady/fade-maszynka.jpg" alt="Cieniowanie boków przy pełnej brodzie" width="544" height="680" loading="lazy"><figcaption>Fade + broda</figcaption></figure>
+      <figure><img src="img/przyklady/broda.jpg" alt="Kształtowanie brody i kontur" width="544" height="680" loading="lazy"><figcaption>Broda</figcaption></figure>
+      <figure><img src="img/przyklady/golenie.jpg" alt="Golenie brzytwą na gładko" width="544" height="680" loading="lazy"><figcaption>Golenie brzytwą</figcaption></figure>
+      <figure><img src="img/przyklady/wnetrze.jpg" alt="Fotel barberski w salonie" width="544" height="680" loading="lazy"><figcaption>Wnętrze salonu</figcaption></figure>
+      <figure><img src="img/przyklady/narzedzia.jpg" alt="Nożyczki, degażówki i nasadki maszynki" width="544" height="680" loading="lazy"><figcaption>Narzędzia</figcaption></figure>
     </div>
     <div class="ig-cta">
       <a class="btn btn-ghost" href="https://www.instagram.com/fadelabz_barber" target="_blank" rel="noopener"><svg><use href="#i-ig"/></svg>@fadelabz_barber</a>
@@ -527,7 +530,7 @@ footer nav { display: flex; flex-wrap: wrap; gap: 18px; }
       </div>
     </div>
     <!-- TODO ZDJĘCIA: tu dobrze zagra zdjęcie barbera przy pracy albo wnętrza, 4:5 -->
-    <div class="ph" style="max-width:460px;justify-self:center;width:100%"><div><span>Barber przy pracy</span><small>zdjęcie 4:5, portret</small></div></div>
+    <figure class="about-photo"><img src="img/przyklady/barber.jpg" alt="Barber przy pracy w salonie" width="683" height="853" loading="lazy"><figcaption>Barber przy pracy</figcaption></figure>
   </div>
 </section>
 
