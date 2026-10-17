@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FadeLabz Barber Shop Olecko | Strzyżenie, fade, broda, golenie brzytwą</title>
+<meta name="description" content="Barber shop w Olecku, ul. 1 Maja 2. Skin fade, taper, crop, buzz cut, broda i golenie brzytwą. Strzyżenie od 40 zł. Zadzwoń: 792 758 294 albo sprawdź wolne terminy online.">
+<link rel="canonical" href="https://www.fadelabz.pl/">
+<meta name="theme-color" content="#0b0d0a">
+<meta property="og:type" content="business.business">
+<meta property="og:title" content="FadeLabz Barber Shop Olecko">
+<meta property="og:description" content="Dobry styl to nie przypadek. Skin fade, broda, golenie brzytwą. Olecko, ul. 1 Maja 2. Tel. 792 758 294.">
+<meta property="og:url" content="https://www.fadelabz.pl/">
+<meta property="og:image" content="https://www.fadelabz.pl/img/logo.jpg">
+<meta property="og:locale" content="pl_PL">
+<link rel="icon" href="img/logo.jpg">
+<link rel="apple-touch-icon" href="img/logo.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow:wght@400;500;600;700&family=Permanent+Marker&display=swap">
+
+<!-- ============================================================
+     EDYCJA DANYCH: wszystko jest na sztywno w tym pliku.
+     Szukaj komentarzy "TODO" (Ctrl+F) — tam są miejsca do uzupełnienia:
+       1. TODO KALENDARZ  — link do harmonogramu spotkań Google (sekcja #terminy)
+       2. TODO GODZINY    — godziny otwarcia (sekcja #kontakt i JSON-LD)
+       3. TODO ZDJĘCIA    — podmiana placeholderów w galerii (sekcja #galeria)
+       4. TODO FACEBOOK   — adres strony na Facebooku (stopka, JSON-LD)
+     Telefon, adres, Instagram i cennik są już wpisane z materiałów salonu.
+     ============================================================ -->
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BarberShop",
+  "name": "FadeLabz Barber Shop",
+  "image": "https://www.fadelabz.pl/img/logo.jpg",
+  "url": "https://www.fadelabz.pl/",
+  "telephone": "+48792758294",
+  "priceRange": "40–70 zł",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "ul. 1 Maja 2",
+    "addressLocality": "Olecko",
+    "postalCode": "19-400",
+    "addressCountry": "PL"
+  },
+  "geo": { "@type": "GeoCoordinates", "latitude": 54.0344, "longitude": 22.5042 },
+  "sameAs": [
+    "https://www.instagram.com/fadelabz_barber"
+  ],
+  "openingHoursSpecification": [
+    { "@type": "OpeningHoursSpecification", "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday"], "opens": "09:00", "closes": "18:00" },
+    { "@type": "OpeningHoursSpecification", "dayOfWeek": "Saturday", "opens": "09:00", "closes": "14:00" }
+  ],
+  "hasOfferCatalog": {
+    "@type": "OfferCatalog",
+    "name": "Cennik",
+    "itemListElement": [
+      { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Strzyżenie włosów lub brody" }, "price": "40", "priceCurrency": "PLN" },
+      { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Combo: włosy i broda" }, "price": "70", "priceCurrency": "PLN" },
+      { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Strzyżenie boków" }, "price": "30", "priceCurrency": "PLN" },
+      { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Odsiwianie włosów" }, "price": "50", "priceCurrency": "PLN" },
+      { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Golenie brzytwą" }, "price": "40", "priceCurrency": "PLN" },
+      { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Golenie lub strzyżenie brody z pielęgnacją" }, "price": "70", "priceCurrency": "PLN" }
+    ]
+  }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "Czy trzeba się umawiać?", "acceptedAnswer": { "@type": "Answer", "text": "Tak, pracuję na zapisy. Najszybciej zadzwoń: 792 758 294. Możesz też sprawdzić wolne terminy w kalendarzu na stronie i zapisać się samodzielnie." } },
+    { "@type": "Question", "name": "Ile trwa wizyta?", "acceptedAnswer": { "@type": "Answer", "text": "Strzyżenie albo broda to zwykle 30–45 minut. Combo włosy i broda zajmuje około godziny. Golenie brzytwą z gorącym ręcznikiem to około 40 minut." } },
+    { "@type": "Question", "name": "Nie wiem, jakie cięcie wybrać. Co wtedy?", "acceptedAnswer": { "@type": "Answer", "text": "Przyjdź, pogadamy. Dobieram fryzurę do kształtu głowy, rodzaju włosów i tego, ile czasu chcesz poświęcać na stylizację. Zdjęcie inspiracji w telefonie bardzo pomaga." } },
+    { "@type": "Question", "name": "Czym różni się fade od taper?", "acceptedAnswer": { "@type": "Answer", "text": "Fade to płynne cieniowanie boków i tyłu, często do skóry (skin fade). Taper to delikatniejsze skrócenie tylko przy uszach i karku, naturalniejszy efekt. Oba robię na co dzień." } },
+    { "@type": "Question", "name": "Co jeśli się spóźnię albo nie dam rady przyjść?", "acceptedAnswer": { "@type": "Answer", "text": "Daj znać telefonicznie najszybciej jak możesz. Termin zwolni się dla kogoś innego, a Tobie znajdę nowy." } }
+  ]
+}
+</script>
+
+<style>
+/* Układ: ciemna ściana, neonowy zielony tylko na akcjach i cenach, nagłówki jak z plakatu (Anton),
+   markerowe dopiski (Permanent Marker) tylko jako hasła, Barlow na treść. Jedno tło, jedna sekcja po drugiej,
+   każda sekcja kończy się drogą do telefonu. */
+:root {
+  --bg: #0b0d0a;          /* czerń z zielonym podbiciem */
+  --bg-2: #121510;        /* panel */
+  --bg-3: #1a1f16;        /* panel wyżej */
+  --line: #262c22;
+  --fg: #f2f4ef;
+  --fg-2: #b7bdb0;
+  --fg-3: #7d847a;
+  --neon: #6cff2e;        /* zieleń z logo */
+  --neon-2: #46c91a;      /* ciemniejsza do hover i tła */
+  --neon-ink: #06100a;    /* tekst na zielonym */
+  --danger: #ff5e5e;
+  --font-display: "Anton", "Impact", "Arial Narrow", sans-serif;
+  --font-marker: "Permanent Marker", "Comic Sans MS", cursive;
+  --font-body: "Barlow", "Segoe UI", Roboto, Arial, sans-serif;
+  --radius: 6px;
+  --gutter-l: max(16px, env(safe-area-inset-left, 0px));
+  --gutter-r: max(16px, env(safe-area-inset-right, 0px));
+  --max: 1120px;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { animation: none !important; transition: none !important; } }
+body {
+  margin: 0; background: var(--bg); color: var(--fg);
+  font-family: var(--font-body); font-size: 17px; line-height: 1.55;
+  padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)); /* miejsce na pasek "Zadzwoń" na telefonie */
+}
+img { max-width: 100%; height: auto; display: block; }
+a { color: var(--neon); }
+a:focus-visible, button:focus-visible { outline: 3px solid var(--neon); outline-offset: 3px; }
+h1, h2, h3 { margin: 0; font-weight: 400; text-wrap: balance; }
+h2 { font-family: var(--font-display); font-size: clamp(34px, 6vw, 56px); line-height: 1; letter-spacing: .01em; text-transform: uppercase; }
+h3 { font-family: var(--font-display); font-size: 22px; letter-spacing: .02em; text-transform: uppercase; }
+p { margin: 0; }
+.wrap { max-width: var(--max); margin: 0 auto; padding-left: var(--gutter-l); padding-right: var(--gutter-r); }
+section { padding-block: 72px; }
+@media (max-width: 640px) { section { padding-block: 52px; } }
+.eyebrow { font-family: var(--font-marker); color: var(--neon); font-size: 20px; margin-bottom: 10px; }
+.lead { color: var(--fg-2); font-size: 18px; max-width: 62ch; }
+.sec-head { display: grid; gap: 10px; margin-bottom: 34px; }
+
+/* przyciski */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 14px 22px; border-radius: var(--radius);
+  font-family: var(--font-body); font-weight: 700; font-size: 17px; text-decoration: none; border: 2px solid transparent; cursor: pointer; white-space: nowrap; }
+.btn-neon { background: var(--neon); color: var(--neon-ink); border-color: var(--neon); }
+.btn-neon:hover { background: var(--neon-2); border-color: var(--neon-2); }
+.btn-ghost { background: transparent; color: var(--fg); border-color: var(--fg-3); }
+.btn-ghost:hover { border-color: var(--neon); color: var(--neon); }
+.btn svg { width: 20px; height: 20px; flex: none; }
+.btn-lg { padding: 18px 28px; font-size: 19px; }
+
+/* górny pasek */
+.top { position: sticky; top: 0; z-index: 20; background: rgba(11,13,10,.92); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+.top .wrap { display: flex; align-items: center; gap: 16px; min-height: 64px; }
+.brand { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--fg); font-family: var(--font-display); font-size: 22px; letter-spacing: .03em; }
+.brand img { width: 44px; height: 44px; object-fit: cover; border-radius: 50%; }
+.nav { display: flex; gap: 22px; margin-left: auto; }
+.nav a { color: var(--fg-2); text-decoration: none; font-weight: 600; font-size: 15px; text-transform: uppercase; letter-spacing: .06em; }
+.nav a:hover { color: var(--neon); }
+.top .btn { margin-left: auto; padding: 10px 16px; font-size: 15px; }
+.nav + .btn { margin-left: 0; }
+@media (max-width: 860px) { .nav { display: none; } }
+
+/* hero */
+.hero { position: relative; overflow: hidden; border-bottom: 1px solid var(--line); padding-block: 56px 64px;
+  background:
+    radial-gradient(60% 50% at 70% 20%, rgba(108,255,46,.16), transparent 70%),
+    radial-gradient(40% 40% at 10% 90%, rgba(108,255,46,.08), transparent 70%),
+    var(--bg); }
+.hero .wrap { display: grid; grid-template-columns: 1.15fr .85fr; gap: 40px; align-items: center; }
+.hero-tag { font-family: var(--font-marker); color: var(--neon); font-size: clamp(20px, 3vw, 26px); transform: rotate(-2deg); display: inline-block; }
+.hero h1 { font-family: var(--font-display); font-size: clamp(44px, 9vw, 96px); line-height: .95; text-transform: uppercase; margin-top: 10px; }
+.hero h1 span { color: var(--neon); }
+.hero .lead { margin-top: 18px; }
+.hero-cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+.hero-phone { margin-top: 16px; color: var(--fg-2); font-size: 15px; }
+.hero-phone strong { color: var(--fg); font-size: 18px; letter-spacing: .04em; font-variant-numeric: tabular-nums; }
+.hero-logo { justify-self: center; width: min(100%, 420px); aspect-ratio: 1; display: grid; place-items: center; position: relative; }
+.hero-logo img { width: 100%; filter: drop-shadow(0 0 40px rgba(108,255,46,.35)); border-radius: 50%; }
+.hero-logo .stamp { position: absolute; right: -4px; bottom: 10px; background: var(--neon); color: var(--neon-ink); font-family: var(--font-marker); font-size: 18px; padding: 8px 14px; transform: rotate(-6deg); border-radius: 4px; }
+@media (max-width: 860px) { .hero .wrap { grid-template-columns: 1fr; } .hero-logo { order: -1; width: min(70%, 300px); } .hero-logo .stamp { right: 0; } }
+.trust { border-bottom: 1px solid var(--line); background: var(--bg-2); }
+.trust .wrap { display: grid; grid-template-columns: repeat(4, 1fr); }
+.trust div { padding: 16px 12px; text-align: center; border-left: 1px solid var(--line); font-size: 14px; color: var(--fg-2); }
+.trust div:first-child { border-left: 0; }
+.trust b { display: block; color: var(--fg); font-family: var(--font-display); font-weight: 400; font-size: 20px; letter-spacing: .03em; }
+@media (max-width: 640px) { .trust .wrap { grid-template-columns: 1fr 1fr; } .trust div:nth-child(3) { border-left: 0; } .trust div:nth-child(n+3) { border-top: 1px solid var(--line); } }
+
+/* cennik */
+.price-grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: 40px; align-items: start; }
+.price-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
+.price-list li { display: grid; grid-template-columns: 36px 1fr auto; gap: 14px; align-items: center; padding: 16px 0; border-bottom: 1px solid var(--line); }
+.price-list .ico { width: 36px; height: 36px; color: var(--neon); }
+.price-list .ico svg { width: 36px; height: 36px; }
+.price-list .name { font-weight: 600; font-size: 18px; }
+.price-list .note { display: block; color: var(--fg-3); font-size: 14px; font-weight: 400; margin-top: 2px; }
+.price-list .price { font-family: var(--font-display); color: var(--neon); font-size: 28px; letter-spacing: .02em; font-variant-numeric: tabular-nums; }
+.price-list .price small { font-size: 15px; color: var(--fg-2); font-family: var(--font-body); font-weight: 600; margin-left: 4px; }
+.price-aside { background: var(--bg-2); border: 1px solid var(--line); border-radius: var(--radius); padding: 26px; display: grid; gap: 16px; position: sticky; top: 84px; }
+.price-aside .marker { font-family: var(--font-marker); font-size: 22px; color: var(--neon); }
+.price-aside ul { margin: 0; padding-left: 18px; color: var(--fg-2); display: grid; gap: 6px; }
+@media (max-width: 860px) { .price-grid { grid-template-columns: 1fr; } .price-aside { position: static; } }
+
+/* specjalizacje */
+.spec { background: var(--bg-2); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.spec-groups { display: grid; gap: 40px; }
+.spec-group h3 { color: var(--fg-2); font-size: 15px; letter-spacing: .14em; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; }
+.card { background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; display: grid; gap: 8px; min-width: 0; }
+.card:hover { border-color: var(--neon-2); }
+.card b { font-family: var(--font-display); font-weight: 400; font-size: 21px; letter-spacing: .02em; text-transform: uppercase; }
+.card p { color: var(--fg-2); font-size: 15px; }
+.card .for { color: var(--neon); font-size: 13px; text-transform: uppercase; letter-spacing: .1em; font-weight: 700; }
+.spec-cta { margin-top: 34px; display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+.spec-cta p { color: var(--fg-2); }
+
+/* galeria */
+.gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.ph { aspect-ratio: 4/5; max-width: 100%; border-radius: var(--radius); border: 1px dashed var(--fg-3); background:
+   repeating-linear-gradient(135deg, var(--bg-2) 0 14px, var(--bg-3) 14px 28px); display: grid; place-items: center; text-align: center; padding: 16px; color: var(--fg-2); position: relative; overflow: hidden; }
+.ph span { font-family: var(--font-display); font-size: 20px; letter-spacing: .03em; text-transform: uppercase; color: var(--fg); }
+.ph small { display: block; color: var(--fg-3); margin-top: 6px; font-size: 13px; }
+.ph::after { content: "ZDJĘCIE"; position: absolute; top: 10px; left: 10px; font-size: 11px; letter-spacing: .14em; color: var(--neon); border: 1px solid var(--neon-2); padding: 2px 6px; border-radius: 3px; }
+.gallery img { aspect-ratio: 4/5; object-fit: cover; border-radius: var(--radius); width: 100%; }
+@media (max-width: 640px) { .gallery { grid-template-columns: 1fr 1fr; } }
+.ig-cta { margin-top: 24px; display: flex; flex-wrap: wrap; gap: 14px; align-items: center; color: var(--fg-2); }
+
+/* terminy */
+.terminy { background: var(--bg-2); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 36px; }
+.step { background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; display: grid; gap: 8px; min-width: 0; }
+.step .n { font-family: var(--font-marker); color: var(--neon); font-size: 26px; }
+.step b { font-size: 18px; }
+.step p { color: var(--fg-2); font-size: 15px; }
+@media (max-width: 760px) { .steps { grid-template-columns: 1fr; } }
+.cal-box { background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+.cal-box iframe { display: block; width: 100%; height: 720px; border: 0; background: #fff; }
+.cal-placeholder { padding: 40px 24px; text-align: center; display: grid; gap: 14px; justify-items: center; }
+.cal-placeholder .marker { font-family: var(--font-marker); color: var(--neon); font-size: 24px; }
+.cal-placeholder p { color: var(--fg-2); max-width: 56ch; }
+.cal-week { width: 100%; max-width: 560px; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+.cal-week th { color: var(--fg-3); font-weight: 600; padding: 6px 4px; text-transform: uppercase; letter-spacing: .08em; font-size: 11px; }
+.cal-week td { height: 30px; border: 1px solid var(--line); }
+.cal-week td.free { background: rgba(108,255,46,.18); }
+.cal-week td.busy { background: var(--bg-3); }
+.cal-legend { display: flex; gap: 18px; font-size: 13px; color: var(--fg-3); }
+.cal-legend i { display: inline-block; width: 14px; height: 14px; border-radius: 3px; vertical-align: -2px; margin-right: 6px; border: 1px solid var(--line); }
+.cal-fallback { padding: 22px 24px; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 14px; align-items: center; justify-content: space-between; }
+.cal-fallback p { color: var(--fg-2); }
+.cal-fallback strong { color: var(--fg); }
+
+/* o nas */
+.about .wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; }
+.about-copy { display: grid; gap: 16px; }
+.about-copy p { color: var(--fg-2); max-width: 60ch; }
+.about-copy .marker { font-family: var(--font-marker); color: var(--neon); font-size: 22px; }
+.values { display: grid; gap: 10px; margin-top: 6px; }
+.values div { display: grid; grid-template-columns: 26px 1fr; gap: 12px; align-items: start; color: var(--fg-2); }
+.values svg { width: 24px; height: 24px; color: var(--neon); }
+.values b { color: var(--fg); }
+@media (max-width: 860px) { .about .wrap { grid-template-columns: 1fr; } }
+
+/* opinie */
+.reviews { background: var(--bg-2); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.rev-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.rev { background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; display: grid; gap: 12px; min-width: 0; }
+.rev .stars { color: var(--neon); letter-spacing: 3px; font-size: 18px; }
+.rev p { color: var(--fg-2); }
+@media (max-width: 760px) { .rev-grid { grid-template-columns: 1fr; } }
+
+/* kontakt */
+.contact .wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; }
+.contact-list { display: grid; gap: 18px; }
+.contact-list div { display: grid; grid-template-columns: 28px 1fr; gap: 14px; align-items: start; }
+.contact-list svg { width: 26px; height: 26px; color: var(--neon); }
+.contact-list b { display: block; font-size: 13px; text-transform: uppercase; letter-spacing: .12em; color: var(--fg-3); margin-bottom: 2px; }
+.contact-list a { color: var(--fg); text-decoration: none; font-weight: 600; font-size: 18px; }
+.contact-list a:hover { color: var(--neon); }
+.hours { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.hours td { padding: 6px 0; border-bottom: 1px solid var(--line); }
+.hours td:last-child { text-align: right; font-weight: 600; }
+.hours .closed td:last-child { color: var(--fg-3); font-weight: 400; }
+.map { border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line); background: var(--bg-2); }
+.map iframe { display: block; width: 100%; height: 360px; border: 0; filter: grayscale(1) invert(.92) hue-rotate(180deg) contrast(.9); }
+.map a { display: block; padding: 12px 16px; font-weight: 600; text-decoration: none; }
+@media (max-width: 860px) { .contact .wrap { grid-template-columns: 1fr; } }
+
+/* faq */
+.faq details { border-top: 1px solid var(--line); }
+.faq details:last-child { border-bottom: 1px solid var(--line); }
+.faq summary { cursor: pointer; padding: 18px 0; font-weight: 600; font-size: 18px; list-style: none; display: flex; justify-content: space-between; gap: 16px; }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: "+"; color: var(--neon); font-family: var(--font-display); font-size: 24px; line-height: 1; flex: none; }
+.faq details[open] summary::after { content: "–"; }
+.faq .a { padding: 0 0 18px; color: var(--fg-2); max-width: 65ch; }
+
+/* końcowe CTA */
+.final { text-align: center; border-top: 1px solid var(--line); background:
+   radial-gradient(50% 60% at 50% 100%, rgba(108,255,46,.18), transparent 70%), var(--bg); }
+.final .marker { font-family: var(--font-marker); color: var(--neon); font-size: 26px; }
+.final h2 { font-size: clamp(40px, 8vw, 80px); margin: 10px 0 18px; }
+.final .lead { margin: 0 auto 28px; }
+.final .hero-cta { justify-content: center; }
+
+/* stopka */
+footer { border-top: 1px solid var(--line); padding-block: 28px; color: var(--fg-3); font-size: 14px; }
+footer .wrap { display: flex; flex-wrap: wrap; gap: 14px 28px; align-items: center; justify-content: space-between; }
+footer a { color: var(--fg-2); text-decoration: none; }
+footer a:hover { color: var(--neon); }
+footer nav { display: flex; flex-wrap: wrap; gap: 18px; }
+
+/* pasek "Zadzwoń" na telefonie */
+.callbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; display: none; gap: 10px;
+  padding: 10px var(--gutter-r) calc(10px + env(safe-area-inset-bottom, 0px)) var(--gutter-l);
+  background: rgba(11,13,10,.95); border-top: 1px solid var(--line); backdrop-filter: blur(8px); }
+.callbar .btn { flex: 1; padding: 14px 10px; font-size: 16px; }
+@media (max-width: 860px) { .callbar { display: flex; } }
+@media (min-width: 861px) { body { padding-bottom: 0; } }
+</style>
+</head>
+<body>
+
+<!-- ikony SVG (używane wielokrotnie) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-phone" viewBox="0 0 24 24"><path fill="currentColor" d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25c1.1.37 2.3.57 3.6.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1L6.6 10.8z"/></symbol>
+  <symbol id="i-cal" viewBox="0 0 24 24"><path fill="currentColor" d="M7 2h2v2h6V2h2v2h3a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h3V2zm12 8H5v9h14v-9zM7 12h4v4H7v-4z"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a7 7 0 0 1 7 7c0 5.25-7 13-7 13S5 14.25 5 9a7 7 0 0 1 7-7zm0 9.5A2.5 2.5 0 1 0 12 6.5a2.5 2.5 0 0 0 0 5z"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a10 10 0 1 1 0 20 10 10 0 0 1 0-20zm0 2a8 8 0 1 0 0 16 8 8 0 0 0 0-16zm-1 3h2v5.6l3.5 2.1-1 1.7L11 13.5V7z"/></symbol>
+  <symbol id="i-ig" viewBox="0 0 24 24"><path fill="currentColor" d="M7.5 2h9A5.5 5.5 0 0 1 22 7.5v9a5.5 5.5 0 0 1-5.5 5.5h-9A5.5 5.5 0 0 1 2 16.5v-9A5.5 5.5 0 0 1 7.5 2zm0 2A3.5 3.5 0 0 0 4 7.5v9A3.5 3.5 0 0 0 7.5 20h9a3.5 3.5 0 0 0 3.5-3.5v-9A3.5 3.5 0 0 0 16.5 4h-9zM12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10zm0 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6zm5.3-3.5a1.2 1.2 0 1 1 0 2.4 1.2 1.2 0 0 1 0-2.4z"/></symbol>
+  <symbol id="i-scissors" viewBox="0 0 24 24"><path fill="currentColor" d="M6 3a3.5 3.5 0 0 1 3.4 4.4L12 10l2.6-2.6A3.5 3.5 0 1 1 16 9.6l-.3-.2L13.4 12l7.1 7.1-1.4 1.4L12 13.4l-7.1 7.1-1.4-1.4L10.6 12 8.3 9.4l-.3.2A3.5 3.5 0 1 1 6 3zm0 2a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm12 0a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z"/></symbol>
+  <symbol id="i-clipper" viewBox="0 0 24 24"><path fill="currentColor" d="M8 2h8l1 5H7l1-5zm-1 7h10v12a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V9zm2 2v4h2v-4H9zm4 0v4h2v-4h-2z"/></symbol>
+  <symbol id="i-razor" viewBox="0 0 24 24"><path fill="currentColor" d="M3 17.6 14.6 6l3.4 3.4L6.4 21H3v-3.4zM16 4.6 17.6 3 21 6.4 19.4 8 16 4.6z"/></symbol>
+  <symbol id="i-beard" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a7 7 0 0 1 7 7v4a7 7 0 0 1-14 0V9a7 7 0 0 1 7-7zm-5 9v2a5 5 0 0 0 10 0v-2H7zm2 1h6v1c0 1.7-1.3 3-3 3s-3-1.3-3-3v-1z"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2l1.8 5.2L19 9l-5.2 1.8L12 16l-1.8-5.2L5 9l5.2-1.8L12 2zm6 11 1 3 3 1-3 1-1 3-1-3-3-1 3-1 1-3zM5 14l.8 2.2L8 17l-2.2.8L5 20l-.8-2.2L2 17l2.2-.8L5 14z"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path fill="currentColor" d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></symbol>
+</svg>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="FadeLabz, początek strony"><img src="img/logo.jpg" alt="" width="44" height="44">FadeLabz</a>
+    <nav class="nav" aria-label="Sekcje strony">
+      <a href="#cennik">Cennik</a>
+      <a href="#specjalizacje">Cięcia</a>
+      <a href="#galeria">Galeria</a>
+      <a href="#terminy">Terminy</a>
+      <a href="#kontakt">Kontakt</a>
+    </nav>
+    <a class="btn btn-neon" href="tel:+48792758294"><svg><use href="#i-phone"/></svg>792 758 294</a>
+  </div>
+</header>
+
+<main id="top">
+
+<!-- HERO -->
+<section class="hero">
+  <div class="wrap">
+    <div>
+      <span class="hero-tag">Dobry styl to nie przypadek.</span>
+      <h1>Barber shop<br>w <span>Olecku</span></h1>
+      <p class="lead">Skin fade, taper, crop, klasyk nożyczkowy, broda i golenie brzytwą. Jeden fotel, jeden barber, pełna uwaga na Tobie. Ul. 1 Maja 2, strzyżenie od 40 zł.</p>
+      <div class="hero-cta">
+        <a class="btn btn-neon btn-lg" href="tel:+48792758294"><svg><use href="#i-phone"/></svg>Zadzwoń i umów się</a>
+        <a class="btn btn-ghost btn-lg" href="#terminy"><svg><use href="#i-cal"/></svg>Sprawdź wolne terminy</a>
+      </div>
+      <p class="hero-phone">Najszybciej przez telefon: <strong>792 758 294</strong>. Nie odbieram? Jestem przy fotelu, oddzwonię.</p>
+    </div>
+    <div class="hero-logo">
+      <img src="img/logo.jpg" alt="Logo FadeLabz Barber Shop: czaszka z brzytwą i nożyczkami na zielonym tle" width="420" height="420">
+      <span class="stamp">Precyzja · Pasja · Styl</span>
+    </div>
+  </div>
+</section>
+
+<div class="trust">
+  <div class="wrap">
+    <div><b>od 40 zł</b>strzyżenie</div>
+    <div><b>70 zł</b>combo włosy + broda</div>
+    <div><b>1 Maja 2</b>centrum Olecka</div>
+    <div><b>Na zapisy</b>bez czekania w kolejce</div>
+  </div>
+</div>
+
+<!-- CENNIK -->
+<section id="cennik">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Bez niespodzianek</p>
+      <h2>Cennik</h2>
+      <p class="lead">Ceny jak na ścianie w salonie. Płacisz za efekt, nie za nazwę usługi.</p>
+    </div>
+    <div class="price-grid">
+      <ul class="price-list">
+        <li><span class="ico"><svg><use href="#i-scissors"/></svg></span><span class="name">Strzyżenie włosów / brody<span class="note">Fade, taper, crop, buzz cut, klasyk nożyczkowy albo kształtowanie brody</span></span><span class="price">40<small>zł</small></span></li>
+        <li><span class="ico"><svg><use href="#i-clipper"/></svg></span><span class="name">Combo: włosy i broda<span class="note">Pełna wizyta, głowa i broda w jednym podejściu</span></span><span class="price">70<small>zł</small></span></li>
+        <li><span class="ico"><svg><use href="#i-clipper"/></svg></span><span class="name">Strzyżenie boków<span class="note">Odświeżenie fade'a między wizytami, góra bez zmian</span></span><span class="price">30<small>zł</small></span></li>
+        <li><span class="ico"><svg><use href="#i-spark"/></svg></span><span class="name">Odsiwianie włosów<span class="note">Kamuflaż siwizny, naturalny efekt bez „farbowania”</span></span><span class="price">50<small>zł</small></span></li>
+        <li><span class="ico"><svg><use href="#i-razor"/></svg></span><span class="name">Golenie brzytwą<span class="note">Klasyczne golenie na gładko</span></span><span class="price">40<small>zł</small></span></li>
+        <li><span class="ico"><svg><use href="#i-beard"/></svg></span><span class="name">Golenie lub strzyżenie brody z pielęgnacją<span class="note">Gorący ręcznik, olejek, balsam. Rytuał, nie szybkie podcięcie</span></span><span class="price">70<small>zł</small></span></li>
+      </ul>
+      <aside class="price-aside">
+        <p class="marker">Widzimy się na fotelu.</p>
+        <p>Nie wiesz, co wybrać? Zadzwoń, powiedz, co chcesz osiągnąć, a dobierzemy usługę na miejscu.</p>
+        <ul>
+          <li>Płatność gotówką lub kartą</li>
+          <li>Przyjmuję wyłącznie na zapisy</li>
+          <li>Zdjęcie inspiracji w telefonie mile widziane</li>
+        </ul>
+        <a class="btn btn-neon" href="tel:+48792758294"><svg><use href="#i-phone"/></svg>Zadzwoń: 792 758 294</a>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- SPECJALIZACJE -->
+<section id="specjalizacje" class="spec">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Z czym możesz przyjść</p>
+      <h2>Cięcia, które robię na co dzień</h2>
+      <p class="lead">Nazwa to tylko punkt wyjścia. Fryzurę dobieram do kształtu głowy, rodzaju włosów i tego, ile masz rano czasu na stylizację.</p>
+    </div>
+    <div class="spec-groups">
+      <div class="spec-group">
+        <h3>Włosy</h3>
+        <div class="cards">
+          <div class="card"><span class="for">Specjalność domu</span><b>Skin fade</b><p>Cieniowanie od zera przy skórze do pełnej długości na górze. Low, mid albo high, zależnie od tego, jak ostro chcesz wyglądać.</p></div>
+          <div class="card"><span class="for">Naturalnie, ale czysto</span><b>Taper</b><p>Delikatne skrócenie przy uszach i karku. Fryzura wygląda schludnie, a nie „świeżo po barberze”.</p></div>
+          <div class="card"><span class="for">Mało stylizacji</span><b>Crop</b><p>Krótka, teksturowana góra z grzywką i cieniowanymi bokami. Rano palce, odrobina pasty i gotowe.</p></div>
+          <div class="card"><span class="for">Zero zachodu</span><b>Buzz cut</b><p>Krótko maszynką na całej głowie, z fade'em na bokach albo bez. Czysty, męski, do odświeżania co 3–4 tygodnie.</p></div>
+          <div class="card"><span class="for">Klasyka</span><b>Klasyk nożyczkowy</b><p>Strzyżenie nożyczkami, bez maszynki, z zachowaniem długości. Dla tych, którzy wolą elegancję niż ostry kontrast.</p></div>
+          <div class="card"><span class="for">Dłuższa góra</span><b>Quiff · Pompadour · Undercut</b><p>Objętość i kierunek na górze, krótkie boki. Pracujemy nad formą, która trzyma się bez litra lakieru.</p></div>
+          <div class="card"><span class="for">Trend</span><b>Mullet · Wolf cut</b><p>Dłuższy tył, krótsze boki, dużo tekstury. Jeśli chcesz wyjść z fotela inaczej niż wszyscy.</p></div>
+          <div class="card"><span class="for">Wykończenie</span><b>Line-up i kontury</b><p>Ostra linia czoła, skroni i karku. Drobiazg, który odróżnia dobre cięcie od bardzo dobrego.</p></div>
+        </div>
+      </div>
+      <div class="spec-group">
+        <h3>Broda i golenie</h3>
+        <div class="cards">
+          <div class="card"><span class="for">Co 2–3 tygodnie</span><b>Trymowanie i kształtowanie brody</b><p>Długość, linia policzków i szyi, przejście do fryzury. Broda ma pasować do twarzy, nie odwrotnie.</p></div>
+          <div class="card"><span class="for">Rytuał</span><b>Golenie brzytwą z gorącym ręcznikiem</b><p>Gorący ręcznik otwiera pory i zmiękcza zarost, potem brzytwa i balsam. Gładko jak nigdy maszynką.</p></div>
+          <div class="card"><span class="for">Pielęgnacja</span><b>Broda z pielęgnacją</b><p>Strzyżenie albo golenie plus olejek, balsam i porada, co robić w domu, żeby broda nie drapała i nie puszyła się.</p></div>
+          <div class="card"><span class="for">Dyskretnie</span><b>Odsiwianie włosów i brody</b><p>Kamuflaż siwizny tonujący, nie kryjący. Efekt: wyglądasz na wyspanego, nie na pofarbowanego.</p></div>
+        </div>
+      </div>
+    </div>
+    <div class="spec-cta">
+      <a class="btn btn-neon" href="tel:+48792758294"><svg><use href="#i-phone"/></svg>Umów się: 792 758 294</a>
+      <p>Masz zdjęcie fryzury, którą chcesz? Pokaż na miejscu albo wyślij na Instagramie <a href="https://www.instagram.com/fadelabz_barber" target="_blank" rel="noopener">@fadelabz_barber</a>.</p>
+    </div>
+  </div>
+</section>
+
+<!-- GALERIA -->
+<section id="galeria">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Efekty z fotela</p>
+      <h2>Galeria</h2>
+      <p class="lead">Zdjęcia prac z salonu. Więcej na bieżąco na Instagramie.</p>
+    </div>
+    <!-- TODO ZDJĘCIA: każdy <div class="ph"> zamień na
+         <img src="img/praca-1.jpg" alt="Skin fade z teksturowaną górą" width="800" height="1000" loading="lazy">
+         Zdjęcia w pionie 4:5 (np. 800×1000 px), JPG do 300 KB. -->
+    <div class="gallery">
+      <div class="ph"><div><span>Skin fade</span><small>zdjęcie pracy 4:5</small></div></div>
+      <div class="ph"><div><span>Crop</span><small>zdjęcie pracy 4:5</small></div></div>
+      <div class="ph"><div><span>Broda + fade</span><small>zdjęcie pracy 4:5</small></div></div>
+      <div class="ph"><div><span>Golenie brzytwą</span><small>zdjęcie z salonu</small></div></div>
+      <div class="ph"><div><span>Wnętrze salonu</span><small>fotel, lustro, neon</small></div></div>
+      <div class="ph"><div><span>Barber</span><small>portret przy pracy</small></div></div>
+    </div>
+    <div class="ig-cta">
+      <a class="btn btn-ghost" href="https://www.instagram.com/fadelabz_barber" target="_blank" rel="noopener"><svg><use href="#i-ig"/></svg>@fadelabz_barber</a>
+      <p>Nowe prace co tydzień. Oznacz się po wizycie, chętnie udostępnię.</p>
+    </div>
+  </div>
+</section>
+
+<!-- TERMINY -->
+<section id="terminy" class="terminy">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Jak się umówić</p>
+      <h2>Wolne terminy</h2>
+      <p class="lead">Kalendarz poniżej pokazuje na żywo, kiedy fotel jest wolny. Wybierz godzinę i zapisz się sam. Jeśli nic nie pasuje albo wolisz pogadać, po prostu zadzwoń.</p>
+    </div>
+
+    <div class="steps">
+      <div class="step"><span class="n">1</span><b>Zadzwoń</b><p>792 758 294. Jedna rozmowa, termin ustalony. Najszybsza droga.</p></div>
+      <div class="step"><span class="n">2</span><b>Albo wybierz termin w kalendarzu</b><p>Zielone okienka to wolne godziny. Klikasz, wpisujesz imię i numer, dostajesz potwierdzenie.</p></div>
+      <div class="step"><span class="n">3</span><b>Przyjdź</b><p>Ul. 1 Maja 2, Olecko. Umyte włosy mile widziane, zdjęcie inspiracji też.</p></div>
+    </div>
+
+    <div class="cal-box">
+      <!-- TODO KALENDARZ: wklej adres harmonogramu spotkań Google (Kalendarz Google → Utwórz → Harmonogram spotkań
+           → Udostępnij → Wstaw na stronie → skopiuj adres z src="..."). Instrukcja krok po kroku w PUBLIKACJA.md.
+           Adres wygląda tak: https://calendar.google.com/calendar/appointments/schedules/AcZss...?gv=true
+           Alternatywa (tylko podgląd zajętości, bez zapisu): https://calendar.google.com/calendar/embed?src=ADRES-GMAIL&ctz=Europe%2FWarsaw&mode=WEEK&hl=pl -->
+      <iframe id="kalendarz" src="TWOJ-LINK-DO-KALENDARZA" title="Wolne terminy w FadeLabz: kalendarz rezerwacji" loading="lazy"></iframe>
+
+      <div id="kalendarz-placeholder" class="cal-placeholder" hidden>
+        <p class="marker">Kalendarz w drodze.</p>
+        <p>W tym miejscu pojawi się kalendarz Google właściciela salonu: zielone pola to wolne godziny, szare są zajęte. Do czasu podpięcia terminy ustalamy telefonicznie.</p>
+        <table class="cal-week" aria-label="Przykładowy widok tygodnia">
+          <thead><tr><th>Pon</th><th>Wt</th><th>Śr</th><th>Czw</th><th>Pt</th><th>Sob</th></tr></thead>
+          <tbody>
+            <tr><td class="busy"></td><td class="free"></td><td class="busy"></td><td class="free"></td><td class="free"></td><td class="busy"></td></tr>
+            <tr><td class="free"></td><td class="busy"></td><td class="busy"></td><td class="free"></td><td class="busy"></td><td class="free"></td></tr>
+            <tr><td class="busy"></td><td class="busy"></td><td class="free"></td><td class="busy"></td><td class="free"></td><td class="free"></td></tr>
+            <tr><td class="free"></td><td class="free"></td><td class="busy"></td><td class="busy"></td><td class="busy"></td><td class="busy"></td></tr>
+          </tbody>
+        </table>
+        <div class="cal-legend"><span><i style="background:rgba(108,255,46,.18)"></i>wolne</span><span><i style="background:var(--bg-3)"></i>zajęte</span></div>
+      </div>
+
+      <div class="cal-fallback">
+        <p><strong>Nie widzisz pasującej godziny?</strong> Zadzwoń, zwykle coś się znajdzie.</p>
+        <a class="btn btn-neon" href="tel:+48792758294"><svg><use href="#i-phone"/></svg>792 758 294</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- O NAS -->
+<section id="o-nas" class="about">
+  <div class="wrap">
+    <div class="about-copy">
+      <p class="eyebrow">Jeden fotel, jeden barber</p>
+      <h2>FadeLabz</h2>
+      <p class="marker">Precyzja. Pasja. Styl.</p>
+      <p>FadeLabz to mały barber shop w centrum Olecka. Nie ma tu taśmy ani kolejki. Jest fotel, dobre narzędzia i czas na to, żeby zrobić cięcie porządnie. Każda wizyta zaczyna się od rozmowy: co nosisz na co dzień, co Ci przeszkadza, jak chcesz wyglądać za trzy tygodnie, nie tylko dziś.</p>
+      <p>Dziękuję, że jesteście ze mną i wspieracie rozwój tego miejsca. Widzimy się na fotelu.</p>
+      <div class="values">
+        <div><svg><use href="#i-check"/></svg><span><b>Na zapisy.</b> Przychodzisz na swoją godzinę i siadasz na fotelu, nie na krzesełku w poczekalni.</span></div>
+        <div><svg><use href="#i-check"/></svg><span><b>Uczciwe ceny.</b> 40 zł za strzyżenie, 70 zł za combo. Bez dopłat za „trudną głowę”.</span></div>
+        <div><svg><use href="#i-check"/></svg><span><b>Porada na drogę.</b> Mówię, czym i jak układać włosy, żeby fryzura wyglądała tak samo w domu.</span></div>
+      </div>
+    </div>
+    <!-- TODO ZDJĘCIA: tu dobrze zagra zdjęcie barbera przy pracy albo wnętrza, 4:5 -->
+    <div class="ph" style="max-width:460px;justify-self:center;width:100%"><div><span>Barber przy pracy</span><small>zdjęcie 4:5, portret</small></div></div>
+  </div>
+</section>
+
+<!-- OPINIE -->
+<section id="opinie" class="reviews">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Słowo klientów</p>
+      <h2>Opinie</h2>
+      <p class="lead">Opinie zbieramy na Facebooku i w Google. Byłeś? Zostaw dwa zdania, to dla małego salonu najlepsza reklama.</p>
+    </div>
+    <div class="rev-grid">
+      <div class="rev">
+        <span class="stars" aria-label="5 gwiazdek">★★★★★</span>
+        <p>Tu pojawią się opinie klientów z Facebooka i Google. Wklej je własnymi słowami klientów, z imieniem i miesiącem wizyty.</p>
+        <b>Imię, miasto</b>
+      </div>
+      <div class="rev">
+        <span class="stars" aria-label="5 gwiazdek">★★★★★</span>
+        <p>Druga opinia. Najlepiej konkretna: jakie cięcie, czy barber doradził, czy termin był na czas.</p>
+        <b>Imię, miasto</b>
+      </div>
+    </div>
+    <div class="ig-cta">
+      <!-- TODO FACEBOOK: wklej adres strony FadeLabz Barber na Facebooku -->
+      <a class="btn btn-ghost" href="https://www.facebook.com/" target="_blank" rel="noopener">Opinie na Facebooku</a>
+      <p>Strona „FadeLabz Barber” na Facebooku: 4 opinie i rosnąca liczba zdjęć.</p>
+    </div>
+  </div>
+</section>
+
+<!-- KONTAKT -->
+<section id="kontakt" class="contact">
+  <div class="wrap">
+    <div>
+      <div class="sec-head">
+        <p class="eyebrow">Gdzie i kiedy</p>
+        <h2>Kontakt</h2>
+      </div>
+      <div class="contact-list">
+        <div><svg><use href="#i-phone"/></svg><span><b>Telefon</b><a href="tel:+48792758294">792 758 294</a></span></div>
+        <div><svg><use href="#i-pin"/></svg><span><b>Adres</b><a href="https://www.google.com/maps/search/?api=1&query=1+Maja+2%2C+19-400+Olecko" target="_blank" rel="noopener">ul. 1 Maja 2, 19-400 Olecko</a></span></div>
+        <div><svg><use href="#i-ig"/></svg><span><b>Instagram</b><a href="https://www.instagram.com/fadelabz_barber" target="_blank" rel="noopener">@fadelabz_barber</a></span></div>
+        <div><svg><use href="#i-clock"/></svg><span><b>Godziny otwarcia</b>
+          <!-- TODO GODZINY: wpisz prawdziwe godziny (i popraw openingHoursSpecification w JSON-LD na górze pliku) -->
+          <table class="hours">
+            <tr><td>Poniedziałek – piątek</td><td>9:00 – 18:00</td></tr>
+            <tr><td>Sobota</td><td>9:00 – 14:00</td></tr>
+            <tr class="closed"><td>Niedziela</td><td>nieczynne</td></tr>
+          </table>
+          <small style="color:var(--fg-3)">Przyjmuję na zapisy, dlatego poza tymi godzinami też bywa możliwość. Zadzwoń.</small>
+        </span></div>
+      </div>
+    </div>
+    <div class="map">
+      <iframe src="https://www.google.com/maps?q=1+Maja+2,+19-400+Olecko&z=16&output=embed&hl=pl" title="Mapa: FadeLabz, ul. 1 Maja 2, Olecko" loading="lazy" allowfullscreen referrerpolicy="no-referrer-when-downgrade"></iframe>
+      <a href="https://www.google.com/maps/dir/?api=1&destination=1+Maja+2%2C+19-400+Olecko" target="_blank" rel="noopener">Nawiguj do salonu →</a>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq" class="faq">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Zanim przyjdziesz</p>
+      <h2>Częste pytania</h2>
+    </div>
+    <details><summary>Czy trzeba się umawiać?</summary><div class="a">Tak, pracuję na zapisy. Najszybciej zadzwoń: 792 758 294. Możesz też sprawdzić wolne terminy w kalendarzu wyżej i zapisać się samodzielnie.</div></details>
+    <details><summary>Ile trwa wizyta?</summary><div class="a">Strzyżenie albo broda to zwykle 30–45 minut. Combo włosy i broda zajmuje około godziny. Golenie brzytwą z gorącym ręcznikiem to około 40 minut.</div></details>
+    <details><summary>Nie wiem, jakie cięcie wybrać. Co wtedy?</summary><div class="a">Przyjdź, pogadamy. Dobieram fryzurę do kształtu głowy, rodzaju włosów i tego, ile czasu chcesz poświęcać na stylizację. Zdjęcie inspiracji w telefonie bardzo pomaga.</div></details>
+    <details><summary>Czym różni się fade od taper?</summary><div class="a">Fade to płynne cieniowanie boków i tyłu, często do skóry (skin fade). Taper to delikatniejsze skrócenie tylko przy uszach i karku, naturalniejszy efekt. Oba robię na co dzień.</div></details>
+    <details><summary>Co jeśli się spóźnię albo nie dam rady przyjść?</summary><div class="a">Daj znać telefonicznie najszybciej jak możesz. Termin zwolni się dla kogoś innego, a Tobie znajdę nowy.</div></details>
+  </div>
+</section>
+
+<!-- KOŃCOWE CTA -->
+<section class="final">
+  <div class="wrap">
+    <p class="marker">Widzimy się na fotelu.</p>
+    <h2>Umów się dziś</h2>
+    <p class="lead">Jedna rozmowa i termin jest Twój. Ul. 1 Maja 2, Olecko.</p>
+    <div class="hero-cta">
+      <a class="btn btn-neon btn-lg" href="tel:+48792758294"><svg><use href="#i-phone"/></svg>792 758 294</a>
+      <a class="btn btn-ghost btn-lg" href="#terminy"><svg><use href="#i-cal"/></svg>Wolne terminy</a>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>© <span id="rok">2026</span> FadeLabz Barber Shop · ul. 1 Maja 2, 19-400 Olecko · tel. 792 758 294</p>
+    <nav aria-label="Linki">
+      <a href="https://www.instagram.com/fadelabz_barber" target="_blank" rel="noopener">Instagram</a>
+      <!-- TODO FACEBOOK -->
+      <a href="https://www.facebook.com/" target="_blank" rel="noopener">Facebook</a>
+      <a href="#cennik">Cennik</a>
+      <a href="#terminy">Terminy</a>
+    </nav>
+  </div>
+</footer>
+
+<!-- pasek na telefonie: zawsze widoczny przycisk "Zadzwoń" -->
+<div class="callbar">
+  <a class="btn btn-neon" href="tel:+48792758294"><svg><use href="#i-phone"/></svg>Zadzwoń</a>
+  <a class="btn btn-ghost" href="#terminy"><svg><use href="#i-cal"/></svg>Terminy</a>
+</div>
+
+<script>
+  // Rok w stopce
+  document.getElementById('rok').textContent = new Date().getFullYear();
+
+  // Kalendarz: dopóki nie wklejono prawdziwego adresu, pokazujemy objaśnienie zamiast pustej ramki.
+  (function () {
+    var f = document.getElementById('kalendarz');
+    var p = document.getElementById('kalendarz-placeholder');
+    if (!f) return;
+    if (/TWOJ-LINK/.test(f.getAttribute('src') || '')) {
+      f.hidden = true;
+      p.hidden = false;
+    }
+  })();
+</script>
+</body>
+</html>
