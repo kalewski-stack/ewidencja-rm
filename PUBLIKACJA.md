@@ -77,11 +77,12 @@ Klient widzi bloki „Zajęte”, resztę ustala telefonicznie. Prywatne nazwy w
 
 W `index.html` wpisz w wyszukiwarkę (Ctrl+F) słowo `TODO`:
 
-1. `TODO KALENDARZ` – adres z kroku 3.
-2. `TODO GODZINY` – prawdziwe godziny otwarcia. Na stronie wpisane są robocze: Pn–Pt 9–18, Sob 9–14. Popraw w dwóch miejscach: tabela w sekcji Kontakt i `openingHoursSpecification` w JSON-LD na górze pliku.
-3. `TODO ZDJĘCIA` – 6 zdjęć prac + 1 portret barbera. Format pionowy 4:5 (np. 800×1000 px), JPG do 300 KB każde. Wrzuć do `img/`, w galerii zamień każdy `<div class="ph">…</div>` na `<img …>` według wzoru w komentarzu.
-4. `TODO FACEBOOK` – adres strony FadeLabz Barber na Facebooku (dwa miejsca: sekcja Opinie i stopka). Dopisz też do listy `sameAs` w JSON-LD.
-5. Sekcja Opinie: wklej 2–4 prawdziwe opinie z Facebooka / Google (imię, miasto).
+1. `TODO WŁAŚCICIELKA` – imię właścicielki ([Imię]) i staż ([X] lat) w sekcji „Poznaj…”.
+2. `TODO KALENDARZ` – adres z kroku 3.
+3. `TODO GODZINY` – prawdziwe godziny otwarcia. Na stronie wpisane są robocze: Pn–Pt 9–18, Sob 9–14. Popraw w dwóch miejscach: tabela w sekcji Kontakt i `openingHoursSpecification` w JSON-LD na górze pliku.
+4. `TODO ZDJĘCIA` – w galerii jest 6 zdjęć przykładowych (`img/przyklady/`, licencje CC). Podmień na własne prace: pion 4:5 (np. 800×1000 px), JPG do 300 KB, wrzuć do `img/` i zmień `src`. Zdjęcia właścicielki (`img/wlascicielka-1.jpg`, `-2.jpg`) są już docelowe.
+5. `TODO FACEBOOK` – adres strony FadeLabz Barber na Facebooku (dwa miejsca: sekcja Opinie i stopka). Dopisz też do listy `sameAs` w JSON-LD.
+6. Sekcja Opinie: wklej 2–4 prawdziwe opinie z Facebooka / Google (imię, miasto).
 
 Kod pocztowy 19-400 i współrzędne w JSON-LD są dla Olecka; jeśli Google Maps pokaże pinezkę obok, popraw `latitude`/`longitude` na te z Google Maps (kliknij prawym na pinezkę → pierwsza linia).
 
