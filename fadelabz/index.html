@@ -254,6 +254,28 @@ section { padding-block: 72px; }
 .values b { color: var(--fg); }
 @media (max-width: 860px) { .about .wrap { grid-template-columns: 1fr; } }
 
+/* właścicielka */
+.owner .wrap { display: grid; grid-template-columns: .9fr 1.1fr; gap: 56px; align-items: center; }
+.owner-photos { position: relative; padding: 0 14% 18% 0; max-width: 520px; width: 100%; justify-self: center; }
+.owner-photos img { aspect-ratio: 4/5; object-fit: cover; border-radius: var(--radius); width: 100%; }
+.owner-main { border: 1px solid var(--line); }
+.owner-second { position: absolute; right: 0; bottom: 0; width: 46% !important; border: 6px solid var(--bg); transform: rotate(3deg); box-shadow: 0 18px 40px rgba(0,0,0,.55); }
+.owner-stamp { position: absolute; left: -8px; top: 22px; background: var(--neon); color: var(--neon-ink); font-family: var(--font-marker); font-size: 18px; padding: 6px 14px; border-radius: 4px; transform: rotate(-5deg); }
+.owner-copy { display: grid; gap: 16px; min-width: 0; }
+.owner-copy > p { color: var(--fg-2); max-width: 60ch; }
+.owner-role { color: var(--neon) !important; font-weight: 700; font-size: 14px; text-transform: uppercase; letter-spacing: .12em; }
+.owner-quote { margin: 6px 0; padding: 18px 20px; border-left: 3px solid var(--neon); background: var(--bg-2); border-radius: 0 var(--radius) var(--radius) 0; }
+.owner-quote p { font-size: 19px; line-height: 1.5; color: var(--fg); }
+.owner-quote footer { border: 0; padding: 0; margin-top: 10px; font-family: var(--font-marker); color: var(--neon); font-size: 17px; }
+.owner-for { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.owner-for div { background: var(--bg-2); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; display: grid; gap: 6px; align-content: start; min-width: 0; }
+.owner-for b { font-family: var(--font-display); font-weight: 400; font-size: 19px; letter-spacing: .02em; text-transform: uppercase; }
+.owner-for p { color: var(--fg-2); font-size: 14px; }
+.owner-cta { display: flex; flex-wrap: wrap; gap: 14px 20px; align-items: center; margin-top: 4px; }
+.owner-sign { font-family: var(--font-marker); color: var(--fg-2); font-size: 20px; transform: rotate(-2deg); }
+@media (max-width: 960px) { .owner-for { grid-template-columns: 1fr; } }
+@media (max-width: 860px) { .owner .wrap { grid-template-columns: 1fr; gap: 36px; } }
+
 /* opinie */
 .reviews { background: var(--bg-2); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 .rev-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
@@ -335,6 +357,7 @@ footer nav { display: flex; flex-wrap: wrap; gap: 18px; }
     <nav class="nav" aria-label="Sekcje strony">
       <a href="#cennik">Cennik</a>
       <a href="#specjalizacje">Cięcia</a>
+      <a href="#wlascicielka">Barberka</a>
       <a href="#galeria">Galeria</a>
       <a href="#terminy">Terminy</a>
       <a href="#kontakt">Kontakt</a>
@@ -351,7 +374,7 @@ footer nav { display: flex; flex-wrap: wrap; gap: 18px; }
     <div>
       <span class="hero-tag">Dobry styl to nie przypadek.</span>
       <h1>Barber shop<br>w <span>Olecku</span></h1>
-      <p class="lead">Skin fade, taper, crop, klasyk nożyczkowy, broda i golenie brzytwą. Jeden fotel, jeden barber, pełna uwaga na Tobie. Ul. 1 Maja 2, strzyżenie od 40 zł.</p>
+      <p class="lead">Skin fade, taper, crop, klasyk nożyczkowy, broda i golenie brzytwą. Jeden fotel, jedna barberka, pełna uwaga na Tobie. Ul. 1 Maja 2, strzyżenie od 40 zł.</p>
       <div class="hero-cta">
         <a class="btn btn-neon btn-lg" href="tel:+48792758294"><svg><use href="#i-phone"/></svg>Zadzwoń i umów się</a>
         <a class="btn btn-ghost btn-lg" href="#terminy"><svg><use href="#i-cal"/></svg>Sprawdź wolne terminy</a>
@@ -444,6 +467,38 @@ footer nav { display: flex; flex-wrap: wrap; gap: 18px; }
   </div>
 </section>
 
+<!-- WŁAŚCICIELKA
+     TODO WŁAŚCICIELKA: podmień [Imię] (4 miejsca) i [X] (liczba lat doświadczenia, 2 miejsca). -->
+<section id="wlascicielka" class="owner">
+  <div class="wrap">
+    <div class="owner-photos">
+      <img class="owner-main" src="img/wlascicielka-1.jpg" alt="[Imię], właścicielka FadeLabz, z nożyczkami barberskimi uniesionymi nad głową" width="900" height="1125" loading="lazy">
+      <img class="owner-second" src="img/wlascicielka-2.jpg" alt="[Imię] z nożyczkami i degażówkami, portret w studiu" width="900" height="1125" loading="lazy">
+      <span class="owner-stamp">Szefowa fotela</span>
+    </div>
+    <div class="owner-copy">
+      <p class="eyebrow">Za fotelem</p>
+      <h2>Poznaj [Imię]</h2>
+      <p class="owner-role">Właścicielka i barberka FadeLabz · w zawodzie od [X] lat</p>
+      <p>Rude włosy, tatuaże po łokcie i ręka, która nie drży przy skin fadzie. [Imię] strzyże od [X] lat. Przez jej fotel przeszły setki głów i bród, w tym sporo fryzur do ratowania po wizytach gdzie indziej.</p>
+      <p>FadeLabz postawiła, bo Olecko potrzebowało takiego miejsca. Faceci, którzy chcieli porządnego fade'a albo zadbanej brody, często szukali barbera poza miastem. Teraz mają swoje miejsce przy 1 Maja 2: z precyzją, klimatem i czasem dla każdego klienta.</p>
+      <blockquote class="owner-quote">
+        <p>Zapraszam każdego faceta, który chce regularnie dbać o włosy i brodę. I tych, którzy mają dość tej samej fryzury od lat i szukają nowego pomysłu na siebie. Doradzę, dobiorę cięcie do twarzy i stylu życia, a potem zrobię całość od A do Z.</p>
+        <footer>[Imię], FadeLabz</footer>
+      </blockquote>
+      <div class="owner-for">
+        <div><b>Stali bywalcy</b><p>Co 3–4 tygodnie fade odświeżony, broda w formie. Kolejny termin ustalamy od razu przy fotelu.</p></div>
+        <div><b>Szukasz zmiany</b><p>Pogadamy, pokażę opcje, które pasują do Twoich włosów. Wyjdziesz z fryzurą, a nie z pytaniem.</p></div>
+        <div><b>Pełen serwis</b><p>Strzyżenie włosów i brody, golenie brzytwą, odsiwianie i porada, czym to układać w domu.</p></div>
+      </div>
+      <div class="owner-cta">
+        <a class="btn btn-neon" href="tel:+48792758294"><svg><use href="#i-phone"/></svg>Umów się do [Imię]</a>
+        <span class="owner-sign">Widzimy się na fotelu!</span>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- GALERIA -->
 <section id="galeria">
   <div class="wrap">
@@ -514,26 +569,6 @@ footer nav { display: flex; flex-wrap: wrap; gap: 18px; }
   </div>
 </section>
 
-<!-- O NAS -->
-<section id="o-nas" class="about">
-  <div class="wrap">
-    <div class="about-copy">
-      <p class="eyebrow">Jeden fotel, jeden barber</p>
-      <h2>FadeLabz</h2>
-      <p class="marker">Precyzja. Pasja. Styl.</p>
-      <p>FadeLabz to mały barber shop w centrum Olecka. Nie ma tu taśmy ani kolejki. Jest fotel, dobre narzędzia i czas na to, żeby zrobić cięcie porządnie. Każda wizyta zaczyna się od rozmowy: co nosisz na co dzień, co Ci przeszkadza, jak chcesz wyglądać za trzy tygodnie, nie tylko dziś.</p>
-      <p>Dziękuję, że jesteście ze mną i wspieracie rozwój tego miejsca. Widzimy się na fotelu.</p>
-      <div class="values">
-        <div><svg><use href="#i-check"/></svg><span><b>Na zapisy.</b> Przychodzisz na swoją godzinę i siadasz na fotelu, nie na krzesełku w poczekalni.</span></div>
-        <div><svg><use href="#i-check"/></svg><span><b>Uczciwe ceny.</b> 40 zł za strzyżenie, 70 zł za combo. Bez dopłat za „trudną głowę”.</span></div>
-        <div><svg><use href="#i-check"/></svg><span><b>Porada na drogę.</b> Mówię, czym i jak układać włosy, żeby fryzura wyglądała tak samo w domu.</span></div>
-      </div>
-    </div>
-    <!-- TODO ZDJĘCIA: tu dobrze zagra zdjęcie barbera przy pracy albo wnętrza, 4:5 -->
-    <figure class="about-photo"><img src="img/przyklady/barber.jpg" alt="Barber przy pracy w salonie" width="683" height="853" loading="lazy"><figcaption>Barber przy pracy</figcaption></figure>
-  </div>
-</section>
-
 <!-- OPINIE -->
 <section id="opinie" class="reviews">
   <div class="wrap">
@@ -550,7 +585,7 @@ footer nav { display: flex; flex-wrap: wrap; gap: 18px; }
       </div>
       <div class="rev">
         <span class="stars" aria-label="5 gwiazdek">★★★★★</span>
-        <p>Druga opinia. Najlepiej konkretna: jakie cięcie, czy barber doradził, czy termin był na czas.</p>
+        <p>Druga opinia. Najlepiej konkretna: jakie cięcie, czy barberka doradziła, czy termin był na czas.</p>
         <b>Imię, miasto</b>
       </div>
     </div>
