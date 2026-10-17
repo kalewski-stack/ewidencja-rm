@@ -154,14 +154,12 @@ section { padding-block: 72px; }
 /* hero: okładka. Tło = scena strzyżenia (przyciemniona), po prawej portret właścicielki, CTA na zdjęciu. */
 .hero { position: relative; overflow: hidden; isolation: isolate; border-bottom: 1px solid var(--line);
   min-height: clamp(600px, 84vh, 860px); display: grid; align-items: center; padding-block: 56px; background: var(--bg); }
-.hero-bg { position: absolute; inset: 0; z-index: -3; background: url("img/hero-tlo.jpg") center 30% / cover no-repeat; }
+.hero-bg { position: absolute; inset: 0; z-index: -3; }
+.hero-bg img { width: 100%; height: 100%; max-width: 100%; object-fit: cover; object-position: 70% 30%; }
 .hero::before { content: ""; position: absolute; inset: 0; z-index: -1;
-  background: linear-gradient(90deg, rgba(11,13,10,.96) 0%, rgba(11,13,10,.86) 38%, rgba(11,13,10,.25) 62%, rgba(11,13,10,0) 75%),
+  background: linear-gradient(90deg, rgba(11,13,10,.94) 0%, rgba(11,13,10,.8) 34%, rgba(11,13,10,.2) 56%, rgba(11,13,10,0) 66%),
               linear-gradient(0deg, rgba(11,13,10,.9) 0%, transparent 30%),
               radial-gradient(40% 50% at 30% 40%, rgba(108,255,46,.10), transparent 70%); }
-.hero-portrait { position: absolute; z-index: -2; right: 0; top: 0; bottom: 0; height: 100%; width: min(50%, 720px); max-width: 100%;
-  object-fit: cover; object-position: 50% 18%;
-  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 22%); mask-image: linear-gradient(90deg, transparent 0, #000 22%); }
 .hero .wrap { width: 100%; }
 .hero-copy { max-width: 600px; display: grid; justify-items: start; }
 .hero-tag { font-family: var(--font-marker); color: var(--neon); font-size: clamp(20px, 3vw, 26px); transform: rotate(-2deg); display: inline-block; }
@@ -181,9 +179,8 @@ section { padding-block: 72px; }
   font-family: var(--font-marker); font-size: 18px; padding: 8px 14px; transform: rotate(-5deg); border-radius: 4px; }
 @media (max-width: 860px) {
   .hero { align-items: end; min-height: 660px; padding-block: 0 24px; }
-  .hero-bg { display: none; }
-  .hero-portrait { width: 100%; height: 400px; bottom: auto; object-position: 50% 62%;
-    -webkit-mask-image: linear-gradient(180deg, #000 55%, transparent 100%); mask-image: linear-gradient(180deg, #000 55%, transparent 100%); }
+  .hero-bg { bottom: auto; height: 470px; }
+  .hero-bg img { object-position: 50% 0; -webkit-mask-image: linear-gradient(180deg, #000 70%, transparent 100%); mask-image: linear-gradient(180deg, #000 70%, transparent 100%); }
   .hero::before { background: linear-gradient(0deg, rgba(11,13,10,1) 0%, rgba(11,13,10,.95) 40%, rgba(11,13,10,0) 58%); }
   .hero h1 { font-size: clamp(42px, 12vw, 60px); }
   .hero .lead { font-size: 15px; margin-top: 10px; }
@@ -203,9 +200,8 @@ section { padding-block: 72px; }
 /* cennik */
 .price-grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: 40px; align-items: start; }
 .price-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
-.price-list li { display: grid; grid-template-columns: 36px 1fr auto; gap: 14px; align-items: center; padding: 16px 0; border-bottom: 1px solid var(--line); }
-.price-list .ico { width: 36px; height: 36px; color: var(--neon); }
-.price-list .ico svg { width: 36px; height: 36px; }
+.price-list li { display: grid; grid-template-columns: 72px 1fr auto; gap: 14px; align-items: center; padding: 16px 0; border-bottom: 1px solid var(--line); }
+.price-list .thumb { width: 72px; height: 72px; object-fit: cover; border-radius: 50%; border: 2px solid var(--line); }
 .price-list .name { font-weight: 600; font-size: 18px; }
 .price-list .note { display: block; color: var(--fg-3); font-size: 14px; font-weight: 400; margin-top: 2px; }
 .price-list .price { font-family: var(--font-display); color: var(--neon); font-size: 28px; letter-spacing: .02em; font-variant-numeric: tabular-nums; }
@@ -219,8 +215,11 @@ section { padding-block: 72px; }
 .spec { background: var(--bg-2); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 .spec-groups { display: grid; gap: 40px; }
 .spec-group h3 { color: var(--fg-2); font-size: 15px; letter-spacing: .14em; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
-.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; }
-.card { background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; display: grid; gap: 8px; min-width: 0; }
+.cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+@media (max-width: 960px) { .cards { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 480px) { .card p { font-size: 14px; } .card b { font-size: 18px; } .cards { gap: 10px; } }
+.card { background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius); padding: 0 16px 16px; display: grid; gap: 8px; align-content: start; min-width: 0; overflow: hidden; }
+.card img { width: calc(100% + 32px); max-width: none; margin: 0 -16px 6px; aspect-ratio: 4/3; object-fit: cover; }
 .card:hover { border-color: var(--neon-2); }
 .card b { font-family: var(--font-display); font-weight: 400; font-size: 21px; letter-spacing: .02em; text-transform: uppercase; }
 .card p { color: var(--fg-2); font-size: 15px; }
@@ -342,6 +341,13 @@ section { padding-block: 72px; }
 .final .lead { margin: 0 auto 28px; }
 .final .hero-cta { justify-content: center; }
 
+/* seo */
+.seo { border-top: 1px solid var(--line); padding-block: 48px; }
+.seo .wrap { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+.seo h2 { font-size: 22px; letter-spacing: .03em; margin-bottom: 10px; color: var(--fg); }
+.seo p { color: var(--fg-3); font-size: 15px; }
+@media (max-width: 860px) { .seo .wrap { grid-template-columns: 1fr; gap: 22px; } }
+
 /* stopka */
 footer { border-top: 1px solid var(--line); padding-block: 28px; color: var(--fg-3); font-size: 14px; }
 footer .wrap { display: flex; flex-wrap: wrap; gap: 14px 28px; align-items: center; justify-content: space-between; }
@@ -392,12 +398,14 @@ footer nav { display: flex; flex-wrap: wrap; gap: 18px; }
 
 <main id="top">
 
-<!-- HERO / COVER
-     TODO ZDJĘCIA: tło (img/hero-tlo.jpg) to zdjęcie przykładowe. Docelowo: zdjęcie właścicielki przy pracy z klientem w salonie,
-     poziome, min. 1600 px szerokości. Portret po prawej (img/wlascicielka-1.jpg) jest docelowy. -->
+<!-- HERO / OKŁADKA
+     img/hero-okladka.jpg (komputer) i img/hero-okladka-telefon.jpg (telefon) to fotomontaż: właścicielka na tle wnętrza barber shopu.
+     TODO ZDJĘCIA: wnętrze jest przykładowe (Flickr, CC BY). Docelowo zdjęcie właścicielki w salonie FadeLabz, poziome, min. 1600 px. -->
 <section class="hero">
-  <div class="hero-bg" aria-hidden="true"></div>
-  <img class="hero-portrait" src="img/wlascicielka-1.jpg" alt="Właścicielka FadeLabz z nożyczkami barberskimi uniesionymi nad głową" width="900" height="1125" fetchpriority="high">
+  <picture class="hero-bg">
+    <source media="(max-width: 860px)" srcset="img/hero-okladka-telefon.jpg">
+    <img src="img/hero-okladka.jpg" alt="Właścicielka FadeLabz z nożyczkami we wnętrzu barber shopu" width="1600" height="1000" fetchpriority="high">
+  </picture>
   <div class="wrap">
     <div class="hero-copy">
       <span class="hero-tag">Dobry styl to nie przypadek.</span>
@@ -437,12 +445,12 @@ footer nav { display: flex; flex-wrap: wrap; gap: 18px; }
     </div>
     <div class="price-grid">
       <ul class="price-list">
-        <li><span class="ico"><svg><use href="#i-scissors"/></svg></span><span class="name">Strzyżenie włosów / brody<span class="note">Fade, taper, crop, buzz cut, klasyk nożyczkowy albo kształtowanie brody</span></span><span class="price">40<small>zł</small></span></li>
-        <li><span class="ico"><svg><use href="#i-clipper"/></svg></span><span class="name">Combo: włosy i broda<span class="note">Pełna wizyta, głowa i broda w jednym podejściu</span></span><span class="price">70<small>zł</small></span></li>
-        <li><span class="ico"><svg><use href="#i-clipper"/></svg></span><span class="name">Strzyżenie boków<span class="note">Odświeżenie fade'a między wizytami, góra bez zmian</span></span><span class="price">30<small>zł</small></span></li>
-        <li><span class="ico"><svg><use href="#i-spark"/></svg></span><span class="name">Odsiwianie włosów<span class="note">Kamuflaż siwizny, naturalny efekt bez „farbowania”</span></span><span class="price">50<small>zł</small></span></li>
-        <li><span class="ico"><svg><use href="#i-razor"/></svg></span><span class="name">Golenie brzytwą<span class="note">Klasyczne golenie na gładko</span></span><span class="price">40<small>zł</small></span></li>
-        <li><span class="ico"><svg><use href="#i-beard"/></svg></span><span class="name">Golenie lub strzyżenie brody z pielęgnacją<span class="note">Gorący ręcznik, olejek, balsam. Rytuał, nie szybkie podcięcie</span></span><span class="price">70<small>zł</small></span></li>
+        <li><img class="thumb" src="img/uslugi/skin-fade.jpg" alt="" width="72" height="72" loading="lazy"><span class="name">Strzyżenie włosów / brody<span class="note">Fade, taper, crop, buzz cut, klasyk nożyczkowy albo kształtowanie brody</span></span><span class="price">40<small>zł</small></span></li>
+        <li><img class="thumb" src="img/uslugi/combo.jpg" alt="" width="72" height="72" loading="lazy"><span class="name">Combo: włosy i broda<span class="note">Pełna wizyta, głowa i broda w jednym podejściu</span></span><span class="price">70<small>zł</small></span></li>
+        <li><img class="thumb" src="img/uslugi/taper.jpg" alt="" width="72" height="72" loading="lazy"><span class="name">Strzyżenie boków<span class="note">Odświeżenie fade'a między wizytami, góra bez zmian</span></span><span class="price">30<small>zł</small></span></li>
+        <li><img class="thumb" src="img/uslugi/odsiwianie.jpg" alt="" width="72" height="72" loading="lazy"><span class="name">Odsiwianie włosów<span class="note">Kamuflaż siwizny, naturalny efekt bez „farbowania”</span></span><span class="price">50<small>zł</small></span></li>
+        <li><img class="thumb" src="img/uslugi/golenie.jpg" alt="" width="72" height="72" loading="lazy"><span class="name">Golenie brzytwą<span class="note">Klasyczne golenie na gładko</span></span><span class="price">40<small>zł</small></span></li>
+        <li><img class="thumb" src="img/uslugi/pielegnacja.jpg" alt="" width="72" height="72" loading="lazy"><span class="name">Golenie lub strzyżenie brody z pielęgnacją<span class="note">Gorący ręcznik, olejek, balsam. Rytuał, nie szybkie podcięcie</span></span><span class="price">70<small>zł</small></span></li>
       </ul>
       <aside class="price-aside">
         <p class="marker">Widzimy się na fotelu.</p>
@@ -470,23 +478,23 @@ footer nav { display: flex; flex-wrap: wrap; gap: 18px; }
       <div class="spec-group">
         <h3>Włosy</h3>
         <div class="cards">
-          <div class="card"><span class="for">Specjalność domu</span><b>Skin fade</b><p>Cieniowanie od zera przy skórze do pełnej długości na górze. Low, mid albo high, zależnie od tego, jak ostro chcesz wyglądać.</p></div>
-          <div class="card"><span class="for">Naturalnie, ale czysto</span><b>Taper</b><p>Delikatne skrócenie przy uszach i karku. Fryzura wygląda schludnie, a nie „świeżo po barberze”.</p></div>
-          <div class="card"><span class="for">Mało stylizacji</span><b>Crop</b><p>Krótka, teksturowana góra z grzywką i cieniowanymi bokami. Rano palce, odrobina pasty i gotowe.</p></div>
-          <div class="card"><span class="for">Zero zachodu</span><b>Buzz cut</b><p>Krótko maszynką na całej głowie, z fade'em na bokach albo bez. Czysty, męski, do odświeżania co 3–4 tygodnie.</p></div>
-          <div class="card"><span class="for">Klasyka</span><b>Klasyk nożyczkowy</b><p>Strzyżenie nożyczkami, bez maszynki, z zachowaniem długości. Dla tych, którzy wolą elegancję niż ostry kontrast.</p></div>
-          <div class="card"><span class="for">Dłuższa góra</span><b>Quiff · Pompadour · Undercut</b><p>Objętość i kierunek na górze, krótkie boki. Pracujemy nad formą, która trzyma się bez litra lakieru.</p></div>
-          <div class="card"><span class="for">Trend</span><b>Mullet · Wolf cut</b><p>Dłuższy tył, krótsze boki, dużo tekstury. Jeśli chcesz wyjść z fotela inaczej niż wszyscy.</p></div>
-          <div class="card"><span class="for">Wykończenie</span><b>Line-up i kontury</b><p>Ostra linia czoła, skroni i karku. Drobiazg, który odróżnia dobre cięcie od bardzo dobrego.</p></div>
+          <div class="card"><img src="img/uslugi/skin-fade.jpg" alt="Skin fade: przykład" width="480" height="360" loading="lazy"><span class="for">Specjalność domu</span><b>Skin fade</b><p>Cieniowanie od zera przy skórze do pełnej długości na górze. Low, mid albo high, zależnie od tego, jak ostro chcesz wyglądać.</p></div>
+          <div class="card"><img src="img/uslugi/taper.jpg" alt="Taper: przykład" width="480" height="360" loading="lazy"><span class="for">Naturalnie, ale czysto</span><b>Taper</b><p>Delikatne skrócenie przy uszach i karku. Fryzura wygląda schludnie, a nie „świeżo po barberze”.</p></div>
+          <div class="card"><img src="img/uslugi/crop.jpg" alt="Crop: przykład" width="480" height="360" loading="lazy"><span class="for">Mało stylizacji</span><b>Crop</b><p>Krótka, teksturowana góra z grzywką i cieniowanymi bokami. Rano palce, odrobina pasty i gotowe.</p></div>
+          <div class="card"><img src="img/uslugi/buzz-cut.jpg" alt="Buzz cut: przykład" width="480" height="360" loading="lazy"><span class="for">Zero zachodu</span><b>Buzz cut</b><p>Krótko maszynką na całej głowie, z fade'em na bokach albo bez. Czysty, męski, do odświeżania co 3–4 tygodnie.</p></div>
+          <div class="card"><img src="img/uslugi/klasyk.jpg" alt="Klasyk nożyczkowy: przykład" width="480" height="360" loading="lazy"><span class="for">Klasyka</span><b>Klasyk nożyczkowy</b><p>Strzyżenie nożyczkami, bez maszynki, z zachowaniem długości. Dla tych, którzy wolą elegancję niż ostry kontrast.</p></div>
+          <div class="card"><img src="img/uslugi/undercut.jpg" alt="Quiff · Pompadour · Undercut: przykład" width="480" height="360" loading="lazy"><span class="for">Dłuższa góra</span><b>Quiff · Pompadour · Undercut</b><p>Objętość i kierunek na górze, krótkie boki. Pracujemy nad formą, która trzyma się bez litra lakieru.</p></div>
+          <div class="card"><img src="img/uslugi/mullet.jpg" alt="Mullet · Wolf cut: przykład" width="480" height="360" loading="lazy"><span class="for">Trend</span><b>Mullet · Wolf cut</b><p>Dłuższy tył, krótsze boki, dużo tekstury. Jeśli chcesz wyjść z fotela inaczej niż wszyscy.</p></div>
+          <div class="card"><img src="img/uslugi/line-up.jpg" alt="Line-up i kontury: przykład" width="480" height="360" loading="lazy"><span class="for">Wykończenie</span><b>Line-up i kontury</b><p>Ostra linia czoła, skroni i karku. Drobiazg, który odróżnia dobre cięcie od bardzo dobrego.</p></div>
         </div>
       </div>
       <div class="spec-group">
         <h3>Broda i golenie</h3>
         <div class="cards">
-          <div class="card"><span class="for">Co 2–3 tygodnie</span><b>Trymowanie i kształtowanie brody</b><p>Długość, linia policzków i szyi, przejście do fryzury. Broda ma pasować do twarzy, nie odwrotnie.</p></div>
-          <div class="card"><span class="for">Rytuał</span><b>Golenie brzytwą z gorącym ręcznikiem</b><p>Gorący ręcznik otwiera pory i zmiękcza zarost, potem brzytwa i balsam. Gładko jak nigdy maszynką.</p></div>
-          <div class="card"><span class="for">Pielęgnacja</span><b>Broda z pielęgnacją</b><p>Strzyżenie albo golenie plus olejek, balsam i porada, co robić w domu, żeby broda nie drapała i nie puszyła się.</p></div>
-          <div class="card"><span class="for">Dyskretnie</span><b>Odsiwianie włosów i brody</b><p>Kamuflaż siwizny tonujący, nie kryjący. Efekt: wyglądasz na wyspanego, nie na pofarbowanego.</p></div>
+          <div class="card"><img src="img/uslugi/trymowanie.jpg" alt="Trymowanie i kształtowanie brody: przykład" width="480" height="360" loading="lazy"><span class="for">Co 2–3 tygodnie</span><b>Trymowanie i kształtowanie brody</b><p>Długość, linia policzków i szyi, przejście do fryzury. Broda ma pasować do twarzy, nie odwrotnie.</p></div>
+          <div class="card"><img src="img/uslugi/golenie.jpg" alt="Golenie brzytwą z gorącym ręcznikiem: przykład" width="480" height="360" loading="lazy"><span class="for">Rytuał</span><b>Golenie brzytwą z gorącym ręcznikiem</b><p>Gorący ręcznik otwiera pory i zmiękcza zarost, potem brzytwa i balsam. Gładko jak nigdy maszynką.</p></div>
+          <div class="card"><img src="img/uslugi/pielegnacja.jpg" alt="Broda z pielęgnacją: przykład" width="480" height="360" loading="lazy"><span class="for">Pielęgnacja</span><b>Broda z pielęgnacją</b><p>Strzyżenie albo golenie plus olejek, balsam i porada, co robić w domu, żeby broda nie drapała i nie puszyła się.</p></div>
+          <div class="card"><img src="img/uslugi/odsiwianie.jpg" alt="Odsiwianie włosów i brody: przykład" width="480" height="360" loading="lazy"><span class="for">Dyskretnie</span><b>Odsiwianie włosów i brody</b><p>Kamuflaż siwizny tonujący, nie kryjący. Efekt: wyglądasz na wyspanego, nie na pofarbowanego.</p></div>
         </div>
       </div>
     </div>
@@ -558,16 +566,11 @@ footer nav { display: flex; flex-wrap: wrap; gap: 18px; }
 <section id="terminy" class="terminy">
   <div class="wrap">
     <div class="sec-head">
-      <p class="eyebrow">Jak się umówić</p>
+      <p class="eyebrow">Umów wizytę</p>
       <h2>Wolne terminy</h2>
-      <p class="lead">Kalendarz poniżej pokazuje na żywo, kiedy fotel jest wolny. Wybierz godzinę i zapisz się sam. Jeśli nic nie pasuje albo wolisz pogadać, po prostu zadzwoń.</p>
+      <p class="lead">Wybierz wolną godzinę i zapisz się. Wolisz pogadać? Zadzwoń: 792 758 294.</p>
     </div>
 
-    <div class="steps">
-      <div class="step"><span class="n">1</span><b>Zadzwoń</b><p>792 758 294. Jedna rozmowa, termin ustalony. Najszybsza droga.</p></div>
-      <div class="step"><span class="n">2</span><b>Albo wybierz termin w kalendarzu</b><p>Zielone okienka to wolne godziny. Klikasz, wpisujesz imię i numer, dostajesz potwierdzenie.</p></div>
-      <div class="step"><span class="n">3</span><b>Przyjdź</b><p>Ul. 1 Maja 2, Olecko. Umyte włosy mile widziane, zdjęcie inspiracji też.</p></div>
-    </div>
 
     <div class="cal-box">
       <!-- TODO KALENDARZ: wklej adres harmonogramu spotkań Google (Kalendarz Google → Utwórz → Harmonogram spotkań
@@ -681,6 +684,24 @@ footer nav { display: flex; flex-wrap: wrap; gap: 18px; }
     <div class="hero-cta">
       <a class="btn btn-neon btn-lg" href="tel:+48792758294"><svg><use href="#i-phone"/></svg>792 758 294</a>
       <a class="btn btn-ghost btn-lg" href="#terminy"><svg><use href="#i-cal"/></svg>Wolne terminy</a>
+    </div>
+  </div>
+</section>
+
+<!-- SEO: trzy akapity pod frazy lokalne -->
+<section id="barber-olecko" class="seo">
+  <div class="wrap">
+    <div class="seo-col">
+      <h2>Fryzjer męski Olecko</h2>
+      <p>Szukasz fryzjera męskiego w Olecku, który nie tnie wszystkich tak samo? FadeLabz przy ul. 1 Maja 2 to salon dla mężczyzn: strzyżenie maszynką i nożyczkami, fade, taper, crop, buzz cut, klasyczne fryzury i odświeżenie boków między wizytami. Strzyżenie kosztuje 40 zł, combo włosy i broda 70 zł. Przyjmujemy na zapisy, więc nie czekasz w kolejce. Zadzwoń pod 792 758 294 albo wybierz wolny termin w kalendarzu na stronie.</p>
+    </div>
+    <div class="seo-col">
+      <h2>Nowy barber shop w Olecku</h2>
+      <p>FadeLabz to nowy barber shop w Olecku, otwarty, bo w mieście brakowało miejsca z prawdziwym barberskim podejściem. Jest jeden fotel, profesjonalne narzędzia i czas na rozmowę o tym, czego chcesz. Oprócz strzyżenia znajdziesz tu trymowanie i kształtowanie brody, golenie brzytwą z gorącym ręcznikiem, pielęgnację brody i odsiwianie. Salon działa w centrum Olecka, przy ulicy 1 Maja.</p>
+    </div>
+    <div class="seo-col">
+      <h2>Najlepszy barber w Olecku?</h2>
+      <p>To oceniają klienci, a my pracujemy na tę opinię przy każdym strzyżeniu. Liczy się precyzyjne cieniowanie, czysty kontur, broda dopasowana do twarzy i porada, jak układać włosy w domu. Jeśli szukasz barbera w Olecku na stałe, umów pierwszą wizytę i sprawdź sam. Po wizycie zostaw opinię w Google albo na Facebooku, to dla małego salonu najlepsza rekomendacja.</p>
     </div>
   </div>
 </section>
