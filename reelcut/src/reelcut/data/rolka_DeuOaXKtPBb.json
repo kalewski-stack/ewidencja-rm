@@ -1,0 +1,44 @@
+{
+  "schema": 1,
+  "name": "Rolka DeuOaXKtPBb: mówiąca głowa + B-roll, napisy słowo po słowie",
+  "source": "https://www.instagram.com/reel/DeuOaXKtPBb/",
+  "notes": "Szablon zawiera wyłącznie parametry montażu (czasy cięć, role ujęć, kadry, geometrię napisów). Nie zawiera obrazu ani treści z oryginału.",
+  "fps": 25,
+  "canvas": [1080, 1920],
+  "structure": {"hook": 2, "outro": 3, "elastic": 13, "elastic_min_s": 2.0, "elastic_max_s": 12.0, "min_cut_s": 0.6, "snap_tol_s": 0.5},
+  "alts": {"1": {"zoom": 1.6, "fy": 0.32, "note": "detal: twarz / oczy"}, "2": {"zoom": 1.45, "fy": 0.68, "note": "detal: dłonie / klatka piersiowa"}},
+  "segments": [
+    {"frames": 64, "role": "A", "zoom": 1.0, "note": "A-roll szeroki. Haczyk: liczby w napisach."},
+    {"frames": 67, "role": "A", "zoom": 1.18, "note": "A-roll średni, zmiana kadru."},
+    {"frames": 40, "role": "B", "alt": 1, "note": "B-roll makro (detal), głos leci dalej."},
+    {"frames": 29, "role": "B", "alt": 2, "note": "B-roll: ekran telefonu."},
+    {"frames": 69, "role": "A", "zoom": 1.15, "note": "A-roll średni."},
+    {"frames": 45, "role": "B", "alt": 1, "note": "B-roll: światło / klimat."},
+    {"frames": 43, "role": "A", "zoom": 1.0, "note": "A-roll szeroki (postać w całości)."},
+    {"frames": 77, "role": "B", "alt": 2, "note": "B-roll: rekwizyt na jednolitym tle."},
+    {"frames": 42, "role": "B", "alt": 1, "note": "B-roll: rekwizyt, ruch ręki."},
+    {"frames": 26, "role": "A", "zoom": 1.1, "note": "A-roll z akcją do kamery."},
+    {"frames": 63, "role": "B", "alt": 2, "note": "B-roll: dłonie na klawiaturze."},
+    {"frames": 47, "role": "A", "zoom": 1.55, "note": "A-roll bardzo bliski kadr."},
+    {"frames": 22, "role": "A", "zoom": 1.75, "fx": [{"type": "blur_in", "dur": 0.3}], "note": "Puenta: najbliższy kadr, wejście z rozmycia, mega napis."},
+    {"frames": 141, "role": "A", "zoom": 1.25, "note": "Elastyczne ujęcie: monolog (tu jest kompensowana długość całości)."},
+    {"frames": 75, "role": "A", "zoom": 1.45, "fx": [{"type": "blur_in", "dur": 0.34}], "note": "Zamknięcie: wejście z rozmycia, wezwanie do działania."}
+  ],
+  "pauses": {"max_pause_s": 0.5, "keep_pause_s": 0.35},
+  "audio": {"lufs": -14.0, "true_peak": -1.0, "lra": 11.0},
+  "captions": {
+    "font": "Anton",
+    "scale_x": 113,
+    "color": "#FFFFFF",
+    "accent_color": "#E2FB77",
+    "running": {"cap_px": 57, "cap_top_px": 1211, "max_words": 2, "short_word_max_chars": 3, "lead_s": 0.04, "hold_after_s": 0.25},
+    "emphasis": {"every_s": 6.8, "min_gap_s": 4.5, "min_words": 2, "max_words": 5, "order": ["center_build", "right_top", "right_bottom", "center_stack", "mega"]},
+    "styles": {
+      "center_build": {"align": "center", "x": 540, "top": 1123, "cap": 68, "accent_cap": 105, "gap": 17, "hold_s": 0.5, "blocks_running": true},
+      "right_top": {"align": "right", "x": 1005, "top": 390, "cap": 75, "pitch": 95, "hold_s": 1.0, "blocks_running": false},
+      "right_bottom": {"align": "right", "x": 1017, "top": 1204, "cap": 100, "pitch": 130, "hold_s": 0.25, "blocks_running": true},
+      "center_stack": {"align": "center", "x": 540, "top": 668, "cap": 80, "pitch": 124, "hold_s": 0.5, "blocks_running": false},
+      "mega": {"align": "center", "x": 540, "center_y": 1260, "cap": 205, "max_width": 926, "hold_s": 0.45, "blocks_running": true}
+    }
+  }
+}

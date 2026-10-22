@@ -1,0 +1,7 @@
+# Wymagane: tylko ffmpeg (z ffprobe) zainstalowany w systemie i Python 3.9+. Bez żadnych pakietów Pythona.
+
+# Opcjonalnie: napisy (rozpoznawanie mowy)
+faster-whisper>=1.0
+
+# Opcjonalnie: automatyczne rozpoznawanie ról ujęć w poleceniu "analyze" (odkomentuj, jeśli potrzebujesz)
+# opencv-python-headless<5

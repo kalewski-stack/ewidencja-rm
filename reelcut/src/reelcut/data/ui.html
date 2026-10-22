@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rolka: tnie Twoje wideo jak rolka wzorcowa</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #f5f5f1; --card: #ffffff; --ink: #16161a; --muted: #62626e; --line: #dddcd3;
+    --accent: #c9f23c; --accent-ink: #16161a; --danger: #b8322a; --ok: #2b7a3d; --bar: #e8e8e1;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #111114; --card: #1a1a1f; --ink: #f1f1ec; --muted: #9b9ba8; --line: #2b2b33;
+            --accent: #e2fb77; --accent-ink: #14140f; --danger: #ff8077; --ok: #7bd88f; --bar: #2a2a32; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+         font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 1.9rem; margin: 0 0 4px; letter-spacing: -0.02em; }
+  .lead { color: var(--muted); margin: 0 0 24px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px; margin-bottom: 14px; }
+  .card h2 { font-size: 1rem; margin: 0 0 10px; }
+  .step { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%;
+          background: var(--accent); color: var(--accent-ink); font-weight: 700; font-size: .85rem; margin-right: 8px; }
+  .drop { border: 2px dashed var(--line); border-radius: 12px; padding: 26px 16px; text-align: center; cursor: pointer;
+          transition: border-color .15s, background .15s; }
+  .drop:hover, .drop.over { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
+  .drop.small { padding: 16px; }
+  .drop strong { display: block; font-size: 1.05rem; }
+  .muted { color: var(--muted); font-size: .92rem; }
+  .file { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-top: 1px solid var(--line); }
+  .file:first-child { border-top: 0; }
+  .file .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  button { font: inherit; cursor: pointer; border-radius: 10px; border: 1px solid var(--line); background: var(--card);
+           color: var(--ink); padding: 8px 14px; }
+  button.link { border: 0; background: none; color: var(--muted); padding: 0 4px; text-decoration: underline; }
+  button.go { width: 100%; padding: 14px; font-weight: 700; font-size: 1.05rem; border: 0;
+              background: var(--accent); color: var(--accent-ink); }
+  button.go:disabled { opacity: .45; cursor: not-allowed; }
+  details summary { cursor: pointer; font-weight: 600; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px; margin-top: 12px; }
+  @media (max-width: 560px) { .grid { grid-template-columns: 1fr; } }
+  label { display: block; font-size: .9rem; }
+  label span { display: block; color: var(--muted); margin-bottom: 3px; }
+  select, input[type=number] { width: 100%; font: inherit; padding: 8px; border-radius: 8px; border: 1px solid var(--line);
+                               background: var(--bg); color: var(--ink); }
+  .check { display: flex; gap: 8px; align-items: center; }
+  .bar { height: 12px; border-radius: 99px; background: var(--bar); overflow: hidden; margin: 8px 0; }
+  .bar > i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .3s; }
+  pre { margin: 8px 0 0; padding: 10px; border-radius: 8px; background: var(--bg); overflow: auto; max-height: 220px;
+        font: 12.5px/1.45 ui-monospace, Menlo, Consolas, monospace; white-space: pre-wrap; }
+  video { width: 100%; max-height: 70vh; border-radius: 10px; background: #000; }
+  .links { display: flex; gap: 10px; flex-wrap: wrap; margin: 12px 0; }
+  a.btn { display: inline-block; padding: 9px 14px; border-radius: 10px; border: 1px solid var(--line);
+          text-decoration: none; color: var(--ink); font-weight: 600; }
+  a.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
+  .err { color: var(--danger); font-weight: 600; }
+  ul.warn { margin: 8px 0; padding-left: 20px; color: var(--muted); }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Rolka</h1>
+  <p class="lead">Wrzuć swoje nagranie. Dostaniesz je pocięte tak jak rolka wzorcowa: ten sam rytm cięć, wstawki, napisy słowo po słowie i dźwięk −14 LUFS.</p>
+
+  <section class="card" id="c-video">
+    <h2><span class="step">1</span>Twoje nagranie</h2>
+    <div class="drop" id="drop-video" tabindex="0">
+      <strong>Przeciągnij tu plik wideo</strong>
+      <span class="muted">albo kliknij, żeby wybrać. Najlepiej pionowe, z mową, od 15 sekund.</span>
+    </div>
+    <input type="file" id="in-video" accept="video/*,.mp4,.mov,.m4v,.mkv,.webm" hidden>
+    <div id="video-file"></div>
+  </section>
+
+  <section class="card" id="c-broll">
+    <h2><span class="step">2</span>B-roll <span class="muted">(opcjonalnie)</span></h2>
+    <div class="drop small" id="drop-broll" tabindex="0">
+      <strong>Przeciągnij filmy do wstawek</strong>
+      <span class="muted">Bez nich wstawki powstaną z zbliżeń Twojego nagrania.</span>
+    </div>
+    <input type="file" id="in-broll" accept="video/*,.mp4,.mov,.m4v,.mkv,.webm" multiple hidden>
+    <div id="broll-files"></div>
+  </section>
+
+  <section class="card">
+    <details id="opts">
+      <summary>Ustawienia</summary>
+      <div class="grid">
+        <label><span>Szablon montażu</span><select id="o-template"></select></label>
+        <label><span>Napisy</span>
+          <select id="o-captions"><option value="auto">Automatycznie</option><option value="on">Zawsze</option><option value="off">Bez napisów</option></select></label>
+        <label><span>Język mowy</span>
+          <select id="o-lang"><option value="pl">polski</option><option value="en">angielski</option><option value="de">niemiecki</option>
+            <option value="cs">czeski</option><option value="uk">ukraiński</option><option value="es">hiszpański</option>
+            <option value="fr">francuski</option><option value="it">włoski</option><option value="auto">wykryj sam</option></select></label>
+        <label><span>Dokładność rozpoznawania mowy</span>
+          <select id="o-model"><option value="small">small: szybko, dobrze</option><option value="medium">medium: wolniej, lepiej</option>
+            <option value="large-v3">large-v3: najdokładniej, bardzo wolno</option><option value="base">base: bardzo szybko</option></select></label>
+        <label><span>Maksymalne zbliżenie kadru</span><input type="number" id="o-zoom" min="1" max="2" step="0.1" value="1.6"></label>
+        <label><span>Korekta kolorów</span>
+          <select id="o-grade"><option value="none">Bez zmian</option><option value="cinema">Delikatna kinowa</option></select></label>
+        <label class="check"><input type="checkbox" id="o-tighten" checked> Skracaj długie pauzy</label>
+        <label class="check"><input type="checkbox" id="o-snap" checked> Dosuwaj cięcia do granic zdań</label>
+        <label class="check"><input type="checkbox" id="o-emphasis" checked> Wyróżniaj kluczowe frazy w napisach</label>
+      </div>
+      <p class="muted" id="whisper-hint" hidden>Napisy wymagają pakietu faster-whisper: <code>pip install faster-whisper</code>. Bez niego dostaniesz sam montaż.</p>
+    </details>
+  </section>
+
+  <button class="go" id="go" disabled>Potnij</button>
+
+  <section class="card" id="c-progress" hidden style="margin-top:14px">
+    <h2 id="p-label">Start</h2>
+    <div class="bar"><i id="p-bar"></i></div>
+    <div class="muted" id="p-pct"></div>
+    <pre id="p-log"></pre>
+    <p class="err" id="p-err" hidden></p>
+  </section>
+
+  <section class="card" id="c-result" hidden style="margin-top:14px">
+    <h2>Gotowe</h2>
+    <video id="r-video" controls playsinline></video>
+    <div class="links">
+      <a class="btn primary" id="r-dl" download>Pobierz MP4</a>
+      <a class="btn" id="r-words" download hidden>Transkrypcja do poprawek (.json)</a>
+      <button id="r-again">Potnij kolejne</button>
+    </div>
+    <p class="muted" id="r-sum"></p>
+    <ul class="warn" id="r-warn"></ul>
+    <details><summary>Plan cięć</summary><pre id="r-plan"></pre></details>
+  </section>
+
+  <p class="muted" style="margin-top:28px">Wszystko dzieje się na Twoim komputerze: pliki nie są nigdzie wysyłane.
+    Gotowe filmy zapisują się w: <code id="outdir"></code></p>
+</main>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const HDR = { 'X-Reelcut': '1' };
+let video = null;
+let brolls = [];
+let busy = false;
+
+const fmtSize = (n) => n > 1e9 ? (n / 1e9).toFixed(2) + ' GB' : n > 1e6 ? (n / 1e6).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1e3)) + ' kB';
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const esc = (t) => t.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+async function api(method, path, body) {
+  const r = await fetch(path, { method, headers: { ...HDR, 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.error || ('Błąd ' + r.status));
+  return data;
+}
+
+function upload(jobId, role, file, onProgress) {
+  return new Promise((resolve, reject) => {
+    const x = new XMLHttpRequest();
+    x.open('PUT', `/api/job/${jobId}/upload?role=${role}&name=${encodeURIComponent(file.name)}`);
+    x.setRequestHeader('X-Reelcut', '1');
+    x.upload.onprogress = (e) => e.lengthComputable && onProgress(e.loaded / e.total);
+    x.onload = () => {
+      let data = {};
+      try { data = JSON.parse(x.responseText); } catch (_) { /* pusta odpowiedź */ }
+      x.status === 200 ? resolve(data) : reject(new Error(data.error || 'Nie udało się wgrać pliku'));
+    };
+    x.onerror = () => reject(new Error('Połączenie z programem zostało przerwane. Czy działa okno z "rolka.py serve"?'));
+    x.send(file);
+  });
+}
+
+function bindDrop(zone, input, multiple, onFiles) {
+  const pick = () => input.click();
+  zone.addEventListener('click', pick);
+  zone.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } });
+  input.addEventListener('change', () => { onFiles([...input.files]); input.value = ''; });
+  ['dragenter', 'dragover'].forEach((ev) => zone.addEventListener(ev, (e) => { e.preventDefault(); zone.classList.add('over'); }));
+  ['dragleave', 'drop'].forEach((ev) => zone.addEventListener(ev, (e) => { e.preventDefault(); zone.classList.remove('over'); }));
+  zone.addEventListener('drop', (e) => onFiles([...e.dataTransfer.files].filter((f) => multiple || true)));
+}
+
+function renderFiles() {
+  $('#video-file').innerHTML = video
+    ? `<div class="file"><span class="name">${esc(video.name)}</span><span class="muted">${fmtSize(video.size)} <button class="link" id="rm-video">usuń</button></span></div>` : '';
+  $('#broll-files').innerHTML = brolls.map((f, i) =>
+    `<div class="file"><span class="name">${esc(f.name)}</span><span class="muted">${fmtSize(f.size)} <button class="link" data-i="${i}">usuń</button></span></div>`).join('');
+  $('#rm-video')?.addEventListener('click', () => { video = null; renderFiles(); });
+  document.querySelectorAll('#broll-files button').forEach((b) => b.addEventListener('click', () => { brolls.splice(+b.dataset.i, 1); renderFiles(); }));
+  $('#go').disabled = !video || busy;
+}
+
+bindDrop($('#drop-video'), $('#in-video'), false, (fs) => { if (fs[0]) { video = fs[0]; renderFiles(); } });
+bindDrop($('#drop-broll'), $('#in-broll'), true, (fs) => { brolls.push(...fs); renderFiles(); });
+
+function setProgress(label, pct, extra) {
+  $('#p-label').textContent = label;
+  $('#p-bar').style.width = Math.max(0, Math.min(100, pct)) + '%';
+  $('#p-pct').textContent = extra ?? (pct ? pct.toFixed(0) + '%' : '');
+}
+
+async function start() {
+  busy = true; $('#go').disabled = true;
+  $('#c-progress').hidden = false; $('#c-result').hidden = true; $('#p-err').hidden = true; $('#p-log').textContent = '';
+  $('#c-progress').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  try {
+    const { id } = await api('POST', '/api/job', {});
+    const total = video.size + brolls.reduce((a, f) => a + f.size, 0);
+    let done = 0;
+    const files = [['video', video], ...brolls.map((f) => ['broll', f])];
+    for (const [role, f] of files) {
+      await upload(id, role, f, (p) => setProgress('Wgrywam pliki', ((done + p * f.size) / total) * 100, `${f.name}: ${(p * 100).toFixed(0)}%`));
+      done += f.size;
+    }
+    await api('POST', `/api/job/${id}/start`, {
+      template: $('#o-template').value, captions: $('#o-captions').value, lang: $('#o-lang').value, model: $('#o-model').value,
+      max_zoom: +$('#o-zoom').value, grade: $('#o-grade').value, tighten: $('#o-tighten').checked,
+      snap: $('#o-snap').checked, emphasis: $('#o-emphasis').checked,
+    });
+    for (;;) {
+      await sleep(700);
+      const j = await api('GET', `/api/job/${id}`);
+      setProgress(j.state === 'queued' ? 'W kolejce' : (j.label || 'Pracuję'), j.percent);
+      $('#p-log').textContent = j.log.join('\n');
+      $('#p-log').scrollTop = 1e9;
+      if (j.state === 'error') throw new Error(j.error || 'Nieznany błąd');
+      if (j.state === 'done') { showResult(id, j.result); break; }
+    }
+  } catch (e) {
+    $('#p-err').textContent = e.message; $('#p-err').hidden = false;
+    setProgress('Coś poszło nie tak', 0, '');
+  } finally { busy = false; renderFiles(); }
+}
+
+function showResult(id, r) {
+  $('#c-progress').hidden = true; $('#c-result').hidden = false;
+  const v = $('#r-video'); v.src = `/files/${id}/video`; v.load();
+  $('#r-dl').href = `/files/${id}/video?download=1`; $('#r-dl').setAttribute('download', r.video);
+  $('#r-words').hidden = !r.words; if (r.words) { $('#r-words').href = `/files/${id}/words`; $('#r-words').setAttribute('download', r.words); }
+  $('#r-sum').textContent = `${r.slots} ujęć, ${r.output_seconds} s (z nagrania ${r.input_seconds} s), ` +
+    (r.captions ? `napisy: ${r.caption_stats.groups} + ${r.caption_stats.emphasis} wyróżnień, ` : 'bez napisów, ') +
+    `policzone w ${r.seconds} s. Plik: ${r.folder}`;
+  $('#r-warn').innerHTML = (r.warnings || []).map((w) => `<li>${esc(w)}</li>`).join('');
+  $('#r-plan').textContent = r.plan;
+  $('#c-result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+$('#go').addEventListener('click', start);
+$('#r-again').addEventListener('click', () => { video = null; brolls = []; renderFiles(); $('#c-result').hidden = true; window.scrollTo({ top: 0, behavior: 'smooth' }); });
+
+(async () => {
+  try {
+    const info = await api('GET', '/api/info');
+    $('#o-template').innerHTML = info.templates.map((t) => `<option value="${esc(t.id)}">${esc(t.name)}</option>`).join('');
+    $('#outdir').textContent = info.output_dir;
+    if (!info.whisper) { $('#whisper-hint').hidden = false; $('#o-captions').value = 'off'; $('#opts').open = true; }
+  } catch (e) { $('#outdir').textContent = '(brak połączenia z programem)'; }
+  renderFiles();
+})();
+</script>
+</body>
+</html>
