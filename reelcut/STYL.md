@@ -156,7 +156,9 @@ telefonu (1,2 s), światło i klimat (1,8 s), rekwizyt na jednolitym pomarańczo
    to trzeba **nagrać**, nie da się tego dorobić w montażu. Poza tym tylko twarde cięcia: zero przejść,
    zero zoomów w trakcie ujęcia.
 7. **Mowa.** 3,6 słowa na sekundę. Pauzy skrócone do ≤ 0,35 s, jedyny wyjątek: 0,76 s tuż przed puentą (to ona robi
-   efekt). Najszybciej w radzie: 4,6 słowa/s, najwolniej w „wyborze" i puencie (ok. 2 słowa/s).
+   efekt). Najszybciej w radzie: 4,6 słowa/s, najwolniej w „wyborze" i puencie (ok. 2 słowa/s). Uwaga na narzędzie: skraca
+   każdą pauzę dłuższą niż 0,5 s do 0,35 s, więc pauzę przed puentą nagraj na ok. 0,5 s albo użyj `--no-tighten`
+   (wtedy żadna pauza nie jest skracana).
 8. **Napisy.** Słowo po słowie, 1–2 słowa naraz (ok. 2,1 zmian na sekundę), krótkie słowa (do 3 liter) wiążą się
    z następnym. 5 wyróżnionych fraz na 34 s, ok. co 6,8 s, w układach: stos środkowy z akcentem, prawy górny,
    prawy dolny, środkowy, na końcu duży napis puenty. W stosie „środkowym z akcentem" największy, środkowy wiersz jest w kolorze `#E2FB77`.

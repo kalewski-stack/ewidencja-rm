@@ -8,6 +8,7 @@ napisy słowo po słowie z wyróżnionymi frazami i dźwięk znormalizowany do �
 Wszystko liczy się na Twoim komputerze. Żaden plik nie jest nigdzie wysyłany.
 
 - Szczegóły analizy rolki (czasy cięć, zasady, wymiary napisów): [ANALIZA.md](ANALIZA.md).
+- **Nowy film krok po kroku** (co nagrać, co wrzucić, co sprawdzić): [WORKFLOW.md](WORKFLOW.md), jedna strona.
 - **Styl do przeniesienia na inne tematy** (kolory, dynamika, kadry, cięcia, lista ujęć do nagrania, format
   scenariusza z budżetem słów): [STYL.md](STYL.md). Kartę stylu każdego szablonu wypisze `python rolka.py style`.
 
@@ -173,5 +174,6 @@ src/reelcut/data/             szablon rolki (JSON), czcionka Anton (SIL OFL, OFL
                               (MIT, YuNet-LICENSE.txt), interfejs
 tests/                        testy (tests/assets: zdjęcie NASA z domeny publicznej do testu twarzy)
 ANALIZA.md                    wyniki analizy rolki wzorcowej (rytm, napisy)
+WORKFLOW.md                   ściąga: nowy film krok po kroku
 STYL.md                       styl do przeniesienia: kolory, kadry, dynamika, lista ujęć, format scenariusza
 ```
