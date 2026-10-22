@@ -14,7 +14,8 @@ COMMANDS = {"cut", "serve", "analyze", "style"}
 
 DESCRIPTION = """\
 reelcut: tnie Twoje wideo dokładnie wg schematu montażu rolki wzorcowej
-(rytm cięć, ujęcia z mową i wstawki, napisy słowo po słowie, dźwięk -14 LUFS).
+(rytm cięć, ujęcia z mową i wstawki, kadry po twarzy, kolory, napisy słowo po słowie, dźwięk -14 LUFS).
+Styl rolki (kolory, kadry, cięcia, scenariusz) opisuje STYL.md, a karta każdego szablonu: python rolka.py style.
 """
 
 
