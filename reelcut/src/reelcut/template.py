@@ -21,13 +21,23 @@ class Fx:
 
 
 @dataclass(frozen=True)
+class FaceTarget:
+    """Docelowy kadr twarzy w ujęciu wzorca (ułamki kadru): rozmiar i położenie."""
+    h: float  # wysokość twarzy / wysokość kadru
+    cx: float
+    cy: float
+    eye_y: float = 0.0
+
+
+@dataclass(frozen=True)
 class Segment:
     frames: int
     role: str  # "A" = mówiąca głowa, "B" = wstawka (B-roll)
-    zoom: float = 1.0
+    zoom: float = 1.0  # rezerwowy zoom względem najszerszego ujęcia, gdy nie widać twarzy
     alt: int = 0  # numer kadru zastępczego dla roli B, gdy nie ma B-rolla
     fx: tuple[Fx, ...] = ()
     note: str = ""
+    face: FaceTarget | None = None
 
 
 @dataclass(frozen=True)
@@ -51,6 +61,8 @@ class Template:
     true_peak: float
     lra: float
     captions: dict
+    look: dict
+    dynamics: dict
     raw: dict
 
     @property
@@ -62,10 +74,9 @@ class Template:
         return self.total_frames / self.fps
 
     @property
-    def max_zoom(self) -> float:
-        zooms = [s.zoom for s in self.segments if s.role == "A"]
-        zooms += [float(a.get("zoom", 1.0)) for a in self.alts.values()]
-        return max(zooms + [1.0])
+    def ladder_max(self) -> float:
+        """Największy zoom drabinki kadrów (ujęcia A) względem najszerszego ujęcia."""
+        return max([s.zoom for s in self.segments if s.role == "A"] + [1.0])
 
 
 def _require(cond: bool, msg: str) -> None:
@@ -89,7 +100,13 @@ def parse_template(raw: dict) -> Template:
         zoom = float(s.get("zoom", 1.0))
         _require(zoom >= 1.0, f"Ujęcie {i}: zoom nie może być mniejszy niż 1.0.")
         fx = tuple(Fx(str(f["type"]), float(f.get("dur", 0.3))) for f in s.get("fx", []))
-        segments.append(Segment(frames, role, zoom, int(s.get("alt", 0)), fx, str(s.get("note", ""))))
+        face = None
+        if s.get("face"):
+            fc = s["face"]
+            face = FaceTarget(float(fc["h"]), float(fc["cx"]), float(fc["cy"]), float(fc.get("eye_y", 0.0)))
+            _require(0.02 < face.h < 0.95 and 0 <= face.cx <= 1 and 0 <= face.cy <= 1,
+                     f"Ujęcie {i}: face musi mieć h w (0.02, 0.95) oraz cx, cy w [0, 1].")
+        segments.append(Segment(frames, role, zoom, int(s.get("alt", 0)), fx, str(s.get("note", "")), face))
     _require(len(segments) >= 3, "Szablon musi mieć co najmniej 3 ujęcia.")
 
     st = raw.get("structure", {})
@@ -120,6 +137,8 @@ def parse_template(raw: dict) -> Template:
         true_peak=float(audio.get("true_peak", -1.0)),
         lra=float(audio.get("lra", 11.0)),
         captions=dict(raw.get("captions", {})),
+        look=dict(raw.get("look", {})),
+        dynamics=dict(raw.get("dynamics", {})),
         raw=raw,
     )
 

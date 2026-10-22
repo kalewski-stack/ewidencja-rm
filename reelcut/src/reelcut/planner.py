@@ -9,9 +9,12 @@ Zamienia szablon (rytm cięć z rolki wzorcowej) w konkretny plan dla materiału
 """
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, field
 from typing import Sequence
 
+from . import framing
+from .faces import FaceTrack
 from .template import Fx, Template
 
 Break = tuple[int, float]  # (klatka w osi mastera, siła granicy: 1 = słowo, 2 = przecinek/pauza, 3 = koniec zdania)
@@ -32,6 +35,7 @@ class Slot:
     alt: int = 0
     elastic: bool = False
     shifted: int = 0  # o ile klatek przesunięto początek ujęcia względem czystego szablonu
+    face_h: float | None = None  # spodziewana wysokość Twojej twarzy w kadrze wynikowym (gdy kadrujemy po twarzy)
 
     @property
     def end(self) -> int:
@@ -60,6 +64,7 @@ def build_plan(
     snap: bool = True,
     max_zoom: float = 1.6,
     focus: tuple[float, float] = (0.5, 0.40),
+    track: FaceTrack | None = None,
 ) -> Plan:
     fps = fps or tpl.fps
     segs = tpl.segments
@@ -117,8 +122,9 @@ def build_plan(
         items[k] = (items[k][0], items[k][1] + master_frames - sum(f for _, f, _ in items), True)
         mode = "skrócony"
 
-    zmax = tpl.max_zoom
-    zk = 1.0 if zmax <= 1.0 else max(0.0, min(1.0, (max_zoom - 1.0) / (zmax - 1.0)))
+    # drabinka kadrów szablonu jest ściskana potęgowo do dozwolonego zoomu: kolejność i stosunki rozmiarów zostają
+    ladder = tpl.ladder_max
+    zk = 1.0 if ladder <= max_zoom else (math.log(max_zoom) / math.log(ladder) if max_zoom > 1.0 else 0.0)
 
     slots: list[Slot] = []
     start = 0
@@ -130,20 +136,26 @@ def build_plan(
 
     if snap and breaks:
         _snap_cuts(slots, breaks, fps, tpl.snap_tol_s, tpl.min_cut_s)
-    _ensure_visible_cuts(slots, max_zoom)
+    cap = max_zoom
+    if track is not None:
+        framing.apply_framing(slots, tpl, track, fps, max_zoom)
+        glob = track.global_estimate()
+        if glob is not None:
+            cap = max(1.0, min(max_zoom, framing.FACE_LIMIT / glob.h))
+    _ensure_visible_cuts(slots, cap)
     return Plan(fps, master_frames, slots, mode, warnings)
 
 
 def _make_slot(idx, ti, start, frames, tpl, elastic, has_broll, zk, focus, max_zoom, fps) -> Slot:
     seg = tpl.segments[ti]
-    zoom, fx, fy = 1.0 + (seg.zoom - 1.0) * zk, focus[0], focus[1]
+    zoom, fx, fy = seg.zoom ** zk, focus[0], focus[1]
     source = "A"
     if seg.role == "B":
         if has_broll:
             source = "B"
-        else:
+        else:  # detal z własnego nagrania: zoom bezwzględny, ograniczony tylko limitem
             alt = tpl.alts.get(seg.alt, {"zoom": 1.4, "fy": 0.5})
-            zoom, fy = 1.0 + (float(alt.get("zoom", 1.4)) - 1.0) * zk, float(alt.get("fy", 0.5))
+            zoom, fy = min(float(alt.get("zoom", 1.4)), max_zoom), float(alt.get("fy", 0.5))
     return Slot(idx, ti, start, frames, seg.role, source, round(min(zoom, max_zoom), 3), fx, fy,
                 seg.fx, seg.alt, elastic)
 
@@ -190,15 +202,20 @@ def _snap_cuts(slots: list[Slot], breaks: Sequence[Break], fps: int, tol_s: floa
         s.frames = (slots[i + 1].start if i + 1 < len(slots) else total) - s.start
 
 
-def _ensure_visible_cuts(slots: list[Slot], max_zoom: float, min_dz: float = 0.12, min_dfy: float = 0.18) -> None:
-    """Dwa kolejne ujęcia z tego samego materiału muszą mieć wyraźnie inny kadr (inaczej cięcia nie widać)."""
+def _ensure_visible_cuts(slots: list[Slot], cap: float, min_ratio: float = 0.10, min_shift: float = 0.12) -> None:
+    """Dwa kolejne ujęcia z tego samego materiału muszą różnić się widocznie, inaczej cięcia nie widać.
+
+    Widoczna różnica to zmiana rozmiaru o >= 10% albo przesunięcie treści o >= 12% kadru wynikowego
+    (przesunięcie okna mnożymy przez zoom, bo przy dużym zoomie małe okno to duża zmiana w kadrze)."""
     prev: Slot | None = None
     for s in slots:
         if s.source == "A" and prev is not None and prev.source == "A":
-            same = abs(s.zoom - prev.zoom) < min_dz and abs(s.fy - prev.fy) < min_dfy
-            if same:
-                up = prev.zoom + min_dz
-                s.zoom = round(up if up <= max_zoom else max(1.0, prev.zoom - min_dz), 3)
+            ratio = max(s.zoom, prev.zoom) / min(s.zoom, prev.zoom) - 1.0
+            shift = max(abs(s.fx - prev.fx), abs(s.fy - prev.fy)) * max(s.zoom, prev.zoom)
+            if ratio < min_ratio and shift < min_shift:
+                up = prev.zoom * (1 + 1.2 * min_ratio)
+                down = max(1.0, prev.zoom / (1 + 1.2 * min_ratio))
+                s.zoom = round(up if up <= cap else down, 3)
         prev = s
 
 
@@ -210,6 +227,8 @@ def describe_plan(plan: Plan) -> str:
     for s in plan.slots:
         what = "A-roll" if s.source == "A" and s.role == "A" else ("kadr-detal" if s.source == "A" else "B-roll")
         notes = []
+        if s.face_h:
+            notes.append(f"twarz {s.face_h * 100:.0f}% kadru")
         if s.effects:
             notes.append("+".join(f.type for f in s.effects))
         if s.elastic:

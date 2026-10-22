@@ -110,9 +110,10 @@ def parse_options(data: dict, job: Job) -> Options:
 
     templates = {t for t, _ in list_templates()}
     try:
-        max_zoom = float(data.get("max_zoom", 1.6))
+        max_zoom = float(data["max_zoom"]) if data.get("max_zoom") not in (None, "", 0) else None
+        look = float(data.get("look", 1.0))
     except (TypeError, ValueError):
-        raise ValueError("Pole max_zoom musi być liczbą.") from None
+        raise ValueError("Pola max_zoom i look muszą być liczbami.") from None
     return Options(
         template=pick("template", templates, "rolka_DeuOaXKtPBb"),
         broll=tuple(job.broll),
@@ -120,10 +121,11 @@ def parse_options(data: dict, job: Job) -> Options:
         lang=pick("lang", {"pl", "en", "de", "cs", "uk", "es", "fr", "it", "auto"}, "pl"),
         model=pick("model", {"tiny", "base", "small", "medium", "large-v3"}, "small"),
         emphasis="auto" if data.get("emphasis", True) else "off",
-        max_zoom=min(2.0, max(1.0, max_zoom)),
+        max_zoom=None if max_zoom is None else min(3.0, max(1.0, max_zoom)),
         tighten=bool(data.get("tighten", True)),
         snap=bool(data.get("snap", True)),
-        grade=pick("grade", {"none", "cinema"}, "none"),
+        look=min(1.0, max(0.0, look)),
+        framing="auto" if data.get("framing", True) else "off",
     )
 
 
@@ -143,6 +145,7 @@ def run_job(state: State, job: Job, opts: Options) -> None:
                 "seconds": round(res.seconds, 1), "input_seconds": round(res.input_seconds, 1),
                 "output_seconds": round(res.plan.total_frames / res.plan.fps, 1), "slots": len(res.plan.slots),
                 "captions": res.captions_used, "caption_stats": res.caption_stats, "mode": res.plan.mode,
+                "face": res.face, "look": res.look,
             }
             job.state, job.percent, job.label = "done", 100.0, "Gotowe"
         except (media.MediaError, TemplateError, captions.CaptionsUnavailable, ValueError) as exc:

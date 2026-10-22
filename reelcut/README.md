@@ -2,10 +2,14 @@
 
 Wrzucasz swoje nagranie, dostajesz pionowy film (1080×1920) zmontowany według schematu rolki
 <https://www.instagram.com/reel/DeuOaXKtPBb/>: ten sam rytm cięć, ten sam układ „mówiąca głowa + wstawki",
+te same proporcje kadrów (rozmiar i miejsce twarzy), te same kolory (ciemny, stonowany look z winietą),
 napisy słowo po słowie z wyróżnionymi frazami i dźwięk znormalizowany do −14 LUFS.
 
 Wszystko liczy się na Twoim komputerze. Żaden plik nie jest nigdzie wysyłany.
-Szczegóły analizy rolki (czasy cięć, zasady, wymiary napisów): [ANALIZA.md](ANALIZA.md).
+
+- Szczegóły analizy rolki (czasy cięć, zasady, wymiary napisów): [ANALIZA.md](ANALIZA.md).
+- **Styl do przeniesienia na inne tematy** (kolory, dynamika, kadry, cięcia, lista ujęć do nagrania, format
+  scenariusza z budżetem słów): [STYL.md](STYL.md). Kartę stylu każdego szablonu wypisze `python rolka.py style`.
 
 ## Co robi dokładnie
 
@@ -14,13 +18,18 @@ Szczegóły analizy rolki (czasy cięć, zasady, wymiary napisów): [ANALIZA.md]
    Początek (hak) i zakończenie są zawsze takie jak w rolce. Dla dłuższego materiału środek się powtarza,
    a jedno „elastyczne" ujęcie (monolog) przejmuje resztę czasu.
 3. **Dosuwa cięcia do oddechu mowy.** W rolce 12 z 14 cięć wypada w pauzie lub na końcu frazy, więc narzędzie
-   przesuwa każde cięcie (maks. o ok. 0,3 s) do najbliższej granicy zdania. Nie tnie Ci w pół słowa.
+   przesuwa każde cięcie (maks. o ok. 0,5 s) do najbliższej granicy zdania. Nie tnie Ci w pół słowa.
 4. **Wstawki.** Ujęcia typu B to Twój B-roll (jeśli go podasz) albo zbliżenia z Twojego nagrania (twarz, dłonie),
-   a głos leci bez przerwy, jak w wzorcu. Ujęcia z mową dostają różne zbliżenia (jump cut).
-5. **Napisy** w stylu rolki: 1–2 słowa naraz, krótkie słowa wiążą się z następnym, co kilka sekund wyróżniona fraza
+   a głos leci bez przerwy, jak w wzorcu.
+5. **Kadruje po Twojej twarzy.** Mierzy, jak duża i gdzie jest Twoja twarz, i w każdym ujęciu z mową dobiera
+   zoom oraz położenie okna tak, by twarz miała rozmiar i miejsce z rolki (od 12% wysokości kadru w planie ogólnym
+   do 36% w zbliżeniu). Sąsiednie ujęcia zawsze różnią się wyraźnie (jump cut). Opcje: `--framing`, `--max-zoom`.
+6. **Kolory jak we wzorcu.** Dopasowuje jasność (krzywa tonalna), nasycenie, barwę szarych partii i winietę do
+   rozkładu zmierzonego w rolce i nakłada to jedną tablicą LUT 3D (odcień skóry jest chroniony). Siła: `--look 0–1`.
+7. **Napisy** w stylu rolki: 1–2 słowa naraz, krótkie słowa wiążą się z następnym, co kilka sekund wyróżniona fraza
    (stos z limonkowym akcentem, prawy górny/dolny róg, duży napis puenty). Czcionka Anton, rozmiar i pozycje
    zmierzone z rolki.
-6. **Wejście z rozmycia** (focus-pull) w ujęciach, w których robi tak wzorzec, i **głośność −14 LUFS**.
+8. **Wejście z rozmycia** (focus-pull) w ujęciach, w których robi tak wzorzec, i **głośność −14 LUFS**.
 
 ## Wymagania
 
@@ -29,8 +38,10 @@ Szczegóły analizy rolki (czasy cięć, zasady, wymiary napisów): [ANALIZA.md]
 | **ffmpeg** (z ffprobe) | cały montaż | macOS: `brew install ffmpeg` · Windows: `winget install Gyan.FFmpeg` · Linux: `sudo apt install ffmpeg` |
 | **Python 3.9+** | uruchamia narzędzie | <https://www.python.org/downloads/> |
 | `faster-whisper` *(opcjonalnie)* | napisy (rozpoznawanie mowy) | `pip install faster-whisper` (przy pierwszym użyciu pobiera model, ok. 500 MB dla „small") |
+| `numpy` + `onnxruntime` *(opcjonalnie)* | kadrowanie po Twojej twarzy, dopasowanie kolorów, role ujęć w `analyze` | `pip install numpy onnxruntime` (model twarzy YuNet, 230 KB, jest w paczce) |
 
-Bez `faster-whisper` dostaniesz sam montaż, bez napisów. Narzędzie samo to zgłosi.
+Bez `faster-whisper` dostaniesz montaż bez napisów, bez `numpy`/`onnxruntime` kadry zostają stałymi zoomami
+z szablonu, a kolory bez zmian. Narzędzie samo to zgłosi w ostrzeżeniach.
 
 ## Start
 
@@ -57,10 +68,15 @@ Wynik: `moje_wideo_rolka.mp4` obok nagrania oraz `moje_wideo_rolka.slowa.json` (
 
 - **Pionowo (9:16)**, najlepiej 4K lub 1080p. Poziome nagranie zostanie przycięte do środka kadru.
 - **Mów w jednym ciągu** i patrz w obiektyw. Narzędzie samo zrobi zbliżenia i skróci pauzy.
-- **Ok. 35 sekund po skróceniu pauz** daje montaż identyczny z rolką. Krótsze niż 11 s zostanie ściśnięte,
-  dłuższe: środek rolki powtarza się cyklicznie.
+- **Kamera nieruchoma, twarz w górnej połowie kadru, dół wolny** (tam lądują napisy). We wzorcu kadr zmienia
+  się tylko cięciem; nie dodajemy ruchu kamery.
+- **Ok. 34 sekundy po skróceniu pauz** daje montaż identyczny z rolką (`--no-snap`: co do klatki). Poniżej 16 s
+  powstaje sam hak i zakończenie bez wstawek, a poniżej 11 s rytm jest ściskany. Dłuższe: środek rolki powtarza się,
+  gęstość cięć rośnie od 24,7 do ok. 29 na minutę (tabela w [STYL.md](STYL.md)).
 - **B-roll:** dodaj 6+ krótkich ujęć (detale, rekwizyty, dłonie, ekran). Bez nich wstawki to zbliżenia Twojego nagrania.
-- Na zbliżeniach po pozycji twarzy: `--focus 0.5,0.4` (X,Y od 0 do 1; domyślnie środek, trochę nad połową).
+- **Światło i kolor** (wzorzec jest ciemny i stonowany) oraz **lista ujęć do nagrania**: [STYL.md](STYL.md).
+- Bez rozpoznawania twarzy (brak `numpy`/`onnxruntime`) zbliżenia robimy wokół punktu `--focus 0.5,0.4`
+  (X,Y od 0 do 1; domyślnie środek, trochę nad połową).
 
 ## Najważniejsze opcje
 
@@ -71,8 +87,9 @@ Wynik: `moje_wideo_rolka.mp4` obok nagrania oraz `moje_wideo_rolka.slowa.json` (
 | `--no-captions` | bez napisów |
 | `--lang pl` | język mowy (`en`, `de`... albo `auto`) |
 | `--model small` | dokładność rozpoznawania mowy: `base` (szybko), `small`, `medium`, `large-v3` (najdokładniej, wolno) |
-| `--max-zoom 1.6` | największe przybliżenie kadru (`1.0` = bez zbliżeń) |
-| `--grade cinema` | delikatna kinowa korekta kolorów (domyślnie obraz bez zmian) |
+| `--max-zoom 1.6` | największe przybliżenie kadru (`1.0` = bez zbliżeń; domyślnie automatycznie: ok. 1,6 dla 1080p, do 2,6 dla 4K) |
+| `--framing auto` | kadrowanie po Twojej twarzy jak we wzorcu (`off` = stałe zoomy z szablonu, `on` = wymagaj) |
+| `--look 1.0` | siła dopasowania kolorów do wzorca (0–1; `0` = obraz bez zmian; `0.6` łagodniej, gdy twarz wychodzi za ciemna) |
 | `--no-tighten` | nie skracaj pauz |
 | `--emphasis off` | bez wyróżnionych fraz w napisach |
 | `--fps 30` | klatkaż wyniku (domyślnie 25 jak we wzorcu) |
@@ -99,16 +116,34 @@ python rolka.py analyze inna_rolka.mp4 -o moj_szablon
 python rolka.py moje_wideo.mp4 --template user/moj_szablon
 ```
 
-`analyze` wykrywa cięcia i ich długości, a role ujęć (A = mówiąca głowa, B = wstawka) rozpoznaje po obecności
-twarzy, jeśli masz `pip install "opencv-python-headless<5"`. Bez tego wszystkie ujęcia dostają rolę A i podajesz
-role sam: `--roles AABBABAB...`. **Zawsze sprawdź wypisane role.** Szablon z nazwą (bez ścieżki) trafia do
-`~/ReelCut/szablony` i pojawia się na liście w interfejsie. Szablon zawiera same liczby, bez obrazu i treści rolki.
+`analyze` wykrywa cięcia i ich długości, role ujęć (A = mówiąca głowa, B = wstawka) rozpoznaje po obecności twarzy
+i mierzy w każdym ujęciu z mową rozmiar i położenie twarzy, rozkład kolorów (osobno A i B: jasność, nasycenie, barwa,
+winieta, paleta, kolor skóry), tempo (cięcia na minutę, udział A/B, ruch w kadrze) i głośność. Wymaga to
+`pip install numpy onnxruntime`; bez tego wszystkie ujęcia dostają rolę A i podajesz role sam: `--roles AABBABAB...`
+(starsza metoda z `pip install "opencv-python-headless<5"` też działa, ale bez pomiaru kadrów i kolorów).
+**Zawsze sprawdź wypisane role.** Dodatkowo `--speech` mierzy tempo mowy rolki (słowa na sekundę, pauzy, słowa
+w każdym ujęciu; potrzebny `faster-whisper`). Szablon z nazwą (bez ścieżki) trafia do `~/ReelCut/szablony` i pojawia się
+na liście w interfejsie. Szablon zawiera same liczby i kolory, bez obrazu i treści rolki.
+
+Kartę stylu (cięcia, tempo, kadry, kolory, napisy) każdego szablonu wypisze:
+
+```
+python rolka.py style                       # wbudowany szablon
+python rolka.py style user/moj_szablon -o karta.md
+```
 
 ## Ograniczenia (uczciwie)
 
-- **Kopiowany jest montaż, nie zawartość.** Rolka wzorcowa miała wiele lokacji i specjalnie nagranych ujęć
-  (makro kawy, szyszka, dłoń z napisem). Z jednego nagrania takich ujęć się nie zrobi: dostaniesz ten sam rytm
-  i te same typy kadrów, ale na Twoim materiale (lub B-rollu).
+- **Kopiowany jest montaż i wygląd, nie zawartość.** Rolka wzorcowa miała wiele lokacji i specjalnie nagranych ujęć
+  (makro kawy, szyszka, dłoń z napisem). Z jednego nagrania takich ujęć się nie zrobi: dostaniesz ten sam rytm,
+  te same proporcje kadrów i kolory, ale na Twoim materiale (lub B-rollu).
+- **Dopasowanie kolorów jest statystyczne** (rozkład jasności i barwy wzorca, bez pary „przed/po"). Sprawdziłem je
+  na zdjęciach, filmach syntetycznych i klatkach samej rolki sztucznie rozjaśnionych (błąd koloru względem oryginału
+  spadł z ΔE 26 do 2), ale nie na Twoim nagraniu. Wzorzec ma skórę na ok. 30% waveformu, więc jasną twarz mocno
+  przyciemni: zacznij od krótkiej próbki i ewentualnie `--look 0.6`. LUT i winieta działają na cały kadr, także na
+  Twój B-roll.
+- **Kadrowanie po twarzy** śledzi największą twarz w kadrze i jest niepewne przy szybkim ruchu i zasłoniętej twarzy
+  (wtedy wracają stałe zoomy z szablonu).
 - **Dobór wyróżnionych fraz jest heurystyczny** (liczby, końce zdań, krótka puenta po pauzie). Zwykle trafia,
   ale nie zastąpi oka montażysty. Wyłączysz to przez `--emphasis off`.
 - **Nie ma muzyki ani efektów dźwiękowych**: we wzorcu też ich nie ma, to sam głos.
@@ -123,16 +158,20 @@ role sam: `--roles AABBABAB...`. **Zawsze sprawdź wypisane role.** Szablon z na
 python -m unittest discover -s tests
 ```
 
-70 testów (planista, pauzy, napisy łącznie z pomiarem pikseli, szablony, `analyze`, end-to-end na syntetycznym wideo).
-Test end-to-end sprawdza, że cięcia w wyniku trafiają dokładnie w klatki szablonu.
+146 testów (planista, pauzy, napisy łącznie z pomiarem pikseli, szablony, `analyze` z kadrami, kolorami i dynamiką,
+moduł kolorów z LUT i winietą, wykrywanie twarzy i kadrowanie, karta stylu, end-to-end na syntetycznym wideo).
+Test end-to-end sprawdza, że cięcia w wyniku trafiają dokładnie w klatki szablonu, a test kadrowania, że twarz
+w wyniku ma rozmiar i miejsce z planu. Część testów wymaga `numpy`/`onnxruntime`/Pillow (bez nich są pomijane).
 
 ## Pliki
 
 ```
 rolka.py                      uruchamianie (python rolka.py ...)
 start.bat / start.command     dwuklik: interfejs w przeglądarce
-src/reelcut/                  kod (planner, render, captions, server, analyze...)
-src/reelcut/data/             szablon rolki (JSON), czcionka Anton (licencja SIL OFL, OFL-Anton.txt), interfejs
-tests/                        testy
-ANALIZA.md                    wyniki analizy rolki wzorcowej
+src/reelcut/                  kod (planner, framing, faces, look, render, captions, server, analyze, style...)
+src/reelcut/data/             szablon rolki (JSON), czcionka Anton (SIL OFL, OFL-Anton.txt), model twarzy YuNet
+                              (MIT, YuNet-LICENSE.txt), interfejs
+tests/                        testy (tests/assets: zdjęcie NASA z domeny publicznej do testu twarzy)
+ANALIZA.md                    wyniki analizy rolki wzorcowej (rytm, napisy)
+STYL.md                       styl do przeniesienia: kolory, kadry, dynamika, lista ujęć, format scenariusza
 ```

@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable
 
-from . import captions, media, render
+from . import captions, faces, look, media, render
 from .planner import Plan, build_plan, describe_plan
 from .template import DATA_DIR, load_template
 
@@ -28,11 +28,12 @@ class Options:
     model: str = "small"
     words_file: Path | None = None  # gotowa transkrypcja (poprawiona ręcznie) zamiast Whispera
     emphasis: str = "auto"  # auto | off
-    max_zoom: float = 1.6
+    max_zoom: float | None = None  # None = automatycznie z rozdzielczości nagrania (1.6 dla 1080p, do 2.6 dla 4K)
+    framing: str = "auto"  # auto = po twarzy, gdy się da | on = wymagane | off = stałe zoomy z szablonu
     focus: tuple[float, float] = (0.5, 0.40)
     tighten: bool = True
     snap: bool = True
-    grade: str = "none"
+    look: float = 1.0  # siła dopasowania kolorów do wzorca, 0-1 (0 = obraz bez zmian)
     fps: int | None = None
     seed: int = 7
     crf: int = 18
@@ -54,6 +55,8 @@ class Result:
     words_file: Path | None = None
     input_seconds: float = 0.0
     master_seconds: float = 0.0
+    face: dict = field(default_factory=dict)  # co wykryliśmy: pokrycie, wysokość i środek twarzy
+    look: dict = field(default_factory=dict)  # jak dopasowaliśmy kolory
 
 
 def collect_broll(paths: tuple[Path, ...], warnings: list[str]) -> list[media.MediaInfo]:
@@ -89,6 +92,11 @@ def default_output(a_roll: Path) -> Path:
     return base
 
 
+def auto_max_zoom(crop_w: int, canvas_w: int) -> float:
+    """Największe sensowne przybliżenie: tyle, żeby wycinek nadal miał ok. 2/3 szerokości kanwy w pikselach źródła."""
+    return round(max(1.0, min(2.6, 1.6 * crop_w / canvas_w)), 2)
+
+
 def run(a_roll: str | Path, out: str | Path | None, opts: Options, log: LogFn = print,
         progress: ProgressFn | None = None) -> Result:
     t0 = time.time()
@@ -113,6 +121,8 @@ def run(a_roll: str | Path, out: str | Path | None, opts: Options, log: LogFn = 
     if info.width > info.height:
         warnings.append("Nagranie jest poziome. Do rolki 9:16 wycinam środek kadru (ustaw --focus, jeśli mówisz z boku). "
                         "Najlepiej nagrywać w pionie.")
+    geom = render.master_geometry(info.width, info.height, canvas, opts.focus[0])
+    max_zoom = opts.max_zoom or auto_max_zoom(geom.crop[0], canvas[0])
 
     # 1) dźwięk: pauzy i granice mowy
     prog(0.0, 0.05, "Analiza dźwięku")
@@ -142,11 +152,13 @@ def run(a_roll: str | Path, out: str | Path | None, opts: Options, log: LogFn = 
     clips = collect_broll(opts.broll, warnings)
     if opts.broll and not clips:
         warnings.append("Nie znalazłem użytecznego B-rolla: wstawki zrobię z kadrów Twojego nagrania.")
+    plan_args = dict(has_broll=bool(clips), snap=opts.snap, max_zoom=max_zoom, focus=opts.focus)
 
-    plan = build_plan(tpl, master_frames, fps, has_broll=bool(clips), breaks=breaks, snap=opts.snap,
-                      max_zoom=opts.max_zoom, focus=opts.focus)
-    warnings += plan.warnings
     if opts.dry_run:
+        plan = build_plan(tpl, master_frames, fps, breaks=breaks, **plan_args)
+        warnings += plan.warnings
+        if opts.framing != "off":
+            warnings.append("Kadrowanie po twarzy i dobór napisów są liczone dopiero przy renderze.")
         return Result(None, plan, describe_plan(plan), warnings, time.time() - t0,
                       input_seconds=info.duration, master_seconds=master_s)
 
@@ -154,13 +166,60 @@ def run(a_roll: str | Path, out: str | Path | None, opts: Options, log: LogFn = 
     out_path = Path(out) if out else default_output(a_roll)
     try:
         # 2) master
-        geom = render.master_geometry(info.width, info.height, canvas, opts.focus[0])
         master = workdir / "master.mkv"
         log("Buduję materiał roboczy (kadr 9:16, skrócone pauzy)...")
         render.build_master(a_roll, info, keep, geom, master, workdir, fps, prog(0.05, 0.35, "Materiał roboczy"))
         master_info = media.probe(master)
 
-        # 3) napisy
+        # 3) twarz: rozmiar i położenie w Twoim nagraniu (do kadrowania jak we wzorcu)
+        track, face_info = None, {}
+        if opts.framing != "off":
+            try:
+                prog(0.35, 0.4, "Szukam twarzy")
+                track = faces.FaceTrack(faces.sample_faces(master, every_s=0.4))
+                g = track.global_estimate()
+                if g is None or track.coverage() < 0.25:
+                    msg = "Nie widzę Twojej twarzy w większości nagrania, więc kadruję wg stałych zoomów z szablonu."
+                    if opts.framing == "on":
+                        raise media.MediaError(msg)
+                    warnings.append(msg)
+                    track = None
+                else:
+                    face_info = {"coverage": round(track.coverage(), 2), "h": round(g.h, 3), "cx": round(g.cx, 3),
+                                 "cy": round(g.cy, 3)}
+                    log(f"Twarz widoczna w {track.coverage() * 100:.0f}% próbek: wysokość {g.h * 100:.0f}% kadru, "
+                        f"środek ({g.cx * 100:.0f}%, {g.cy * 100:.0f}%). Kadruję jak we wzorcu.")
+            except faces.FacesUnavailable as exc:
+                if opts.framing == "on":
+                    raise media.MediaError(str(exc)) from exc
+                warnings.append(f"{str(exc).rstrip('. ')}. Kadruję wg stałych zoomów z szablonu.")
+
+        # 4) kolory: dopasowanie rozkładu jasności, barwy i nasycenia do wzorca (LUT 3D + winieta)
+        look_chain, look_info = None, {}
+        ref_look = tpl.look.get("A")
+        if opts.look > 0 and ref_look:
+            try:
+                prog(0.4, 0.45, "Dopasowuję kolory")
+                ref_stats = look.LookStats.from_dict(ref_look)
+                user_stats = look.measure(look.read_frames(master, fps=2.0, size=(180, 320)))
+                angle = look.vignette_angle(user_stats, ref_stats, opts.look, base_L=ref_stats.luma[5])
+                if angle:  # krzywa tonalna ma korygować materiał już z winietą
+                    user_stats = look.measure(look.read_frames(
+                        master, fps=2.0, size=(180, 320),
+                        post_filter=f"format=gbrp,{look.vignette_filter(angle)},format=rgb24"))
+                look.write_cube(look.build_lut(user_stats, ref_stats, opts.look), workdir / "look.cube")
+                look_chain = look.filter_chain("look.cube", angle)
+                look_info = {"strength": opts.look, "median_L": [round(user_stats.luma[5], 1), round(ref_stats.luma[5], 1)],
+                             "chroma": [round(user_stats.chroma, 1), round(ref_stats.chroma, 1)], "vignette_angle": angle}
+                log(f"Kolory: dopasowanie do wzorca w {opts.look * 100:.0f}% (mediana jasności L* {user_stats.luma[5]:.0f} → "
+                    f"{ref_stats.luma[5]:.0f}, nasycenie {user_stats.chroma:.0f} → {ref_stats.chroma:.0f}"
+                    f"{', dołożona winieta' if angle else ''}).")
+            except look.LookUnavailable as exc:
+                warnings.append(f"{str(exc).rstrip('. ')}. Kolory zostają bez zmian.")
+        elif opts.look > 0:
+            warnings.append("Szablon nie ma opisu kolorów (blok look), więc kolory zostają bez zmian.")
+
+        # 5) napisy
         ass_name = fonts_dir = None
         words: list[captions.Word] = []
         cap_stats: dict = {}
@@ -172,7 +231,7 @@ def run(a_roll: str | Path, out: str | Path | None, opts: Options, log: LogFn = 
                     words = captions.load_words(opts.words_file)
                     log(f"Wczytano gotową transkrypcję: {len(words)} słów.")
                 else:
-                    prog(0.35, 0.55, "Rozpoznawanie mowy")
+                    prog(0.4, 0.55, "Rozpoznawanie mowy")
                     words = captions.transcribe(media.read_pcm(master), model=opts.model, language=opts.lang, log=log)
                     log(f"Rozpoznano {len(words)} słów.")
             except captions.CaptionsUnavailable as exc:
@@ -195,23 +254,22 @@ def run(a_roll: str | Path, out: str | Path | None, opts: Options, log: LogFn = 
             ass_name, fonts_dir = "captions.ass", "fonts"
             words_path = out_path.with_suffix(".slowa.json")
             captions.save_words(words, words_path)
-            # granice zdań z transkrypcji są dokładniejsze niż z samej głośności: przeliczamy plan
-            plan = build_plan(tpl, master_frames, fps, has_broll=bool(clips),
-                              breaks=breaks + captions.word_breaks(words, fps), snap=opts.snap,
-                              max_zoom=opts.max_zoom, focus=opts.focus)
+            breaks = breaks + captions.word_breaks(words, fps)  # granice zdań z transkrypcji są dokładniejsze
             log(f"Napisy: {cap_stats['groups']} napisów bieżących, {cap_stats['emphasis']} fraz akcentowych.")
         elif want_caps:
             warnings.append("Nie rozpoznano żadnej mowy: robię montaż bez napisów.")
 
-        # 4) render
+        # 6) plan i render
+        plan = build_plan(tpl, master_frames, fps, breaks=breaks, track=track, **plan_args)
+        warnings += plan.warnings
         picks = render.assign_broll(plan.slots, clips, fps, opts.seed) if clips else {}
         log(f"Składam rolkę: {len(plan.slots)} ujęć, {plan.total_frames / fps:.1f} s...")
         out_path.parent.mkdir(parents=True, exist_ok=True)
         try:
             render.render_final(master, master_info, geom.size, plan, picks, out_path, workdir, canvas=canvas,
-                                grade=opts.grade, ass_file=ass_name, fonts_dir=fonts_dir, normalize=opts.normalize,
+                                look_chain=look_chain, ass_file=ass_name, fonts_dir=fonts_dir, normalize=opts.normalize,
                                 lufs=tpl.lufs, tp=tpl.true_peak, lra=tpl.lra, crf=opts.crf, preset=opts.preset,
-                                on_progress=prog(0.55 if want_caps else 0.35, 1.0, "Montaż"))
+                                on_progress=prog(0.55 if want_caps else 0.4, 1.0, "Montaż"))
         except Exception:
             out_path.unlink(missing_ok=True)
             raise
@@ -222,7 +280,7 @@ def run(a_roll: str | Path, out: str | Path | None, opts: Options, log: LogFn = 
             progress(1.0, "Gotowe")
         return Result(out_path, plan, describe_plan(plan), warnings, time.time() - t0,
                       captions_used=bool(ass_name), caption_stats=cap_stats, words_file=words_path,
-                      input_seconds=info.duration, master_seconds=master_s)
+                      input_seconds=info.duration, master_seconds=master_s, face=face_info, look=look_info)
     finally:
         if not opts.keep_temp:
             shutil.rmtree(workdir, ignore_errors=True)

@@ -9,7 +9,7 @@ zmierzone z pliku: czasy, kadry, wymiary. Nie ma tu obrazu ani treści z rolki.
 |---|---|
 | Format | 1080×1920 (9:16), 25 kl./s, 34,00 s (850 klatek) |
 | Dźwięk | tylko głos, bez muzyki i efektów; ciągły pod wszystkimi cięciami |
-| Głośność | −14,5 LUFS, szczyt −0,6 dBFS, rozrzut LRA 2,7 LU |
+| Głośność | −14,7 LUFS, szczyt −0,7 dBTP, rozrzut LRA 2,9 LU (ffmpeg `loudnorm`; pomiar innej kopii pliku dał −14,5 / −0,6 / 2,7) |
 | Cięcia | 14 twardych cięć (15 ujęć), zero przejść typu crossfade |
 
 ## Rytm cięć: 15 ujęć
@@ -72,13 +72,24 @@ prawy górny, prawy dolny, środkowy, na końcu duży napis puenty.
 
 - Samych ujęć: lokacji, makro, rekwizytów, dłoni z napisem na skórze (to treść, nie montaż).
 - Wielu ustawień kamery: autorka nagrała tę samą wypowiedź w kilku miejscach. Z jednego nagrania powstają zbliżenia.
-- Kolorystyki (ciepłe światło, zielonkawe cienie): tylko przybliżenie w `--grade cinema`.
+- Samego światła: kolory dopasowujemy statystycznie (`--look`), ale ciepłych lamp w kadrze i zielonkawych ścian nie da się
+  dorobić w montażu. Opis i wartości: [STYL.md](STYL.md).
 - Animacji wjazdu małych liter w drobnych dopowiedzeniach (tu zwykły napis).
 
 ## Jak to zmierzono
 
 Wykrywanie cięć: wskaźnik zmiany sceny ffmpeg dla każdej klatki (piki 0,20–0,43 na tle 0,002) z ręczną weryfikacją
-na klatkach. Wymiary napisów: maski pikseli na klatkach pełnej rozdzielczości. Zgodność z mową: transkrypcja
+na klatkach. Twarze: model YuNet (ONNX) co 0,12 s, mediana wykryć w ujęciu; porównałem go z OpenCV `FaceDetectorYN`
+(średnia różnica ramki ok. 0,3 px). Kolory: rozkład L* i barwa w CIE Lab (D65) na klatkach co 0,2 s, bez pikseli
+napisów; paleta metodą k-średnich w Lab. Ruch kamery: śledzenie cech (przepływ optyczny) oraz kontrola tła na klatkach. Wymiary napisów: maski pikseli na klatkach pełnej rozdzielczości. Zgodność z mową: transkrypcja
 Whisper (słowa ze znacznikami czasu) zestawiona z cięciami. Krój: porównanie szerokości słów i „gęstości tuszu"
-dla 11 wolnych krojów. Polecenie `python rolka.py analyze` powtarza wykrywanie cięć i ról na dowolnej rolce
-i na tej daje te same 15 ujęć co ręczna analiza.
+dla 11 wolnych krojów. Polecenie `python rolka.py analyze` powtarza wykrywanie cięć, ról, kadrów twarzy, kolorów i tempa na dowolnej rolce
+i na tej daje te same 15 ujęć i te same role co ręczna analiza (a kadry twarzy z dokładnością do 0,005 kadru
+w 8 z 9 ujęć z mową; dziewiąte, ujęcie 10, ma 1 s i twarz porusza się w nim szybko).
+
+## Kolory, kadry i dynamika
+
+Zmierzone w drugim etapie analizy, opisane w [STYL.md](STYL.md) (z kartą stylu generowaną z szablonu):
+rozkład jasności (mediana L* 21, cienie 8%, światła do 72–78% waveformu), stonowana barwa z ciepłymi półtonami
+i zielonkawymi światłami, winieta, paleta, kolor skóry, rozmiar i położenie twarzy w każdym ujęciu (12% → 36% wysokości
+kadru), statyczna kamera w ujęciach z mową, tempo (24,7 cięć na minutę) i budżet słów na ujęcie (123 słowa, 3,6 słowa/s).

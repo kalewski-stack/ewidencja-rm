@@ -23,7 +23,7 @@ class TemplateTests(unittest.TestCase):
         self.assertEqual(len(t.segments), 15)
         self.assertEqual("".join(s.role for s in t.segments), "AABBABABBABAAAA")
         self.assertEqual((t.hook, t.outro, t.elastic), (2, 3, 13))
-        self.assertAlmostEqual(t.max_zoom, 1.75)
+        self.assertAlmostEqual(t.ladder_max, 3.08, places=2)
         self.assertEqual(t.captions["accent_color"], "#E2FB77")
 
     def test_load_by_name_and_unknown(self):
@@ -94,6 +94,12 @@ class AnalyzeTests(unittest.TestCase):
         self.assertEqual([s.frames for s in t.segments], self.LENGTHS)
         plan = build_plan(t, 200, snap=False)  # szablon da się od razu użyć
         self.assertEqual(sum(s.frames for s in plan.slots), 200)
+
+    def test_reference_without_faces_gets_all_a_roles_and_a_hint(self):
+        msgs: list[str] = []
+        out = analyze.analyze_reference(self.ref, self.tmp / "nof.json", log=msgs.append)
+        self.assertEqual("".join(s.role for s in template.load_template(out).segments), "A" * len(self.LENGTHS))
+        self.assertTrue(any("--roles" in m and ("żadnej twarzy" in m or "numpy" in m) for m in msgs), msgs)
 
     def test_roles_option_is_validated(self):
         with self.assertRaises(Exception):

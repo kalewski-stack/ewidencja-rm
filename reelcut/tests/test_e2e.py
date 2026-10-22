@@ -70,7 +70,7 @@ class EndToEnd(unittest.TestCase):
         cls.tmp = pathlib.Path(tempfile.mkdtemp(prefix="reelcut_test_"))
         cls.src34 = cls.tmp / "in34.mp4"
         make_input(cls.src34, 34.0, frames=850)
-        cls.opts = dict(captions="off", preset="ultrafast", crf=30)
+        cls.opts = dict(captions="off", preset="ultrafast", crf=30, look=0.0, framing="off")
 
     @classmethod
     def tearDownClass(cls):

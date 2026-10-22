@@ -120,15 +120,6 @@ def assign_broll(slots: Sequence[Slot], clips: Sequence[MediaInfo], fps: int, se
 # Złożenie wideo
 # ----------------------------------------------------------------------------------------------
 
-GRADES = {
-    "none": "",
-    # delikatna "kinowa" korekta: cieplejsze światła, chłodniejsze cienie, lekki kontrast i winieta
-    "cinema": ("eq=contrast=1.06:saturation=1.08,"
-               "colorbalance=rs=-0.02:bs=0.03:rm=0.03:bm=-0.02:rh=0.04:bh=-0.04,"
-               "vignette=angle=PI/6"),
-}
-
-
 def _slot_chain(slot: Slot, master_size: tuple[int, int], canvas: tuple[int, int], fps: int) -> str:
     """Filtry kadrujące ujęcie z mastera (zoom wokół punktu uwagi), do rozmiaru kanwy."""
     mw, mh = master_size
@@ -147,7 +138,7 @@ def _slot_chain(slot: Slot, master_size: tuple[int, int], canvas: tuple[int, int
 
 
 def build_final_graph(plan: Plan, master_size: tuple[int, int], canvas: tuple[int, int],
-                      picks: dict[int, BrollPick], input_index: dict[int, int], *, grade: str,
+                      picks: dict[int, BrollPick], input_index: dict[int, int], *, look_chain: str | None,
                       ass_file: str | None, fonts_dir: str | None) -> str:
     fps, W, H = plan.fps, *canvas
     a_slots = [s for s in plan.slots if s.source == "A"]
@@ -176,7 +167,7 @@ def build_final_graph(plan: Plan, master_size: tuple[int, int], canvas: tuple[in
             parts.append(f"[ba{i}]format=yuv420p[bd{i}]")
             parts.append(f"[bd{i}][bc{i}]overlay=format=yuv420,format=yuv420p{final}")
         labels.append(final)
-    tail = [f for f in (GRADES.get(grade, ""),) if f]
+    tail = [look_chain] if look_chain else []
     if ass_file:
         tail.append(f"ass={ass_file}" + (f":fontsdir={fonts_dir}" if fonts_dir else ""))
     tail.append("format=yuv420p")
@@ -211,7 +202,7 @@ def audio_filter(master: Path, lufs: float, tp: float, lra: float) -> str:
 
 def render_final(master: Path, master_info: MediaInfo, master_size: tuple[int, int], plan: Plan,
                  picks: dict[int, BrollPick], out: Path, workdir: Path, *, canvas: tuple[int, int],
-                 grade: str = "none", ass_file: str | None = None, fonts_dir: str | None = None,
+                 look_chain: str | None = None, ass_file: str | None = None, fonts_dir: str | None = None,
                  normalize: bool = True, lufs: float = -14.0, tp: float = -1.0, lra: float = 11.0,
                  crf: int = 18, preset: str = "medium", on_progress: ProgressCb | None = None) -> None:
     inputs = ["-i", str(master)]
@@ -221,7 +212,7 @@ def render_final(master: Path, master_info: MediaInfo, master_size: tuple[int, i
             pick = picks[s.index]
             input_index[s.index] = 1 + len(input_index)
             inputs += ["-ss", f"{pick.start:.3f}", "-t", f"{s.frames / plan.fps + 0.2:.3f}", "-i", pick.path]
-    graph = build_final_graph(plan, master_size, canvas, picks, input_index, grade=grade,
+    graph = build_final_graph(plan, master_size, canvas, picks, input_index, look_chain=look_chain,
                               ass_file=ass_file, fonts_dir=fonts_dir)
     total_s = plan.total_frames / plan.fps
     has_audio = master_info.has_audio
@@ -231,6 +222,8 @@ def render_final(master: Path, master_info: MediaInfo, master_size: tuple[int, i
         args += ["-map", "0:a:0", "-af", af, "-c:a", "aac", "-b:a", "192k", "-ar", "48000"]
     else:
         args += ["-an"]
+    if look_chain:  # po obróbce w RGB kodujemy w BT.709 i tak oznaczamy plik, żeby odtwarzacze pokazały dokładnie te kolory
+        args += ["-colorspace", "bt709", "-color_primaries", "bt709", "-color_trc", "bt709", "-color_range", "tv"]
     args += ["-c:v", "libx264", "-preset", preset, "-crf", str(crf), "-profile:v", "high", "-pix_fmt", "yuv420p",
              "-r", str(plan.fps), "-movflags", "+faststart", "-t", f"{total_s:.3f}", str(out)]
     media.run_ffmpeg(args, total_s=total_s, on_progress=on_progress, cwd=workdir)

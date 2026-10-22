@@ -44,6 +44,7 @@
   @media (max-width: 560px) { .grid { grid-template-columns: 1fr; } }
   label { display: block; font-size: .9rem; }
   label span { display: block; color: var(--muted); margin-bottom: 3px; }
+  input[type=range] { width: 100%; accent-color: var(--accent); }
   select, input[type=number] { width: 100%; font: inherit; padding: 8px; border-radius: 8px; border: 1px solid var(--line);
                                background: var(--bg); color: var(--ink); }
   .check { display: flex; gap: 8px; align-items: center; }
@@ -100,12 +101,12 @@
         <label><span>Dokładność rozpoznawania mowy</span>
           <select id="o-model"><option value="small">small: szybko, dobrze</option><option value="medium">medium: wolniej, lepiej</option>
             <option value="large-v3">large-v3: najdokładniej, bardzo wolno</option><option value="base">base: bardzo szybko</option></select></label>
-        <label><span>Maksymalne zbliżenie kadru</span><input type="number" id="o-zoom" min="1" max="2" step="0.1" value="1.6"></label>
-        <label><span>Korekta kolorów</span>
-          <select id="o-grade"><option value="none">Bez zmian</option><option value="cinema">Delikatna kinowa</option></select></label>
+        <label><span>Maksymalne zbliżenie kadru (puste = automatycznie)</span><input type="number" id="o-zoom" min="1" max="3" step="0.1" placeholder="auto"></label>
+        <label><span>Kolory jak we wzorcu: <b id="o-look-val">100%</b></span><input type="range" id="o-look" min="0" max="100" step="5" value="100"></label>
         <label class="check"><input type="checkbox" id="o-tighten" checked> Skracaj długie pauzy</label>
         <label class="check"><input type="checkbox" id="o-snap" checked> Dosuwaj cięcia do granic zdań</label>
         <label class="check"><input type="checkbox" id="o-emphasis" checked> Wyróżniaj kluczowe frazy w napisach</label>
+        <label class="check"><input type="checkbox" id="o-framing" checked> Kadruj według mojej twarzy (jak we wzorcu)</label>
       </div>
       <p class="muted" id="whisper-hint" hidden>Napisy wymagają pakietu faster-whisper: <code>pip install faster-whisper</code>. Bez niego dostaniesz sam montaż.</p>
     </details>
@@ -216,7 +217,8 @@ async function start() {
     }
     await api('POST', `/api/job/${id}/start`, {
       template: $('#o-template').value, captions: $('#o-captions').value, lang: $('#o-lang').value, model: $('#o-model').value,
-      max_zoom: +$('#o-zoom').value, grade: $('#o-grade').value, tighten: $('#o-tighten').checked,
+      max_zoom: $('#o-zoom').value ? +$('#o-zoom').value : null, look: +$('#o-look').value / 100,
+      framing: $('#o-framing').checked, tighten: $('#o-tighten').checked,
       snap: $('#o-snap').checked, emphasis: $('#o-emphasis').checked,
     });
     for (;;) {
@@ -241,12 +243,15 @@ function showResult(id, r) {
   $('#r-words').hidden = !r.words; if (r.words) { $('#r-words').href = `/files/${id}/words`; $('#r-words').setAttribute('download', r.words); }
   $('#r-sum').textContent = `${r.slots} ujęć, ${r.output_seconds} s (z nagrania ${r.input_seconds} s), ` +
     (r.captions ? `napisy: ${r.caption_stats.groups} + ${r.caption_stats.emphasis} wyróżnień, ` : 'bez napisów, ') +
+    (r.face && r.face.h ? `twarz wykryta (${(r.face.h * 100).toFixed(0)}% kadru), kadry jak we wzorcu, ` : 'kadry wg stałych zoomów, ') +
+    (r.look && r.look.strength ? `kolory dopasowane w ${(r.look.strength * 100).toFixed(0)}%, ` : '') +
     `policzone w ${r.seconds} s. Plik: ${r.folder}`;
   $('#r-warn').innerHTML = (r.warnings || []).map((w) => `<li>${esc(w)}</li>`).join('');
   $('#r-plan').textContent = r.plan;
   $('#c-result').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
+$('#o-look').addEventListener('input', () => { $('#o-look-val').textContent = $('#o-look').value + '%'; });
 $('#go').addEventListener('click', start);
 $('#r-again').addEventListener('click', () => { video = null; brolls = []; renderFiles(); $('#c-result').hidden = true; window.scrollTo({ top: 0, behavior: 'smooth' }); });
 

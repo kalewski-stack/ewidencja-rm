@@ -2,27 +2,30 @@
   "schema": 1,
   "name": "Rolka DeuOaXKtPBb: mówiąca głowa + B-roll, napisy słowo po słowie",
   "source": "https://www.instagram.com/reel/DeuOaXKtPBb/",
-  "notes": "Szablon zawiera wyłącznie parametry montażu (czasy cięć, role ujęć, kadry, geometrię napisów). Nie zawiera obrazu ani treści z oryginału.",
+  "notes": "Szablon zawiera wyłącznie parametry montażu: czasy cięć, role ujęć, kadry (rozmiar i położenie twarzy), geometrię napisów, statystyki koloru i dynamikę. Nie zawiera obrazu ani treści z oryginału.",
   "fps": 25,
   "canvas": [1080, 1920],
   "structure": {"hook": 2, "outro": 3, "elastic": 13, "elastic_min_s": 2.0, "elastic_max_s": 12.0, "min_cut_s": 0.6, "snap_tol_s": 0.5},
-  "alts": {"1": {"zoom": 1.6, "fy": 0.32, "note": "detal: twarz / oczy"}, "2": {"zoom": 1.45, "fy": 0.68, "note": "detal: dłonie / klatka piersiowa"}},
+  "alts": {
+    "1": {"zoom": 1.6, "fy": 0.32, "note": "detal: twarz i oczy (zbliżenie na twarz)", "anchor": "face"},
+    "2": {"zoom": 1.45, "fy": 0.68, "note": "detal: klatka piersiowa i dłonie (pod twarzą)", "anchor": "below_face"}
+  },
   "segments": [
-    {"frames": 64, "role": "A", "zoom": 1.0, "note": "A-roll szeroki. Haczyk: liczby w napisach."},
-    {"frames": 67, "role": "A", "zoom": 1.18, "note": "A-roll średni, zmiana kadru."},
+    {"frames": 64, "role": "A", "zoom": 1.0, "note": "Plan ogólny: szeroki kadr, stół na pierwszym planie, twarz w środku. Haczyk: duże liczby w napisach.", "face": {"h": 0.1177, "cx": 0.5074, "cy": 0.4834, "eye_y": 0.4702}},
+    {"frames": 67, "role": "A", "zoom": 1.34, "note": "Plan średni: inne ustawienie kamery, twarz minimalnie na lewo od środka.", "face": {"h": 0.1582, "cx": 0.4766, "cy": 0.4353, "eye_y": 0.4164}},
     {"frames": 40, "role": "B", "alt": 1, "note": "B-roll makro (detal), głos leci dalej."},
     {"frames": 29, "role": "B", "alt": 2, "note": "B-roll: ekran telefonu."},
-    {"frames": 69, "role": "A", "zoom": 1.15, "note": "A-roll średni."},
+    {"frames": 69, "role": "A", "zoom": 1.76, "note": "Plan bliski: twarz wyżej w kadrze, ręce złożone.", "face": {"h": 0.2069, "cx": 0.5207, "cy": 0.3596, "eye_y": 0.3394}},
     {"frames": 45, "role": "B", "alt": 1, "note": "B-roll: światło / klimat."},
-    {"frames": 43, "role": "A", "zoom": 1.0, "note": "A-roll szeroki (postać w całości)."},
+    {"frames": 43, "role": "A", "zoom": 1.52, "note": "Plan średni: postać stoi po lewej, pokój po prawej.", "face": {"h": 0.1788, "cx": 0.4116, "cy": 0.2741, "eye_y": 0.256}},
     {"frames": 77, "role": "B", "alt": 2, "note": "B-roll: rekwizyt na jednolitym tle."},
     {"frames": 42, "role": "B", "alt": 1, "note": "B-roll: rekwizyt, ruch ręki."},
-    {"frames": 26, "role": "A", "zoom": 1.1, "note": "A-roll z akcją do kamery."},
+    {"frames": 26, "role": "A", "zoom": 1.24, "note": "Plan średni: postać po lewej, akcja do kamery (rekwizyt w stronę obiektywu).", "face": {"h": 0.1461, "cx": 0.3614, "cy": 0.3081, "eye_y": 0.2924}},
     {"frames": 63, "role": "B", "alt": 2, "note": "B-roll: dłonie na klawiaturze."},
-    {"frames": 47, "role": "A", "zoom": 1.55, "note": "A-roll bardzo bliski kadr."},
-    {"frames": 22, "role": "A", "zoom": 1.75, "fx": [{"type": "blur_in", "dur": 0.3}], "note": "Puenta: najbliższy kadr, wejście z rozmycia, mega napis."},
-    {"frames": 141, "role": "A", "zoom": 1.25, "note": "Elastyczne ujęcie: monolog (tu jest kompensowana długość całości)."},
-    {"frames": 75, "role": "A", "zoom": 1.45, "fx": [{"type": "blur_in", "dur": 0.34}], "note": "Zamknięcie: wejście z rozmycia, wezwanie do działania."}
+    {"frames": 47, "role": "A", "zoom": 3.03, "note": "Zbliżenie: twarz tuż pod górną krawędzią, dolna połowa to czarna płaszczyzna na napisy.", "face": {"h": 0.3568, "cx": 0.5266, "cy": 0.1977, "eye_y": 0.1689}},
+    {"frames": 22, "role": "A", "zoom": 3.08, "fx": [{"type": "blur_in", "dur": 0.3}], "note": "Zbliżenie: puenta: kamera z góry, wejście z rozmycia, duży napis.", "face": {"h": 0.3624, "cx": 0.5942, "cy": 0.4133, "eye_y": 0.3981}},
+    {"frames": 141, "role": "A", "zoom": 2.3, "note": "Zbliżenie: monolog, twarz lekko na prawo od środka.", "face": {"h": 0.2703, "cx": 0.5762, "cy": 0.3547, "eye_y": 0.3269}},
+    {"frames": 75, "role": "A", "zoom": 2.57, "fx": [{"type": "blur_in", "dur": 0.34}], "note": "Zbliżenie: zamknięcie, twarz na prawo od środka, wejście z rozmycia, wezwanie do działania.", "face": {"h": 0.3025, "cx": 0.6054, "cy": 0.3828, "eye_y": 0.3635}}
   ],
   "pauses": {"max_pause_s": 0.5, "keep_pause_s": 0.35},
   "audio": {"lufs": -14.0, "true_peak": -1.0, "lra": 11.0},
@@ -40,5 +43,78 @@
       "center_stack": {"align": "center", "x": 540, "top": 668, "cap": 80, "pitch": 124, "hold_s": 0.5, "blocks_running": false},
       "mega": {"align": "center", "x": 540, "center_y": 1260, "cap": 205, "max_width": 926, "hold_s": 0.45, "blocks_running": true}
     }
+  },
+  "look": {
+    "note": "Zmierzone z ujęć z mową (A) i wstawek (B), bez napisów wypalonych w materiale. L* i barwa wg CIE Lab (D65). Winieta = jasność pierścieni 1-3 względem środka.",
+    "A": {
+      "luma": [4.93, 5.01, 6.32, 7.66, 11.23, 21.35, 33.67, 49.73, 57.05, 74.64, 80.4],
+      "bins": [
+        {"L": 5.0, "share": 0.2141, "a": -0.3953, "b": -0.8431, "C": 1.9283},
+        {"L": 15.0, "share": 0.2595, "a": 2.8253, "b": 2.3972, "C": 6.8068},
+        {"L": 25.0, "share": 0.2196, "a": 7.033, "b": 9.1355, "C": 14.1652},
+        {"L": 35.0, "share": 0.1243, "a": 4.1525, "b": 7.3138, "C": 14.217},
+        {"L": 45.0, "share": 0.0842, "a": 4.6382, "b": 8.2057, "C": 15.3542},
+        {"L": 55.0, "share": 0.0616, "a": 4.3656, "b": 10.6595, "C": 18.1122},
+        {"L": 65.0, "share": 0.0226, "a": -2.5954, "b": 9.2459, "C": 15.2801},
+        {"L": 75.0, "share": 0.009, "a": -3.9826, "b": 10.922, "C": 12.7502},
+        {"L": 85.0, "share": 0.0041, "a": -1.1365, "b": 12.2328, "C": 12.8666},
+        {"L": 95.0, "share": 0.0011, "a": -2.058, "b": 4.4632, "C": 6.2833}
+      ],
+      "chroma": 9.98,
+      "vignette": [0.896, 0.729, 0.664],
+      "frames": 112
+    },
+    "palette_A": [
+      {"hex": "#191B1D", "share": 0.346, "L": 9.8, "C": 1.3, "hue": 238},
+      {"hex": "#5A392A", "share": 0.168, "L": 27.4, "C": 19.8, "hue": 49},
+      {"hex": "#362722", "share": 0.157, "L": 17.2, "C": 8.7, "hue": 42},
+      {"hex": "#3F4948", "share": 0.13, "L": 30.1, "C": 4.4, "hue": 188},
+      {"hex": "#6B7A77", "share": 0.085, "L": 49.9, "C": 6.0, "hue": 184},
+      {"hex": "#8E6856", "share": 0.063, "L": 47.3, "C": 20.6, "hue": 50},
+      {"hex": "#ABB3A4", "share": 0.029, "L": 71.9, "C": 8.7, "hue": 128},
+      {"hex": "#B35928", "share": 0.021, "L": 48.0, "C": 55.0, "hue": 53}
+    ],
+    "B": {
+      "luma": [0.8, 1.17, 4.63, 4.93, 9.06, 23.61, 39.98, 53.58, 58.87, 75.83, 83.36],
+      "bins": [
+        {"L": 5.0, "share": 0.276, "a": 0.6504, "b": 0.1591, "C": 2.1501},
+        {"L": 15.0, "share": 0.1669, "a": 7.587, "b": 6.3121, "C": 10.9438},
+        {"L": 25.0, "share": 0.155, "a": 16.8749, "b": 16.4311, "C": 24.9117},
+        {"L": 35.0, "share": 0.1526, "a": 26.3549, "b": 28.5142, "C": 40.3731},
+        {"L": 45.0, "share": 0.1231, "a": 31.8214, "b": 34.7225, "C": 47.9167},
+        {"L": 55.0, "share": 0.0873, "a": 41.3306, "b": 45.792, "C": 62.9996},
+        {"L": 65.0, "share": 0.0235, "a": 22.5987, "b": 32.3533, "C": 42.6295},
+        {"L": 75.0, "share": 0.009, "a": -2.8526, "b": 11.6725, "C": 16.1208},
+        {"L": 85.0, "share": 0.0036, "a": 1.1631, "b": 10.482, "C": 12.6641},
+        {"L": 95.0, "share": 0.0031, "a": 1.8019, "b": 4.3455, "C": 5.1995}
+      ],
+      "chroma": 25.05,
+      "vignette": [0.949, 0.873, 0.777],
+      "frames": 58
+    },
+    "palette_B": [
+      {"hex": "#191616", "share": 0.357, "L": 7.6, "C": 1.2, "hue": 28},
+      {"hex": "#3E3733", "share": 0.165, "L": 23.8, "C": 4.7, "hue": 64},
+      {"hex": "#7A503A", "share": 0.114, "L": 38.2, "C": 25.0, "hue": 53},
+      {"hex": "#8D280D", "share": 0.085, "L": 32.3, "C": 56.9, "hue": 44},
+      {"hex": "#EA5113", "share": 0.078, "L": 55.5, "C": 83.8, "hue": 47},
+      {"hex": "#B83911", "share": 0.077, "L": 43.1, "C": 70.0, "hue": 45},
+      {"hex": "#60190C", "share": 0.065, "L": 20.9, "C": 40.7, "hue": 40},
+      {"hex": "#9B998D", "share": 0.059, "L": 63.0, "C": 6.4, "hue": 102}
+    ],
+    "accents": {"A": "#B35928", "B": "#EA5113"},
+    "skin": {"L": 33.0, "C": 17.7, "hue": 36}
+  },
+  "dynamics": {
+    "note": "Zmierzone z cięć, różnicy klatek i głośności rolki wzorcowej. Opisuje tempo (komenda style); montażem steruje reszta szablonu.",
+    "duration_s": 34.0,
+    "cuts": 14,
+    "cuts_per_min": 24.7,
+    "shot_s": {"mean": 2.27, "median": 1.88, "min": 0.88, "max": 5.64},
+    "sections_s": {"hook": 5.24, "body": 19.24, "outro": 9.52},
+    "share": {"A": 0.652, "B": 0.348},
+    "pattern": "AABBABABBABAAAA",
+    "motion": {"A": 1.4, "B": 2.46},
+    "loudness": {"lufs": -14.7, "true_peak": -0.7, "lra": 2.9}
   }
 }

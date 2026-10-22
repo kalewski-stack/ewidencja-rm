@@ -94,7 +94,9 @@ class PlannerTests(unittest.TestCase):
             plan = build_plan(TPL, 850, snap=False, max_zoom=max_zoom)
             for a, b in zip(plan.slots, plan.slots[1:]):
                 if a.source == "A" and b.source == "A":
-                    self.assertTrue(abs(a.zoom - b.zoom) >= 0.12 - 1e-9 or abs(a.fy - b.fy) >= 0.18,
+                    ratio = max(a.zoom, b.zoom) / min(a.zoom, b.zoom) - 1
+                    shift = max(abs(a.fx - b.fx), abs(a.fy - b.fy)) * max(a.zoom, b.zoom)
+                    self.assertTrue(ratio >= 0.10 - 1e-9 or shift >= 0.12 or max(a.zoom, b.zoom) <= max_zoom + 1e-9 and max_zoom <= 1.0,
                                     (a.index, a.zoom, b.zoom))
 
     def test_max_zoom_is_respected(self):
@@ -114,6 +116,18 @@ class PlannerTests(unittest.TestCase):
         for s, t in zip(plan.slots, TPL.segments):
             if not s.elastic:
                 self.assertAlmostEqual(s.frames / 30, t.frames / 25, delta=1 / 30)
+
+    def test_rhythm_scales_with_length_as_documented_in_styl_md(self):
+        """Tabela „Długość” w STYL.md: gęstość cięć i obecność wstawek B dla różnych długości materiału."""
+        for sec, lo, hi in ((18, 19.0, 21.0), (28, 22.6, 24.6), (34, 24.5, 24.9), (45, 25.7, 27.7), (60, 27.0, 29.0), (90, 27.7, 29.7)):
+            with self.subTest(sec=sec):
+                plan = build_plan(TPL, sec * 25, snap=False)
+                per_min = (len(plan.slots) - 1) / sec * 60
+                self.assertTrue(lo <= per_min <= hi, f"{per_min:.1f} cięć/min poza {lo}-{hi}")
+        for sec in (12, 13, 14, 15):
+            self.assertEqual({s.role for s in build_plan(TPL, sec * 25, snap=False).slots}, {"A"}, f"{sec} s")
+        for sec in (16, 18, 20):
+            self.assertIn("B", {s.role for s in build_plan(TPL, sec * 25, snap=False).slots}, f"{sec} s")
 
     def test_describe_plan_mentions_every_slot(self):
         text = describe_plan(build_plan(TPL, 850, snap=False))

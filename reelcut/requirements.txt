@@ -3,5 +3,9 @@
 # Opcjonalnie: napisy (rozpoznawanie mowy)
 faster-whisper>=1.0
 
-# Opcjonalnie: automatyczne rozpoznawanie ról ujęć w poleceniu "analyze" (odkomentuj, jeśli potrzebujesz)
+# Opcjonalnie: kadrowanie po Twojej twarzy, dopasowanie kolorów do wzorca, role ujęć i pomiary w poleceniu "analyze"
+numpy>=1.24
+onnxruntime>=1.16
+
+# Opcjonalnie, tylko do starszej metody rozpoznawania ról w "analyze" (nie jest potrzebne, gdy masz numpy i onnxruntime)
 # opencv-python-headless<5
