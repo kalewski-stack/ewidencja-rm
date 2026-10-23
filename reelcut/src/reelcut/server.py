@@ -19,7 +19,7 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 from . import __version__, captions, media
-from .pipeline import VIDEO_EXT, Options, run
+from .pipeline import AUDIO_EXT, VIDEO_EXT, Options, run
 from .template import TemplateError, list_templates, resolve_alias
 
 DEFAULT_WORKDIR = Path.home() / "ReelCut"
@@ -321,8 +321,9 @@ class Handler(BaseHTTPRequestHandler):
         if role == "grafiki":
             if suffix not in GRAPHICS_EXT:
                 return self._fail(400, f"Nieobsługiwany typ pliku: {name}. Wgraj plan grafik (.json), scenariusz (.txt, .md) albo obraz (.png, .jpg, .webp).")
-        elif suffix not in VIDEO_EXT:
-            return self._fail(400, f"Nieobsługiwany typ pliku: {name}. Wgraj nagranie wideo (np. .mp4, .mov).")
+        elif suffix not in (VIDEO_EXT | AUDIO_EXT if role == "video" else VIDEO_EXT):
+            return self._fail(400, f"Nieobsługiwany typ pliku: {name}. Wgraj nagranie wideo (np. .mp4, .mov)"
+                                   f"{' albo nagranie głosu (.m4a, .mp3, .wav) dla trybu motion' if role == 'video' else ''}.")
         length = int(self.headers.get("Content-Length") or 0)
         if length <= 0:
             return self._fail(400, "Pusty plik.")

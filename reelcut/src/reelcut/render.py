@@ -86,6 +86,34 @@ def build_master(src: str | Path, info: MediaInfo, keep: Sequence[tuple[int, int
     media.run_ffmpeg(args, total_s=total_s, on_progress=on_progress, cwd=workdir)
 
 
+def build_master_audio(src: str | Path, keep: Sequence[tuple[int, int]], canvas: tuple[int, int], out: Path, workdir: Path,
+                       fps: int, on_progress: ProgressCb | None = None, bg: str = "0xF7F4EC") -> None:
+    """Master trybu motion: jednolity obraz w kolorze tła (grafiki rysują całą resztę) i dźwięk z pliku bez długich pauz.
+    Obraz z pliku źródłowego jest pomijany, więc źródłem może być samo nagranie głosu."""
+    n = len(keep)
+    parts = ["[0:a]aresample=48000,aformat=channel_layouts=stereo"
+             + (f",asplit={n}" + "".join(f"[a{i}]" for i in range(n)) if n > 1 else "[as]")]
+    labels = []
+    for i, (a, b) in enumerate(keep):
+        ain = f"[a{i}]" if n > 1 else "[as]"
+        dur = (b - a) / fps
+        chain = f"atrim=start={a / fps:.6f}:end={b / fps:.6f},asetpts=PTS-STARTPTS"
+        if i > 0:
+            chain += f",afade=t=in:d={FADE_S}"
+        if i < n - 1 and dur > 2 * FADE_S:
+            chain += f",afade=t=out:st={dur - FADE_S:.6f}:d={FADE_S}"
+        parts.append(f"{ain}{chain}[ta{i}]")
+        labels.append(f"[ta{i}]")
+    parts.append("".join(labels) + f"concat=n={n}:v=0:a=1[am]")
+    total_s = sum(b - a for a, b in keep) / fps
+    W, H = canvas
+    args = ["-i", str(src), "-f", "lavfi", "-i", f"color=c={bg}:s={W}x{H}:r={fps}:d={total_s:.3f}",
+            *media.filter_script_args(";\n".join(parts), workdir, "graph_master"),
+            "-map", "1:v", "-map", "[am]", "-c:v", "libx264", "-preset", "ultrafast", "-crf", "12", "-pix_fmt", "yuv420p", "-r", str(fps),
+            "-c:a", "pcm_s16le", "-t", f"{total_s:.3f}", str(out)]
+    media.run_ffmpeg(args, total_s=total_s, on_progress=on_progress, cwd=workdir)
+
+
 # ----------------------------------------------------------------------------------------------
 # B-roll
 # ----------------------------------------------------------------------------------------------

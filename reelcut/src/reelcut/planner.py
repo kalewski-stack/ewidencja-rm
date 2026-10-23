@@ -79,17 +79,31 @@ def build_plan(
     body = list(range(tpl.hook, n - tpl.outro))
     min_f = max(1, round(tpl.min_cut_s * fps))
 
-    if tpl.mode == "single":  # jedno ujęcie bez cięć: dynamikę robią grafiki, kadr ustawia się po twarzy
+    if tpl.single_take:  # jedno ujęcie bez cięć: dynamikę robią grafiki, kadr ustawia się po twarzy
         slot = _make_slot(0, 0, 0, master_frames, tpl, True, has_broll, 1.0, focus, max_zoom, fps)
         if track is not None:
             framing.apply_framing([slot], tpl, track, fps, max_zoom)
-        return Plan(fps, master_frames, [slot], "jedno ujęcie", warnings)
+        return Plan(fps, master_frames, [slot], "motion" if tpl.motion else "jedno ujęcie", warnings)
 
     if master_frames < 2 * min_f:
         warnings.append("Materiał jest bardzo krótki: zostawiam jedno ujęcie bez cięć.")
         slot = _make_slot(0, 0, 0, master_frames, tpl, False, has_broll, 1.0, focus, 1.0, fps)
         return Plan(fps, master_frames, [slot], "skrócony", warnings)
 
+    def body_seq(n: int) -> list[int]:
+        """Kolejne ujęcia środka: cykl powtarza się, ale wstawka, która wypadłaby zaraz po innej wstawce, jest pomijana
+        (dwie wstawki pod rząd zlałyby się w jedną długą, a we wzorcu są oddzielone mową)."""
+        out: list[int] = []
+        while body and len(out) < n:
+            cyc = list(body)
+            if out and segs[out[-1]].role == "B" and segs[cyc[0]].role == "B":
+                j = next((k for k, i in enumerate(cyc) if segs[i].role == "A"), None)
+                if j is not None:
+                    cyc = cyc[j:]
+            out += cyc
+        return out[:n]
+
+    seq = body_seq(5000)
     fixed = sum(fr(i) for i in hook) + sum(fr(i) for i in outro if i != tpl.elastic)
     e0 = fr(tpl.elastic)
     emin, emax = round(tpl.elastic_min_s * fps), round(tpl.elastic_max_s * fps)
@@ -99,9 +113,9 @@ def build_plan(
     acc = 0
     for n_body in range(0, 5000):
         if n_body:
-            if not body:
+            if n_body > len(seq):
                 break
-            acc += fr(body[(n_body - 1) % len(body)])
+            acc += fr(seq[n_body - 1])
         e = master_frames - fixed - acc
         if e < emin:
             break
@@ -113,7 +127,7 @@ def build_plan(
     if best is not None:
         _, n_body, e = best
         items = [(i, fr(i), False) for i in hook]
-        items += [(body[k % len(body)], fr(body[k % len(body)]), False) for k in range(n_body)]
+        items += [(seq[k], fr(seq[k]), False) for k in range(n_body)]
         items += [(i, e if i == tpl.elastic else fr(i), i == tpl.elastic) for i in outro]
         mode = "identyczny" if (n_body == len(body) and e == e0) else "dopasowany"
     else:
@@ -232,11 +246,13 @@ def describe_plan(plan: Plan) -> str:
              "  nr    od      do     dł.   obraz  zoom   uwagi"]
     for s in plan.slots:
         what = "A-roll" if s.source == "A" and s.role == "A" else ("kadr-detal" if s.source == "A" else "B-roll")
+        if plan.mode == "motion":  # w trybie motion obraz powstaje z grafik, z nagrania liczy się tylko głos
+            what = "grafiki"
         notes = []
         if s.face_h:
             notes.append(f"twarz {s.face_h * 100:.0f}% kadru")
         if s.effects:
-            notes.append("+".join(f.type for f in s.effects))
+            notes.append("+".join(f.type + (" na wyjściu" if f.edge == "end" else "") for f in s.effects))
         if s.elastic:
             notes.append("elastyczne")
         if s.shifted:

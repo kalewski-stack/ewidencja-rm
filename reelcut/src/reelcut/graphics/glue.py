@@ -13,7 +13,7 @@ from ..faces import FaceTrack
 from . import script
 from .core import Layout, PlanError, load_brand, need_pil
 from .elements import Context
-from .plan import GraphicsPlan, build_plan
+from .plan import GraphicsPlan, build_plan, with_template
 from .render import iter_frames
 
 
@@ -143,9 +143,23 @@ def matte_for_background(plan: GraphicsPlan, background: Path | None, size: tupl
         return None
 
 
+FLASH_MATCH_S = 0.1  # przejście wpisane przez autora w tej odległości od cięcia zastępuje błysk ze wzoru ujęć
+
+
+def flash_cuts(video_plan) -> list[float]:
+    """Chwile cięć (sekundy na osi filmu), w których wzór ujęć każe dać błysk: fx flash na ujęciu działa na jego początku (edge: start)
+    albo na końcu (edge: end), więc wstawka dostaje błysk na wejściu i na wyjściu, a nie ma go tam, gdzie jej nie ma. Koniec filmu nie jest cięciem."""
+    cuts = set()
+    for s in video_plan.slots:
+        for f in s.effects:
+            if f.type == "flash" and (f.edge == "start" or s.end < video_plan.total_frames):
+                cuts.add(round((s.start if f.edge == "start" else s.end) / video_plan.fps, 3))
+    return sorted(cuts)
+
+
 def prepare(graphics_path: str | Path | None, brand_ref: str | Path | None, tpl, video_plan, track: FaceTrack | None,
             master: Path, workdir: Path, words: list, canvas: tuple[int, int], duration_s: float,
-            layer_captions: bool, log: Callable[[str], None] = print) -> GraphicsJob | None:
+            layer_captions: bool, log: Callable[[str], None] = print, caption_words: list | None = None) -> GraphicsJob | None:
     """Buduje plan grafik: z pliku JSON (jeśli podano) i napisów biegnących (gdy szablon ich chce). None = nic do narysowania."""
     need_pil()
     raw: dict = {"schema": 1, "elements": [], "effects": []}
@@ -158,22 +172,25 @@ def prepare(graphics_path: str | Path | None, brand_ref: str | Path | None, tpl,
         except (OSError, json.JSONDecodeError) as exc:
             raise PlanError(f"Nie da się wczytać planu grafik {gp}: {exc}") from exc
         base_dir = gp.parent
-    raw.setdefault("elements", [])
-    if layer_captions and words:
-        cap = {"type": "captions", **tpl.graphics.get("captions", {})}
-        raw["elements"] = [e for e in raw["elements"] if e.get("type") != "captions"] + [cap]
-    if not raw["elements"] and not raw.get("effects"):
+    # ustawienia napisów daje szablon; z planu (scenariusza) bierzemy tylko to, co do nich dopisał (np. wyróżnione frazy);
+    # w trybie motion szablon dokłada też tło, bo cały obraz rysują grafiki
+    raw = with_template(raw, tpl, caption_words if caption_words is not None else words, duration_s, layer_captions=layer_captions)
+    own = [float(t["at"]) for t in raw.get("transitions", []) or [] if isinstance(t, dict) and "at" in t]
+    flashes = [at for at in flash_cuts(video_plan) if all(abs(at - o) > FLASH_MATCH_S for o in own)]
+    if flashes:  # błyski z wzoru ujęć (Format 3: przy wstawce) to zwykłe przejścia, więc idą tą samą drogą co te ze scenariusza
+        raw["transitions"] = list(raw.get("transitions", []) or []) + [{"kind": "flash", "at": at} for at in flashes]
+    if not raw["elements"] and not raw.get("effects") and not raw.get("transitions"):
         return None
     brand = load_brand(brand_ref if brand_ref is not None else raw.get("brand") or tpl.graphics.get("brand"))
     layout = face_layout(video_plan, track, tpl, canvas)
     avatar = extract_avatar(master, track, workdir / "avatar.png")
-    ctx = Context(brand, layout, video_plan.fps, base_dir, avatar, list(words), duration_s)
+    ctx = Context(brand, layout, video_plan.fps, base_dir, avatar, list(caption_words if caption_words is not None else words), duration_s)
     plan = build_plan(raw, ctx)
     n = video_plan.total_frames
     over = [e for e in plan.elements if e.kind != "captions" and e.start > duration_s]
     if over:
         log(f"UWAGA: {len(over)} elementów grafik zaczyna się po końcu filmu ({duration_s:.1f} s) i nie będzie widocznych.")
     log(f"Grafiki: {len([e for e in plan.elements if e.kind != 'captions'])} elementów, marka „{brand.name}”"
-        f"{', napisy biegnące' if layer_captions and words else ''}; twarz w kadrze: wysokość {layout.face_h * 100:.0f}%, "
-        f"środek ({layout.face_cx * 100:.0f}%, {layout.face_cy * 100:.0f}%).")
+        f"{', napisy biegnące' if layer_captions and words else ''}{f', przejścia: {len(plan.transitions)}' if plan.transitions else ''}; "
+        f"twarz w kadrze: wysokość {layout.face_h * 100:.0f}%, środek ({layout.face_cx * 100:.0f}%, {layout.face_cy * 100:.0f}%).")
     return GraphicsJob(plan, canvas, video_plan.fps, n, make_matte(plan, video_plan, master, canvas, duration_s, log))

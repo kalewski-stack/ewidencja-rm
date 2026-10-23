@@ -7,6 +7,7 @@ Narzędzie robi je w Twoich kolorach i kroju marki „Linia Kalewski”, a czasy
 - **Format 1** to mówiąca głowa z cięciami i B-rollem (rolka DeuOaXKtPBb): szablon `format1`, opis w [STYL.md](STYL.md).
 - **Format 2** to ten plik: szablon `format2` (stara nazwa `rolka_Dez4fPJCR74` też działa), składnia znaczników w
   [GRAFIKI.md](GRAFIKI.md).
+- **Format 3** to gadająca głowa v3 z cięciami, hasłami i błyskiem przy wstawce: szablon `format3`, opis w [FORMAT3.md](FORMAT3.md).
 
 Wzorce: cztery rolki jednego konta (Dez4fPJCR74, DeGQ3NAC2f9, Dd2i55aj43S, DdxAwodlOGG). W repozytorium są
 tylko liczby, kolory i opis konstrukcji, bez obrazu, mowy i tekstów z tych rolek.

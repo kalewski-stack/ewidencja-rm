@@ -29,6 +29,21 @@ GRAPHICS_ELEMENTS = {
     "ring": "pierścień z kropek wokół wskazanego miejsca: cały albo dwa łuki",
 }
 
+# Elementy Motion: obraz powstaje z nich, bo z pliku liczy się tylko dźwięk.
+MOTION_ELEMENTS = {
+    "backdrop": "tło całego filmu: papier z siatką kropek w eliptycznej winiecie (dark: true to ciemna plansza)",
+    "dial": "tarcza schematu: piasta z tekstem, szprychy z kropkami i etykietami; rozbudowa na szerokim ujęciu, cięcie na zbliżenie, "
+            "obrót o jedną szprychę na krok, pisanie etykiet z blokiem-kursorem, cofnięcie kamery z tytułem",
+    "cutaway": "plansza na cały kadr z napisami w trzech rozmiarach (małe, duże, drobne), twarde cięcie wejścia i wyjścia",
+    "glint": "krótki jasny błysk na piaście przy ważnym słowie",
+}
+
+# Elementy Formatu 3 (gadająca głowa v3: cięcia, wstawki z błyskiem, hasła): dochodzą do elementów Formatu 2.
+FORMAT3_ELEMENTS = {
+    "lockup": "hasło: blok z dużym słowem kluczowym (szeryfowa kursywa, żółty) i małymi słowami nad nim i pod nim, wyjustowanymi do jego szerokości; "
+              "słowa wskakują w chwili, gdy padają; powstaje samo ze słów wyróżnionych w scenariuszu (`*tak*`)",
+}
+
 BRAND_ROLES = {
     "text": "napisy i tekst na grafikach",
     "title": "tytuły",
@@ -223,6 +238,41 @@ def _single_section(tpl: Template) -> list[str]:
     return out + [""]
 
 
+def _motion_section(tpl: Template) -> list[str]:
+    """Motion: obraz z grafik i lektor. Liczby ruchu pochodzą z pomiaru rolki wzorcowej (blok dynamics.motion)."""
+    dyn = tpl.dynamics
+    m = dyn.get("motion", {})
+    out = ["## Montaż i kamera", "",
+           f"- Obraz powstaje z grafik, z pliku liczy się tylko dźwięk (lektor). Wzorzec: {_n(tpl.duration_s)} s, bez cięć montażowych; "
+           "zmiany ujęć robi kamera w schemacie i dwie plansze.",
+           f"- Pauzy w mowie: powyżej {_n(tpl.max_pause_s, 2)} s skracane do {_n(tpl.keep_pause_s, 2)} s."]
+    if dyn.get("words_per_s"):
+        out.append(f"- Tempo napisów: ok. {_n(dyn['words_per_s'])} słowa na sekundę (z liczby zmian napisów).")
+    ld = dyn.get("loudness")
+    if ld:
+        out.append(f"- Głośność rolki: {_n(ld['lufs'])} LUFS, zakres LRA {_n(ld['lra'])} LU (cel w szablonie: {_n(tpl.lufs)} LUFS).")
+    if m:
+        pct = lambda v: f"{_n(v * 100)}%"  # noqa: E731
+        out += ["", "## Ruch (zmierzony)", "",
+                f"- Rozbudowa na szerokim ujęciu: promień piasty {pct(m['wide_hub_r'])} szerokości kadru, {m['spokes']} szprych wyrasta po kolei "
+                f"zgodnie z ruchem wskazówek od góry co {_n(m['spoke_step_s'], 3)} s, całość trwa ok. {_n(m['build_s'])} s.",
+                f"- Cięcie na zbliżenie: jedna klatka, skala {_n(m['cut_scale'], 2)} → 1 w {_n(m['settle_s'], 2)} s z doostrzeniem; "
+                f"zbliżenie ×{_n(m['zoom_ratio'], 2)} (promień piasty {pct(m['close_hub_r'])}). W zbliżeniu piasta stoi przy dolnej krawędzi, "
+                "widać szprychę na górze i jej etykietę.",
+                f"- Wolny najazd w zbliżeniu: +{_n(m['drift_per_s'] * 100, 2)}% na sekundę, także pod planszami.",
+                f"- Obrót o jedną szprychę na krok ({m['rotations']} obrotów w rolce), przeciwnie do ruchu wskazówek, łagodzenie wejściowe "
+                f"i wyjściowe o potędze {_n(m['rotation_pow'], 0)}: ruch widać ok. {_n(m['rotation_visible_s'], 2)} s, 10-90% w "
+                f"{_n(m['rotation_10_90_s'], 2)} s. Połowa obrotu wypada 0,1 s przed pierwszym znakiem etykiety.",
+                f"- Pisanie etykiet: {_n(m['type_cps'], 0)} znaków na sekundę, blok-kursor kurczy się do szerokości znaku, po dopisaniu "
+                "cienki kursor jeszcze 0,25 s.",
+                f"- Plansze ({m['cutaways']} w rolce, {_n(m['cutaway_s'][0])} i {_n(m['cutaway_s'][1])} s): twarde cięcie na ciemną kartę "
+                "i z powrotem; słowa wchodzą po kolei, małe i duże w dwóch wierszach, wyróżnione frazy dużym krojem.",
+                f"- Finał: twarde cofnięcie kamery do widoku całości z rozmyciem, które znika w 0,8 s; tarcza obraca się jeszcze o jedną "
+                f"szprychę ({_n(m['finale_rotation_s'], 1)} s), wraca szprycha startowa, na górze pojawia się tytuł.",
+                f"- Napisy: małe słowo po słowie nad schematem (1-2 słowa), wyróżnione frazy dużym krojem pod małymi; po finale schodzą pod schemat."]
+    return out + [""]
+
+
 def _brand_section(tpl: Template) -> list[str]:
     """Kolory grafik z marki. Kolory nagrania szablon jednego ujęcia zostawia bez zmian."""
     from .graphics.core import PlanError, load_brand
@@ -236,6 +286,44 @@ def _brand_section(tpl: Template) -> list[str]:
     for role, use in BRAND_ROLES.items():
         r, g, b = brand.rgb(role)
         out.append(f"| {role} | `#{r:02X}{g:02X}{b:02X}` | {use} |")
+    return out + [""]
+
+
+MOTION_COLORS = (
+    ("paper", "papier", "tło z siatką kropek (w eliptycznej winiecie), tekst w piaście tarczy i małe słowa na planszach"),
+    ("ink", "tusz", "piasta, szprychy, kropki i etykiety tarczy, napisy, tło plansz"),
+    ("violet", "fiolet", "obrys piasty i cienka linia wewnątrz niej"),
+    ("highlight", "żółty", "aktywna kropka na szprysze i wyróżnione słowa na planszach: jedyny jasny akcent naraz"),
+)
+
+
+def _motion_colors_section(tpl: Template) -> list[str]:
+    """Motion: nie ma nagrania, więc kolory to wyłącznie kolory marki, rozdzielone między tło, tarczę i plansze."""
+    from .graphics.core import PlanError, load_brand
+
+    out = ["## Kolory", "", "Nagrania nie ma, więc nie ma czego dopasowywać: cały obraz rysują grafiki w kolorach marki."]
+    try:
+        brand = load_brand(tpl.graphics.get("brand"))
+    except PlanError:
+        return out + [""]
+    out += ["", f"Marka: {brand.name}.", "", "| Kolor | Wartość | Gdzie |", "|---|---|---|"]
+    for role, name, use in MOTION_COLORS:
+        r, g, b = brand.rgb(role)
+        out.append(f"| {name} | `#{r:02X}{g:02X}{b:02X}` | {use} |")
+    return out + [""]
+
+
+def _motion_graphics_section(tpl: Template) -> list[str]:
+    out = ["## Grafiki i napisy", ""]
+    c = (tpl.graphics or {}).get("captions")
+    if c:
+        out.append(f"- Napisy kinetyczne rysuje warstwa grafik w kroju marki: do {c.get('max_words', 2)} słów naraz, górna linia na "
+                   f"{_n(c.get('y', 0) * 100)}% wysokości kadru; słowa wchodzą z rozmyciem i wjazdem od dołu."
+                   + (" Napisy biorą słowa z Twojego scenariusza, a czasy z mowy." if c.get("from_script") else ""))
+    out += ["- Plan grafik to scenariusz ze znacznikami `{...}` albo plik JSON (`--graphics`); kroki tarczy i plansze mają czasy z mowy.",
+            "- Elementy planu:"]
+    out += [f"  - `{k}`: {v}" for k, v in MOTION_ELEMENTS.items()]
+    out += ["- Wyróżnienia w tekście scenariusza (`*fraza*`) dostają duży krój: na planszach w kolorze wyróżnika (żółtym), w napisach tuszem."]
     return out + [""]
 
 
@@ -256,13 +344,55 @@ def _graphics_section(tpl: Template) -> list[str]:
     return out + [""]
 
 
+def _cuts_graphics_section(tpl: Template) -> list[str]:
+    """Format 3: cięcia jak w Formacie 1, ale napisy, hasła i błyski rysuje warstwa grafik w kolorach i kroju marki."""
+    from .graphics import lockup, transitions
+
+    g = tpl.graphics or {}
+    c, k = g.get("captions") or {}, g.get("lockup") or {}
+    out = ["## Napisy, hasła i błyski", ""]
+    if c:
+        out.append(f"- Napisy rysuje warstwa grafik, w kroju marki: statyczne porcje do {c.get('max_words', 3)} słów (cała porcja pojawia się naraz, "
+                   f"bez animacji), wysokość wersalików {_n(c.get('size', 0) * 100)}% wysokości kadru (ok. {round(c.get('size', 0) * tpl.canvas[1])} px "
+                   f"z {tpl.canvas[1]}), górna krawędź na {_n(c.get('y', 0) * 100)}% wysokości, pod brodą. Kolor biały, z lekkim cieniem."
+                   + (" Słowa biorą się z Twojego scenariusza (poprawna pisownia), a czasy z mowy; bez scenariusza z rozpoznanej mowy."
+                      if c.get("from_script") else ""))
+    if k:
+        big = float(k.get("size", lockup.BIG_EM))
+        out.append(f"- Hasło: słowa wyróżnione w scenariuszu (`*tak*`) wchodzą jako blok. Duży wiersz ({k.get('big_max', 2)} słowa najwyżej, "
+                   f"szeryfowa kursywa, żółty, ok. {_n(big * 100)}% wysokości kadru), nad nim do {k.get('pre', 3)} małych słów, pod nim do "
+                   f"{k.get('post', 3)}: małe wiersze są wyjustowane do szerokości dużego słowa, a blok ma najwyżej {_n(lockup.MAX_W * 100, 0)}% "
+                   f"szerokości kadru. Blok zaczyna się na {_n(lockup.TOP * 100)}% wysokości. Każde słowo wskakuje od razu w chwili, gdy pada "
+                   "(bez animacji), a na czas hasła jego słowa znikają ze zwykłych napisów. Hasło nie wychodzi poza zdanie ani poza pauzę "
+                   f"dłuższą niż {_n(k.get('max_gap_s', lockup.MAX_GAP_S), 2)} s.")
+    flashes = [(i, f) for i, s_ in enumerate(tpl.segments) for f in s_.fx if f.type == "flash"]
+    if flashes:
+        peak = max(transitions.FLASH)
+        out.append(f"- Błysk: biała nakładka na całym obrazie, także na nagraniu: krycie rośnie do {_n(peak * 100, 0)}% w pierwszej klatce nowego "
+                   f"ujęcia i schodzi do zera w {len(transitions.FLASH)} klatkach ({_n(len(transitions.FLASH) / 30, 2)} s). We wzorcu jest tylko przy "
+                   "drugiej wstawce, na wejściu w nią i na wyjściu z niej; pozostałe cięcia, także wejście w pierwszą wstawkę, są twarde.")
+    out += ["- Przejścia w planie grafik: `przejście` (rozmycie, najazd, przesunięcie, kurtyna, błysk). Przy nagraniu pod spodem działa pełnym "
+            "obrazem tylko błysk, reszta obrabia same grafiki (opis w PRZEJSCIA.md).",
+            "- Plan grafik to scenariusz ze znacznikami `{...}` albo plik JSON (`--graphics`); wyróżnienia `*tak*` wystarczą, żeby powstały hasła.",
+            "- Elementy planu:"]
+    out += [f"  - `{name}`: {text}" for name, text in {**GRAPHICS_ELEMENTS, **FORMAT3_ELEMENTS}.items()]
+    out += ["- Efekt: `blur` rozmywa i przyciemnia obraz na czas pokazywania kart, żeby grafiki były czytelne.",
+            "- „Za postacią” (`za: tak`) działa tylko w Formacie 2, w jednym ujęciu; przy cięciach grafiki leżą przed postacią.",
+            "- Miejsce w kadrze wynika z położenia Twojej twarzy: grafiki trafiają nad głowę, na boki albo pod napisy, nigdy na twarz."]
+    return out + [""]
+
+
 def describe(tpl: Template) -> str:
     """Karta stylu w Markdown."""
     head = [f"# Karta stylu: {tpl.name}", "",
             f"Źródło: {tpl.source or 'brak'}. Format {tpl.canvas[0]}x{tpl.canvas[1]}, {tpl.fps} kl./s, {_n(tpl.duration_s)} s.", ""]
     notes = [f"{i + 1}. ({s.role}) {s.note}" for i, s in enumerate(tpl.segments) if s.note]
-    if tpl.mode == "single":
+    if tpl.motion:
+        body = _motion_section(tpl) + _motion_colors_section(tpl) + _motion_graphics_section(tpl)
+    elif tpl.mode == "single":
         body = _single_section(tpl) + _framing_section(tpl) + _brand_section(tpl) + _graphics_section(tpl)
+    elif tpl.keep_colors and (tpl.graphics or {}).get("captions"):  # Format 3: cięcia z napisami, hasłami i błyskami z warstwy grafik
+        body = _cuts_section(tpl) + _framing_section(tpl) + _brand_section(tpl) + _cuts_graphics_section(tpl)
     else:
         body = _cuts_section(tpl) + _framing_section(tpl) + _look_section(tpl) + _captions_section(tpl)
     if notes:

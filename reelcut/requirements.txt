@@ -3,7 +3,8 @@
 # Opcjonalnie: napisy (rozpoznawanie mowy)
 faster-whisper>=1.0
 
-# Opcjonalnie: grafiki na wideo (tytuły, karty, liczniki, napisy w kroju marki) i szablon jednego ujęcia
+# Opcjonalnie: grafiki na wideo (tytuły, karty, liczniki, napisy w kroju marki), szablon jednego ujęcia (Format 2)
+# i cały obraz trybu motion (motion: tarcza, plansze, napisy kinetyczne; tam potrzebne są też faster-whisper i ffmpeg)
 pillow>=10
 
 # Opcjonalnie: kadrowanie po Twojej twarzy, dopasowanie kolorów do wzorca, role ujęć i pomiary w poleceniu "analyze"

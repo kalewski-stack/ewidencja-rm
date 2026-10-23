@@ -13,6 +13,7 @@ from .planner import Plan, build_plan, describe_plan
 from .template import DATA_DIR, load_template
 
 VIDEO_EXT = {".mp4", ".mov", ".m4v", ".mkv", ".webm", ".avi", ".mts", ".m2ts", ".mpg", ".mpeg", ".3gp"}
+AUDIO_EXT = {".m4a", ".mp3", ".wav", ".aac", ".ogg", ".opus", ".flac", ".aif", ".aiff", ".wma", ".caf"}  # nagranie głosu dla trybu motion
 FONT_FILE = DATA_DIR / "Anton-Regular.ttf"
 
 LogFn = Callable[[str], None]
@@ -120,16 +121,29 @@ def run(a_roll: str | Path, out: str | Path | None, opts: Options, log: LogFn = 
         return (lambda f: progress(lo + (hi - lo) * f, label)) if progress else None
 
     info = media.probe(a_roll)
-    if not info.has_video:
+    if tpl.motion:  # Motion: z pliku liczy się tylko dźwięk (lektor), obraz robią grafiki
+        if not info.has_audio:
+            raise media.MediaError("Motion potrzebuje lektora, a w pliku nie ma dźwięku. "
+                                   "Wskaż nagranie głosu (wav, m4a, mp3) albo wideo z dźwiękiem.")
+        if not opts.graphics:
+            raise media.MediaError("Motion rysuje obraz ze scenariusza, a go nie podano. Dodaj --graphics scenariusz.txt "
+                                   "(w interfejsie krok 3 „Grafiki”); składnię znaczników opisuje MOTION.md.")
+        if info.has_video:
+            warnings.append("Motion bierze z pliku tylko dźwięk: obraz powstaje z grafik, więc obrazu z nagrania nie użyję.")
+    elif not info.has_video:
         raise media.MediaError("W pliku nie ma obrazu. Wskaż plik wideo.")
     if info.duration < 3:
         raise media.MediaError("Nagranie jest krótsze niż 3 sekundy. Nie ma czego ciąć.")
-    log(f"Wideo: {a_roll.name}, {info.width}x{info.height}, {info.duration:.1f} s, "
+    log(f"{'Nagranie' if tpl.motion else 'Wideo'}: {a_roll.name}, "
+        f"{f'{info.width}x{info.height}, ' if info.has_video else ''}{info.duration:.1f} s, "
         f"{'z dźwiękiem' if info.has_audio else 'BEZ dźwięku'}")
-    if info.width > info.height:
-        warnings.append("Nagranie jest poziome. Do rolki 9:16 wycinam środek kadru (ustaw --focus, jeśli mówisz z boku). "
-                        "Najlepiej nagrywać w pionie.")
-    geom = render.master_geometry(info.width, info.height, canvas, opts.focus[0])
+    if tpl.motion:
+        geom = render.Geometry((canvas[0], canvas[1], 0, 0), (canvas[0], canvas[1]))
+    else:
+        if info.width > info.height:
+            warnings.append("Nagranie jest poziome. Do rolki 9:16 wycinam środek kadru (ustaw --focus, jeśli mówisz z boku). "
+                            "Najlepiej nagrywać w pionie.")
+        geom = render.master_geometry(info.width, info.height, canvas, opts.focus[0])
     max_zoom = opts.max_zoom or auto_max_zoom(geom.crop[0], canvas[0])
 
     # 1) dźwięk: pauzy i granice mowy
@@ -165,7 +179,7 @@ def run(a_roll: str | Path, out: str | Path | None, opts: Options, log: LogFn = 
     if opts.dry_run:
         plan = build_plan(tpl, master_frames, fps, breaks=breaks, **plan_args)
         warnings += plan.warnings
-        if opts.framing != "off":
+        if opts.framing != "off" and not tpl.motion:
             warnings.append("Kadrowanie po twarzy i dobór napisów są liczone dopiero przy renderze.")
         text = describe_plan(plan)
         if opts.graphics:
@@ -189,13 +203,17 @@ def run(a_roll: str | Path, out: str | Path | None, opts: Options, log: LogFn = 
     try:
         # 2) master
         master = workdir / "master.mkv"
-        log("Buduję materiał roboczy (kadr 9:16, skrócone pauzy)...")
-        render.build_master(a_roll, info, keep, geom, master, workdir, fps, prog(0.05, 0.35, "Materiał roboczy"))
+        if tpl.motion:
+            log("Buduję materiał roboczy (dźwięk bez długich pauz, obraz z grafik)...")
+            render.build_master_audio(a_roll, keep, canvas, master, workdir, fps, prog(0.05, 0.35, "Materiał roboczy"))
+        else:
+            log("Buduję materiał roboczy (kadr 9:16, skrócone pauzy)...")
+            render.build_master(a_roll, info, keep, geom, master, workdir, fps, prog(0.05, 0.35, "Materiał roboczy"))
         master_info = media.probe(master)
 
         # 3) twarz: rozmiar i położenie w Twoim nagraniu (do kadrowania jak we wzorcu)
         track, face_info = None, {}
-        if opts.framing != "off":
+        if opts.framing != "off" and not tpl.motion:
             try:
                 prog(0.35, 0.4, "Szukam twarzy")
                 track = faces.FaceTrack(faces.sample_faces(master, every_s=0.4))
@@ -238,8 +256,9 @@ def run(a_roll: str | Path, out: str | Path | None, opts: Options, log: LogFn = 
                     f"{', dołożona winieta' if angle else ''}).")
             except look.LookUnavailable as exc:
                 warnings.append(f"{str(exc).rstrip('. ')}. Kolory zostają bez zmian.")
-        elif opts.look > 0 and tpl.mode == "single":
-            log("Kolory nagrania zostają bez zmian (ten szablon ich nie zmienia; kolory marki mają grafiki).")
+        elif opts.look > 0 and (tpl.single_take or tpl.keep_colors):
+            log("Kolory nagrania zostają bez zmian (ten szablon ich nie zmienia; kolory marki mają grafiki)." if not tpl.motion
+                else "Kolory: całe tło i napisy rysują grafiki w kolorach marki.")
         elif opts.look > 0:
             warnings.append("Szablon nie ma opisu kolorów (blok look), więc kolory zostają bez zmian.")
 
@@ -277,6 +296,17 @@ def run(a_roll: str | Path, out: str | Path | None, opts: Options, log: LogFn = 
                 warnings.append(msg + " Robię montaż bez napisów.")
                 want_caps = False
         layer_caps = bool(tpl.graphics.get("captions"))  # napisy rysuje warstwa grafik (krój marki), nie ASS
+        cap_words: list[captions.Word] | None = None
+        if (words and layer_caps and tpl.graphics["captions"].get("from_script") and opts.graphics
+                and graphics.script.is_script(opts.graphics) and Path(opts.graphics).exists()):
+            # mówisz (albo lektor czyta) scenariusz, więc napisy i hasła dostają słowa z Twojego tekstu (poprawna pisownia), a czasy z mowy
+            fixed, cov = graphics.script.words_from_script(Path(opts.graphics).read_text(encoding="utf-8-sig"), words)
+            if fixed and cov >= 0.8:
+                cap_words = fixed
+                log(f"Napisy: słowa z Twojego scenariusza, czasy z mowy (zgodność {cov * 100:.0f}%).")
+            else:
+                warnings.append(f"Mowa zgadza się ze scenariuszem tylko w {cov * 100:.0f}%, więc napisy zostają z rozpoznanej mowy. "
+                                "Czy to na pewno ten sam tekst, który jest w scenariuszu?")
         if words:
             words_path = out_path.with_suffix(".slowa.json")
             captions.save_words(words, words_path)
@@ -303,11 +333,11 @@ def run(a_roll: str | Path, out: str | Path | None, opts: Options, log: LogFn = 
         # 7) grafiki: tytuły, karty, listy, liczniki (warstwa RGBA) i napisy biegnące w kroju marki
         job, graphics_info = None, {}
         use_layer_caps = layer_caps and want_caps and bool(words)
-        if opts.graphics or use_layer_caps:
+        if opts.graphics or use_layer_caps or graphics.glue.flash_cuts(plan):
             try:
                 prog(0.55, 0.57, "Przygotowuję grafiki")
                 job = graphics.glue.prepare(opts.graphics, opts.brand, tpl, plan, track, master, workdir, words,
-                                            canvas, plan.total_frames / fps, use_layer_caps, log)
+                                            canvas, plan.total_frames / fps, use_layer_caps, log, cap_words)
             except graphics.GraphicsUnavailable as exc:
                 if opts.graphics:
                     raise media.MediaError(str(exc)) from exc

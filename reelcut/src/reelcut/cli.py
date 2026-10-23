@@ -10,7 +10,7 @@ from .captions import CaptionsUnavailable, load_words
 from .graphics.core import GraphicsUnavailable, PlanError
 from .media import MediaError
 from .pipeline import Options, run
-from .template import USER_DIR, TemplateError, list_templates
+from .template import USER_DIR, TemplateError, list_templates, load_template
 
 COMMANDS = {"cut", "serve", "analyze", "style", "grafiki"}
 
@@ -47,7 +47,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     c = sub.add_parser("cut", help="potnij wideo wg szablonu (domyślne polecenie)",
                        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    c.add_argument("video", type=Path, help="Twoje nagranie (najlepiej pionowe, z mową)")
+    c.add_argument("video", type=Path, help="Twoje nagranie (najlepiej pionowe, z mową); w trybie motion (--template motion) wystarczy samo nagranie głosu: .m4a, .wav, .mp3")
     c.add_argument("-o", "--out", type=Path, help="plik wynikowy (domyślnie: <nazwa>_rolka.mp4 obok nagrania)")
     c.add_argument("--broll", type=Path, action="append", default=[], metavar="FOLDER|PLIK",
                    help="B-roll do wstawek (folder albo plik; można podać kilka razy). Bez tego wstawki to kadry z nagrania")
@@ -72,7 +72,7 @@ def build_parser() -> argparse.ArgumentParser:
     c.add_argument("--look", type=float, default=1.0, metavar="0-1",
                    help="siła dopasowania kolorów do wzorca: jasność, nasycenie, ton, winieta (1 = jak we wzorcu, 0 = obraz bez zmian)")
     c.add_argument("--graphics", type=Path, metavar="SCENARIUSZ.txt|PLAN.json",
-                   help="grafiki na filmie (tytuły, karty, listy, liczniki): scenariusz ze znacznikami {…} albo plan JSON, patrz GRAFIKI.md")
+                   help="grafiki na filmie (tytuły, karty, listy, liczniki; w trybie motion tarcza, plansze): scenariusz ze znacznikami {…} albo plan JSON, patrz GRAFIKI.md")
     c.add_argument("--brand", metavar="NAZWA|PLIK.json",
                    help="marka grafik: kolory i kroje (domyślnie „Linia Kalewski”)")
     c.add_argument("--fps", type=int, help="klatki na sekundę wyniku (domyślnie jak w szablonie)")
@@ -110,6 +110,8 @@ def build_parser() -> argparse.ArgumentParser:
     g.add_argument("--czas", type=float, help="długość podglądu (s; domyślnie do końca planu)")
     g.add_argument("--klatka", type=float, metavar="S", help="zamiast filmu zapisz jedną klatkę (PNG) z sekundy S")
     g.add_argument("--brand", metavar="NAZWA|PLIK.json", help="marka grafik (domyślnie „Linia Kalewski”)")
+    g.add_argument("--template", metavar="NAZWA", help="szablon, którego napisy, hasła i tło dokładamy do podglądu: potrzebny w trybie motion "
+                   "(cały obraz rysują grafiki) i w Formacie 3 (hasła ze słów w *gwiazdkach*); kadr twarzy bierze z szablonu, gdy nie podasz --twarz")
     g.add_argument("--words", type=Path, metavar="PLIK.json",
                    help="transkrypcja (plik .slowa.json): potrzebna, gdy plan podaje czasy jako frazy z mowy albo to scenariusz ze znacznikami")
     g.add_argument("--fps", type=int, default=30)
@@ -195,7 +197,12 @@ def cmd_grafiki(args: argparse.Namespace) -> int:
         h, x, y = args.twarz
         face = (x, y, h)
     words = load_words(args.words) if args.words else None
-    plan = graphics.load_plan(args.plan, size=size, fps=args.fps, brand=args.brand, face=face, words=words)
+    tpl = load_template(args.template) if args.template else None
+    if face is None and tpl is not None:  # bez --twarz: kadr twarzy z pierwszego ujęcia z mową w szablonie
+        seg = next((s for s in tpl.segments if s.role == "A" and s.face), None)
+        face = (seg.face.cx, seg.face.cy, seg.face.h) if seg else None
+    plan = graphics.load_plan(args.plan, size=size, fps=args.fps, brand=args.brand, face=face, words=words,
+                              template=tpl if tpl is not None and tpl.preview_layer else None)
     print("Harmonogram grafik (sekundy na osi filmu):")
     print(plan.describe())
     for w in plan.warnings:

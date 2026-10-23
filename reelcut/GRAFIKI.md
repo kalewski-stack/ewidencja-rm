@@ -1,7 +1,11 @@
-# GRAFIKI: Format 2 (gadająca głowa) z animowanymi elementami w Twoich kolorach
+# GRAFIKI: Format 2 (gadająca głowa), Format 3 i motion z animowanymi elementami w Twoich kolorach
 
-To opis techniczny **Formatu 2**: składnia scenariusza, plan JSON, elementy i ich pola. Zasady samego formatu
-(konstrukcja filmu, słownik elementów, parametry z rolek wzorcowych): [FORMAT2.md](FORMAT2.md).
+To opis techniczny **Formatu 2** (gadająca głowa), **Formatu 3** (gadająca głowa v3: cięcia, hasła, błysk) i **motion** (schemat
+z lektorem): składnia scenariusza, plan JSON, elementy i ich pola. Zasady samych formatów (konstrukcja filmu, słownik elementów,
+parametry z rolek wzorcowych): [FORMAT2.md](FORMAT2.md), [FORMAT3.md](FORMAT3.md), [MOTION.md](MOTION.md); przejścia między scenami:
+[PRZEJSCIA.md](PRZEJSCIA.md). Opisy i przykłady dotyczą Formatu 2, o ile nie zaznaczono inaczej; znaczniki motion (`tarcza`, `krok`,
+`finał`, `plansza`, `błysk`) są w tabeli znaczników i w rozdziale „Motion: znaczniki”, hasła Formatu 3 (`lockup`) w rozdziale
+„Format 3: hasła”, a znacznik `przejście` w rozdziale „Przejścia”.
 
 Wzorce: cztery rolki jednego konta (Dez4fPJCR74, DeGQ3NAC2f9, Dd2i55aj43S, DdxAwodlOGG): jeden ciągły take 42-72 s,
 zero cięć, kamera nieruchoma. Cała dynamika tych rolek to **animowane grafiki nałożone na mówiącą głowę** i małe napisy
@@ -141,9 +145,20 @@ Częsty błąd w briefie to {tytuł: Brak celu | akcent: błąd nr 1 | styl: ser
 | `porównanie` | `Tytuł: wiersz; wiersz // Tytuł: wiersz` | jak `lista` plus `rule: tak` (kreska między kolumnami), `rule_to` | dwie kolumny z kreską pośrodku | 8 s |
 | `pierścień` | (brak) | `x`, `y` (środek), `rx`, `ry`, `kropki`, `luki: 100..260; -80..80` (kąty: 0 to góra, rosną zgodnie ze wskazówkami zegara), `rozmiar`, `kolor` | kropki układają się w pierścień albo łuki wokół wskazanego miejsca | 3,5 s |
 | `rozmycie` | (brak) | `siła` (14), `ściemnienie` (0,25) | rozmywa i przyciemnia cały obraz na czas działania, żeby grafiki były czytelne | 3 s |
+| `tarcza` | tekst piasty (duży wiersz) | `nad` (mały wiersz nad nim), `szybkość` (znaków na sekundę przy pisaniu, 18), `najazd` (najazd w zbliżeniu na sekundę, 0,0078), `zbliżenie` (sekunda cięcia na zbliżenie, domyślnie 0,3 s przed pierwszym krokiem), `wielkość etykiet` (ułamek promienia piasty, 0,25) | **Motion.** Tarcza schematu z kamerą: rozbudowa na szerokim ujęciu, twarde cięcie na zbliżenie, obroty, finał. Zbiera kolejne `{krok}` i `{finał}` | od znacznika do końca mowy |
+| `krok` | etykieta szprychy (1-2 słowa) | (brak) | **Motion.** Hasło na kolejnej szprysze: tarcza obraca się o jedną szprychę (połowa obrotu 0,1 s przed pierwszym znakiem), etykieta wpisuje się od następnego słowa | wpisanie ok. 0,2-0,7 s |
+| `finał` | tytuł na końcu | (brak) | **Motion.** Twarde cofnięcie kamery do widoku całości z tytułem, ósmy obrót zamyka okrąg; napisy schodzą pod schemat | do końca filmu |
+| `plansza` | (brak: słowa biorą się z mowy) | `x`, `y`, `wyrównanie` (lewo, środek), `czas` | **Motion.** Czarna plansza na cały kadr, twarde cięcie; słowa z mowy wchodzą po kolei, `*wyróżnione*` jako duże żółte. Koniec: `{/plansza}` (plus 0,3 s po ostatnim słowie) | 2 s |
+| `błysk` | (brak) | `x`, `y` (środek, domyślnie piasta na szerokim ujęciu) | **Motion.** Krótki jasny błysk przy ważnym słowie | 0,2 s |
+| `przejście` | rodzaj: `rozmycie`, `najazd`, `przesunięcie`, `kurtyna`, `błysk` | `kierunek` (lewo, prawo, góra, dół), `moc` (0-3, domyślnie 1), `dokładnie: tak` (bez przyciągania do granicy sceny) | Obróbka obrazu w chwili cięcia: stara scena wychodzi, nowa wchodzi. Nie jest elementem (rozdział „Przejścia”, [PRZEJSCIA.md](PRZEJSCIA.md)) | okno 0,2-0,7 s wokół cięcia |
 
 Obrazy podajesz samą nazwą pliku; plik leży obok scenariusza (w interfejsie wrzucasz je razem ze scenariuszem).
 Wspierane: png (także z przezroczystością), jpg, webp.
+
+Poza klamrami działa jeszcze jedno oznaczenie: `*fraza*` w samym tekście mowy (np. „Ale jest *jeszcze jedna rzecz*.”). W trybie motion
+takie słowa dostają duży krój: na planszy żółty, w napisach tuszem. W Formacie 3 z wyróżnionych słów powstaje **hasło** (duże słowo
+z małymi nad i pod nim, rozdział „Format 3: hasła”). W Formacie 1 i 2 gwiazdki nic nie zmieniają. Gwiazdki nie liczą się do dopasowania
+do mowy, a scenariusz z samymi gwiazdkami, bez żadnego `{ }`, jest poprawnym planem.
 
 ### Jak to jest dopasowane do mowy
 
@@ -152,6 +167,96 @@ rozpoznawanie przekręciło, dostają czas z interpolacji między sąsiednimi tr
 psuje czasów. Jeśli w mowie znajdzie mniej niż połowę słów scenariusza, montaż zatrzymuje się z komunikatem „Scenariusz nie
 pasuje do nagrania” (to zwykle zły plik albo mocno improwizowany tekst). Improwizację możesz zostawić: liczą się te słowa,
 które się zgadzają, a znacznik ląduje przy następnym trafionym słowie.
+
+## Motion: znaczniki
+
+Lektor czyta tekst, a obraz powstaje z grafik (szablon `motion`, opis formatu: [MOTION.md](MOTION.md)). Znaczniki działają
+tak samo jak w Formacie 2 (od następnego słowa), ale kilka z nich składa się w jeden element:
+
+- `{tarcza: …}` otwiera tarczę. **`{krok: …}` i `{finał: …}` należą do ostatniej tarczy przed nimi**, więc jedna tarcza na film,
+  a każdy `{krok}` bez wcześniejszej `{tarcza}` kończy się komunikatem.
+- Czas kroku to początek następnego słowa scenariusza: etykieta zaczyna się wpisywać, gdy to słowo pada, a tarcza obraca się
+  o jedną szprychę ok. 0,1 s wcześniej. Pierwszy krok stoi na górze bez obrotu.
+- `{finał: Tytuł}` ustawia cofnięcie kamery. Musi paść co najmniej 0,2 s po ostatnim kroku.
+- Cięcie na zbliżenie robi się samo 0,3 s przed pierwszym krokiem (`zbliżenie:` zmienia sekundę).
+- Tło (papier z siatką kropek) i napisy kinetyczne dokłada szablon: nie wpisujesz ich w scenariusz. Napisy biorą słowa z Twojego
+  tekstu, a czasy z mowy (przy zgodności co najmniej 80%).
+
+Ten sam film jako plan JSON (tak scenariusz zamienia się w plan; czasy w sekundach na osi gotowego filmu):
+
+<!-- plan-motion:start -->
+```json
+{
+  "schema": 1,
+  "elements": [
+    {"type": "backdrop", "at": 0, "dur": 40},
+    {"type": "dial", "at": 0, "dur": 38, "hub": ["Formuła", "dobrego briefu"],
+     "steps": [{"label": "Cel", "at": 5.4}, {"label": "Odbiorca", "at": 9.5}, {"label": "Miara", "at": 14.8}],
+     "finale": {"at": 22.0, "title": "Zrób zrzut ekranu"}},
+    {"type": "cutaway", "at": 17.0, "dur": 2.4, "text": "Ale jest *jeszcze jedna rzecz*"},
+    {"type": "glint", "at": 5.4},
+    {"type": "captions", "style": "kinetic", "max_words": 2, "y": 0.255, "shift": [{"at": 22.0, "dur": 3600, "y": 0.8}]}
+  ]
+}
+```
+<!-- plan-motion:end -->
+
+| Pole | Znaczenie |
+|---|---|
+| `dial`: `hub` | `[mały wiersz, duży wiersz]` albo sam tekst; tekst kurczy się, żeby zmieścić się w piaście (ostrzeżenie przy dłuższym niż ok. 18 znaków) |
+| `dial`: `steps` | od 2 do 12 pozycji `{label, at}` z rosnącymi czasami; krok bliżej niż 1 s od poprzedniego daje ostrzeżenie |
+| `dial`: `finale` | `{at, title}`; `at` co najmniej 0,2 s po ostatnim kroku |
+| `dial`: `closeup_at`, `cps`, `drift`, `label_k` | sekunda cięcia na zbliżenie (nie później niż pierwszy krok), znaki na sekundę, najazd na sekundę, wielkość etykiet jako ułamek promienia piasty |
+| `cutaway`: `emphasis`, `text`, `words` | przedziały `[od, do]` (s) słów wyróżnionych; własny tekst z `*wyróżnieniem*` (gdy nie ma mowy w oknie planszy); albo własne słowa `[{w, t, tier}]` z rozmiarem `small`, `big`, `tiny` |
+| `cutaway`: `align`, `x`, `y`, `big_color` | wyrównanie (`left`, `center`), położenie bloku (ułamki kadru), rola koloru wyróżnionych słów (domyślnie `highlight`) |
+| `glint`: `x`, `y`, `w`, `strength`, `dur` | środek (ułamki kadru), szerokość (ułamek W), siła 0-1, czas (0,2 s) |
+| `captions` + `style: kinetic` | `max_words`, `y` (górna linia), `hold`, `emphasis`, `shift` `[{at, dur, y}]` (okna, w których napisy stoją niżej) |
+
+## Format 3: hasła
+
+Szablon `format3` (opis formatu: [FORMAT3.md](FORMAT3.md)) robi cięcia jak Format 1, a napisy, hasła i błysk rysuje warstwa grafik.
+**Hasło (`lockup`)** powstaje samo ze słów w gwiazdkach: `Co ma się *zmienić* po tym evencie?` daje duży wiersz „zmienić” (jedno albo
+dwa słowa, szeryfowa kursywa, żółty), nad nim do 3 małych słów, pod nim do 3, wyjustowanych do szerokości dużego słowa; każde słowo
+wskakuje w chwili, gdy je mówisz. Hasło nie wychodzi poza zdanie, przecinek ani pauzę dłuższą niż 0,45 s, a słowa, które padają zaraz po
+ostatnim (i mignęłyby krócej niż 0,25 s), zostają zwykłym napisom. Na czas hasła jego słowa znikają z napisów (`skip`), a napisy się chowają (`hide`).
+
+Ustawienia hasła są w szablonie (`graphics.lockup`): `pre`, `post` (ile małych słów przed i za), `big_max` (ile dużych), `max_gap_s`, `hold`
+(przytrzymanie po ostatnim słowie, 0,25 s), `lead` (o ile wcześniej niż mowa, 0,04 s), `min_visible` oraz pola wyglądu z tabeli niżej.
+Własne hasło, niezależne od gwiazdek, wpisujesz w planie JSON jako element `lockup`:
+
+<!-- plan-lockup:start -->
+```json
+{
+  "schema": 1,
+  "elements": [
+    {"type": "lockup", "at": 3.2, "lines": [
+      {"tier": "small", "words": [{"w": "Co", "t": 0.0}, {"w": "ma", "t": 0.2}, {"w": "się", "t": 0.35}]},
+      {"tier": "big", "words": [{"w": "zmienić", "t": 0.55}]},
+      {"tier": "small", "words": [{"w": "po", "t": 1.0}, {"w": "tym", "t": 1.15}, {"w": "evencie?", "t": 1.3}]}
+    ]},
+    {"type": "captions", "weight": "bold", "max_words": 4, "size": 0.0225, "y": 0.504, "skip": [[3.2, 4.65]], "hide": [[3.16, 4.9]]}
+  ]
+}
+```
+<!-- plan-lockup:end -->
+
+| Pole | Znaczenie |
+|---|---|
+| `lines` | wiersze od góry: `{tier: small albo big, words: [{w, t}]}`; `t` to sekundy od początku elementu, w których słowo wskakuje |
+| `dur` | czas trwania (domyślnie czas ostatniego słowa plus 0,55 s; hasła ze scenariusza mają go policzonego z mowy) |
+| `color`, `small_color` | role koloru dużych i małych słów (domyślnie `highlight`, czyli żółty, i `text`, czyli biały) |
+| `big_font`, `small_font` | krój dużych (domyślnie `serif_italic`; `display` to gruby Bricolage) i małych słów (domyślnie `text`) |
+| `size`, `y`, `max_width`, `shadow` | wielkość dużego słowa (ułamek wysokości kadru, 0,101; szeryfowy krój dostaje jeszcze ×1,3), górna krawędź bloku (0,486), największa szerokość (0,78 kadru), siła cienia (0,45) |
+| `captions`: `skip`, `hide` | przedziały `[od, do]` w sekundach: słowa z tych przedziałów nie trafiają do napisów, a w przedziałach `hide` napisów nie widać |
+
+Błysk przy wstawkach jest w szablonie: `fx: [{"type": "flash", "edge": "start"}]` na ujęciu daje błysk na jego początku, `"edge": "end"` na końcu.
+Szczegóły i krzywa błysku: [PRZEJSCIA.md](PRZEJSCIA.md).
+
+## Przejścia
+
+`{przejście: rodzaj | kierunek: ... | moc: ...}` w scenariuszu albo lista `transitions` w planie JSON (`{"kind": "blur", "at": 4.0}`): stara scena
+wychodzi, nowa wchodzi, w oknie 0,2-0,7 s wokół cięcia. Rodzaje: `rozmycie`, `najazd`, `przesunięcie`, `kurtyna`, `błysk`. Przejście ze scenariusza
+przyciąga się do najbliższej granicy sceny (do 0,6 s). Pełny opis, liczby ze wzorca i granice: [PRZEJSCIA.md](PRZEJSCIA.md).
 
 ## Plan w pliku JSON (dla zaawansowanych)
 
@@ -283,7 +388,8 @@ wystającą zza ramienia, kartę chowającą się za dłonią. Zasady:
 
 Szablon rysuje je sam, w Bricolage Grotesque: do 3 słów naraz, wysokość wersalików 2,0% wysokości kadru (39 px z 1920),
 górna krawędź na 54,8% wysokości (klatka piersiowa). Poprawki literówek: edytujesz `*.slowa.json` (pole `w`, czasów nie
-ruszaj) i uruchamiasz ponownie z `--words`.
+ruszaj) i uruchamiasz ponownie z `--words`. W Formacie 3 napisy to porcje do 4 słów (pogrubione, 2,25% kadru, górna krawędź na 50,4%),
+a słowa biorą się ze scenariusza, jeśli mowa zgadza się z nim w co najmniej 80%.
 
 ## Czego to narzędzie nie robi
 
@@ -295,6 +401,10 @@ ruszaj) i uruchamiasz ponownie z `--words`.
 - **Awatar to kwadratowy wycinek Twojej twarzy** z nagrania w kółku, a nie wycięta postać. Bez wykrytej twarzy
   (brak `numpy`/`onnxruntime` albo twarz niewidoczna) pojawia się neutralna sylwetka.
 - **Panele „szklane” nie rozmywają tła** (są półprzezroczyste z poświatą).
+- **Motion:** jedna tarcza na film, od 2 do 12 szprych, lektora nagrywasz sam (narzędzie nie generuje głosu); granice i uczciwe
+  zastrzeżenia: [MOTION.md](MOTION.md).
+- **Format 3:** brak cyfrowych najazdów w trakcie ujęcia, kursywa zamiast grubego szeryfu w hasłach, grafiki „za postacią” nie działają
+  przy cięciach; granice: [FORMAT3.md](FORMAT3.md). Przejścia obrabiają grafiki, nie nagranie (poza błyskiem): [PRZEJSCIA.md](PRZEJSCIA.md).
 - **Wymaga Pillow:** `pip install pillow`. Bez niego montaż działa jak dawniej, a z planem grafik zatrzymuje się z komunikatem.
 - **Sprawdzone na materiale syntetycznym i na klatkach wzorca**, nie na Twoich nagraniach. Pierwszy film obejrzyj uważnie
   (kadr twarzy, strefy, czytelność), a rozmieszczenie dostrój polami `strefa`, `x`, `y`.
@@ -314,6 +424,15 @@ ruszaj) i uruchamiasz ponownie z `--words`.
 | „Nie udało się pobrać modelu wycinania postaci… Grafiki za postacią rysuję przed nią” | pobierz model ręcznie z adresu z komunikatu i zapisz jako `~/ReelCut/modele/modnet_fp32.onnx` (albo wskaż plik zmienną `REELCUT_MODNET`); do tego `pip install numpy onnxruntime` |
 | „Grafiki za postacią (behind) działają w formacie 2…” | użyj szablonu `format2` (jedno ujęcie) |
 | „Znacznik „{…}”: nieznany typ” | lista typów w komunikacie; nazwy jak w tabeli powyżej |
+| „Motion potrzebuje lektora, a w pliku nie ma dźwięku” | wskaż nagranie głosu (`.m4a`, `.wav`, `.mp3`) albo wideo z dźwiękiem |
+| „Znacznik „{krok: …}” musi stać po znaczniku {tarcza: ...}” | dodaj `{tarcza: …}` przed pierwszym krokiem |
+| „Tarcza (dial) wymaga listy steps: co najmniej dwie szprychy” | dodaj drugi `{krok: …}` (tarcza ma od 2 do 12 szprych) |
+| „kroki bliżej niż 1 s od poprzedniego, obrót się nie zmieści” | wydłuż mowę między hasłami albo usuń jedno hasło |
+| „etykieta za długa… skróć ją” albo „tekst piasty … jest za długi” | hasło ma 1-2 krótkie słowa (do ok. 12 znaków), tekst piasty do ok. 18; komunikat podaje, ile znaków się mieści |
+| „Mowa zgadza się ze scenariuszem tylko w …%, więc napisy zostają z rozpoznanej mowy” | mówisz (albo lektor czyta) inny tekst niż scenariusz: popraw tekst albo nagranie |
+| „hasło: wyróżnienie „…” ma 4 słów: duże są pierwsze 2…” | w Formacie 3 gwiazdkami oznacz jedno albo dwa słowa; dłuższe wyróżnienie program tnie |
+| „lockup … wiersz „…” nie mieści się w bloku: skróć go albo rozdziel hasło na dwa” | w planie JSON rozbij małe słowa na dwa hasła; ze scenariusza: mniej słów między gwiazdkami a końcem zdania nie zmieni układu, ale pomoże krótsze zdanie |
+| „przejście potrzebuje rodzaju, np. {przejście: rozmycie}” | po dwukropku podaj `rozmycie`, `najazd`, `przesunięcie`, `kurtyna` albo `błysk` |
 
 ## Ściąga komend
 
@@ -325,6 +444,17 @@ python rolka.py nagranie.mp4 --template format2 --graphics scenariusz.txt --dry-
 python rolka.py grafiki scenariusz.txt --words slowa.json --tlo klip.mp4 --klatka 12    # jedna klatka (PNG)
 python rolka.py grafiki plan.json --czas 8 -o podglad.mp4                                # grafiki na ciemnym tle
 python rolka.py style format2                                                  # karta stylu szablonu
+
+# Motion: z samego głosu
+python rolka.py glos.m4a --template motion --graphics scenariusz.txt -o film.mp4
+python rolka.py grafiki scenariusz.txt --template motion --words film.slowa.json --klatka 14   # jedna klatka (PNG)
+python rolka.py grafiki scenariusz.txt --template motion --words film.slowa.json --od 10 --czas 8 -o podglad.mp4
+python rolka.py style motion                                                  # karta stylu trybu motion
+
+# Format 3: cięcia, hasła ze słów w gwiazdkach, błysk przy wstawce
+python rolka.py nagranie.mp4 --template format3 --graphics scenariusz.txt --broll wstawki/ -o film.mp4
+python rolka.py grafiki scenariusz.txt --template format3 --words film.slowa.json --tlo klatka.jpg --klatka 12   # hasła i napisy na zdjęciu klatki
+python rolka.py style format3                                                 # karta stylu Formatu 3
 ```
 
 ## Dodatek: karta stylu szablonu (wygenerowana)

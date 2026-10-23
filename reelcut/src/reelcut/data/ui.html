@@ -65,15 +65,15 @@
 <body>
 <main>
   <h1>Rolka</h1>
-  <p class="lead">Wrzuć swoje nagranie. Dostaniesz je pocięte tak jak rolka wzorcowa: ten sam rytm cięć, kadry, kolory, wstawki, napisy słowo po słowie i dźwięk −14 LUFS. Do krótkiego formatu z jednym ujęciem wybierz w ustawieniach szablon „Format 2: gadająca głowa” i dodaj scenariusz z grafikami (krok 3).</p>
+  <p class="lead">Wrzuć swoje nagranie. Dostaniesz je pocięte tak jak rolka wzorcowa: ten sam rytm cięć, kadry, kolory, wstawki, napisy słowo po słowie i dźwięk −14 LUFS. Do krótkiego formatu z jednym ujęciem wybierz w ustawieniach szablon „Format 2: gadająca głowa” i dodaj scenariusz z grafikami (krok 3). Do cięć z hasłami (słowa w *gwiazdkach* ze scenariusza) i błyskiem przy wstawce wybierz „Format 3: gadająca głowa v3”. Do animowanego schematu z lektorem („Motion”) wrzuć w kroku 1 samo nagranie głosu.</p>
 
   <section class="card" id="c-video">
     <h2><span class="step">1</span>Twoje nagranie</h2>
     <div class="drop" id="drop-video" tabindex="0">
       <strong>Przeciągnij tu plik wideo</strong>
-      <span class="muted">albo kliknij, żeby wybrać. Najlepiej pionowe, z mową, od 15 sekund.</span>
+      <span class="muted">albo kliknij, żeby wybrać. Najlepiej pionowe, z mową, od 15 sekund. Dla Motion wrzuć samo nagranie głosu: .m4a, .mp3, .wav.</span>
     </div>
-    <input type="file" id="in-video" accept="video/*,.mp4,.mov,.m4v,.mkv,.webm" hidden>
+    <input type="file" id="in-video" accept="video/*,audio/*,.mp4,.mov,.m4v,.mkv,.webm,.m4a,.mp3,.wav,.aac,.ogg,.flac" hidden>
     <div id="video-file"></div>
   </section>
 

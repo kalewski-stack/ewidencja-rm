@@ -1,0 +1,329 @@
+{
+  "schema": 1,
+  "name": "Format 3: gadająca głowa v3 (cięcia i wstawki z błyskiem, hasła z dużym słowem, napisy marki)",
+  "source": "https://www.instagram.com/reel/DcS25CKkmFM/",
+  "notes": "Zmierzone z jednej rolki wzorcowej. Szablon zawiera wyłącznie parametry: rytm ujęć, kadry twarzy, błyski przy wstawkach, geometrię napisów i haseł. Nie zawiera obrazu ani treści z oryginału. Kolory nagrania zostają bez zmian, kolory marki mają grafiki i napisy.",
+  "mode": "cuts",
+  "keep_colors": true,
+  "fps": 30,
+  "canvas": [
+    1080,
+    1920
+  ],
+  "structure": {
+    "hook": 1,
+    "outro": 3,
+    "elastic": 16,
+    "elastic_min_s": 2.0,
+    "elastic_max_s": 12.0,
+    "min_cut_s": 0.6,
+    "snap_tol_s": 0.5
+  },
+  "alts": {
+    "1": {
+      "zoom": 1.6,
+      "fy": 0.32,
+      "anchor": "face",
+      "note": "detal: twarz i oczy (zbliżenie na twarz)"
+    },
+    "2": {
+      "zoom": 1.45,
+      "fy": 0.68,
+      "anchor": "below_face",
+      "note": "detal: klatka piersiowa i dłonie (pod twarzą)"
+    }
+  },
+  "segments": [
+    {
+      "frames": 99,
+      "role": "A",
+      "zoom": 1.26,
+      "face": {
+        "h": 0.23,
+        "cx": 0.542,
+        "cy": 0.342,
+        "eye_y": 0.318
+      },
+      "note": "Hak: kadr średni, twarz nad środkiem kadru, napisy na klatce piersiowej."
+    },
+    {
+      "frames": 60,
+      "role": "B",
+      "alt": 1,
+      "note": "Wstawka (inne źródło niż mówiąca głowa): twarde cięcie, bez błysku."
+    },
+    {
+      "frames": 63,
+      "role": "B",
+      "alt": 2,
+      "note": "Druga część wstawki: kolejne twarde cięcie w tym samym materiale."
+    },
+    {
+      "frames": 121,
+      "role": "A",
+      "zoom": 1.19,
+      "face": {
+        "h": 0.217,
+        "cx": 0.516,
+        "cy": 0.323,
+        "eye_y": 0.301
+      }
+    },
+    {
+      "frames": 102,
+      "role": "A",
+      "zoom": 1.09,
+      "face": {
+        "h": 0.199,
+        "cx": 0.53,
+        "cy": 0.338,
+        "eye_y": 0.317
+      }
+    },
+    {
+      "frames": 89,
+      "role": "A",
+      "zoom": 1.0,
+      "face": {
+        "h": 0.183,
+        "cx": 0.534,
+        "cy": 0.344,
+        "eye_y": 0.324
+      },
+      "note": "Najszerszy kadr rolki."
+    },
+    {
+      "frames": 48,
+      "role": "A",
+      "zoom": 1.15,
+      "face": {
+        "h": 0.211,
+        "cx": 0.548,
+        "cy": 0.36,
+        "eye_y": 0.331
+      }
+    },
+    {
+      "frames": 139,
+      "role": "A",
+      "zoom": 1.03,
+      "face": {
+        "h": 0.189,
+        "cx": 0.513,
+        "cy": 0.348,
+        "eye_y": 0.325
+      }
+    },
+    {
+      "frames": 27,
+      "role": "A",
+      "zoom": 1.19,
+      "face": {
+        "h": 0.217,
+        "cx": 0.505,
+        "cy": 0.356,
+        "eye_y": 0.328
+      },
+      "note": "Krótkie ujęcie z większym kadrem."
+    },
+    {
+      "frames": 64,
+      "role": "A",
+      "zoom": 1.11,
+      "face": {
+        "h": 0.203,
+        "cx": 0.525,
+        "cy": 0.346,
+        "eye_y": 0.322
+      }
+    },
+    {
+      "frames": 129,
+      "role": "A",
+      "zoom": 1.08,
+      "face": {
+        "h": 0.197,
+        "cx": 0.512,
+        "cy": 0.329,
+        "eye_y": 0.305
+      }
+    },
+    {
+      "frames": 100,
+      "role": "A",
+      "zoom": 1.1,
+      "face": {
+        "h": 0.201,
+        "cx": 0.522,
+        "cy": 0.33,
+        "eye_y": 0.303
+      }
+    },
+    {
+      "frames": 27,
+      "role": "A",
+      "zoom": 1.5,
+      "face": {
+        "h": 0.275,
+        "cx": 0.555,
+        "cy": 0.337,
+        "eye_y": 0.315
+      },
+      "note": "Najbliższy kadr rolki, krótki akcent."
+    },
+    {
+      "frames": 39,
+      "role": "A",
+      "zoom": 1.02,
+      "face": {
+        "h": 0.187,
+        "cx": 0.537,
+        "cy": 0.342,
+        "eye_y": 0.323
+      }
+    },
+    {
+      "frames": 40,
+      "role": "B",
+      "alt": 2,
+      "fx": [
+        {
+          "type": "flash",
+          "dur": 0.23
+        }
+      ],
+      "note": "Wstawka z błyskiem na wejściu."
+    },
+    {
+      "frames": 110,
+      "role": "B",
+      "alt": 1,
+      "fx": [
+        {
+          "type": "flash",
+          "dur": 0.23,
+          "edge": "end"
+        }
+      ],
+      "note": "Druga część wstawki, błysk na wyjściu."
+    },
+    {
+      "frames": 170,
+      "role": "A",
+      "zoom": 1.27,
+      "face": {
+        "h": 0.232,
+        "cx": 0.532,
+        "cy": 0.332,
+        "eye_y": 0.303
+      },
+      "note": "Powrót po błysku. Elastyczne ujęcie: przejmuje różnicę długości."
+    },
+    {
+      "frames": 102,
+      "role": "A",
+      "zoom": 1.04,
+      "face": {
+        "h": 0.19,
+        "cx": 0.499,
+        "cy": 0.334,
+        "eye_y": 0.309
+      }
+    },
+    {
+      "frames": 122,
+      "role": "A",
+      "zoom": 1.25,
+      "face": {
+        "h": 0.228,
+        "cx": 0.513,
+        "cy": 0.325,
+        "eye_y": 0.298
+      },
+      "note": "Ostatnie ujęcie."
+    }
+  ],
+  "pauses": {
+    "max_pause_s": 0.5,
+    "keep_pause_s": 0.35
+  },
+  "audio": {
+    "lufs": -14.6,
+    "true_peak": -1.0,
+    "lra": 11.0
+  },
+  "graphics": {
+    "captions": {
+      "size": 0.0225,
+      "y": 0.504,
+      "max_words": 4,
+      "short_max": 3,
+      "weight": "bold",
+      "from_script": true
+    },
+    "lockup": {
+      "pre": 3,
+      "post": 3,
+      "big_max": 2,
+      "max_gap_s": 0.45,
+      "big_font": "serif_italic"
+    }
+  },
+  "dynamics": {
+    "note": "Zmierzone z cięć, różnicy klatek i głośności rolki wzorcowej. Opisuje tempo (komenda style); montażem steruje reszta szablonu.",
+    "duration_s": 55.03,
+    "cuts": 18,
+    "cuts_per_min": 19.6,
+    "shot_s": {
+      "mean": 2.9,
+      "median": 3.3,
+      "min": 0.9,
+      "max": 5.67
+    },
+    "sections_s": {
+      "hook": 3.3,
+      "body": 38.6,
+      "outro": 13.13
+    },
+    "share": {
+      "A": 0.835,
+      "B": 0.165
+    },
+    "pattern": "ABBAAAAAAAAAAABBAAA",
+    "speech": {
+      "words": 181,
+      "words_per_s": 3.29,
+      "words_per_shot": [
+        8,
+        6,
+        4,
+        15,
+        11,
+        12,
+        2,
+        13,
+        2,
+        7,
+        17,
+        13,
+        1,
+        6,
+        4,
+        11,
+        21,
+        16,
+        12
+      ],
+      "pauses_s": {
+        "count": 11,
+        "median": 0.28,
+        "max": 0.56
+      }
+    },
+    "loudness": {
+      "lufs": -14.6,
+      "true_peak": -0.1,
+      "lra": 6.9
+    }
+  }
+}

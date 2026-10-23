@@ -1,0 +1,81 @@
+{
+  "schema": 1,
+  "name": "Motion (schemat z kamerą, lektor, napisy kinetyczne)",
+  "source": "https://www.instagram.com/reel/DdttI7oyswS/",
+  "notes": "Zmierzone w jednej rolce wzorcowej bez mówiącej głowy: schemat z tarczą, kamera, czarne plansze i napisy słowo po słowie (klatki 720x1280, 30 kl./s). Szablon zawiera wyłącznie parametry ruchu, kadru, napisów i głośności, bez obrazu i tekstów z oryginału. Grafiki podaje się w scenariuszu ze znacznikami albo w planie JSON (--graphics); z pliku wejściowego liczy się tylko dźwięk (lektor).",
+  "mode": "motion",
+  "fps": 30,
+  "canvas": [
+    1080,
+    1920
+  ],
+  "segments": [
+    {
+      "frames": 705,
+      "role": "A",
+      "note": "lektor i grafiki: obraz powstaje z elementów, nie z nagrania"
+    }
+  ],
+  "pauses": {
+    "max_pause_s": 0.5,
+    "keep_pause_s": 0.35
+  },
+  "audio": {
+    "lufs": -14.0,
+    "true_peak": -1.0,
+    "lra": 11.0
+  },
+  "graphics": {
+    "captions": {
+      "style": "kinetic",
+      "max_words": 2,
+      "y": 0.255,
+      "weight": "semibold",
+      "from_script": true
+    }
+  },
+  "dynamics": {
+    "note": "Jedna rolka, 23,5 s: osiem szprych, siedem obrotów, dwie plansze, jedno cięcie na zbliżenie i jedno na cofnięcie kamery. Ruch jest zmierzony klatka po klatce; tempo mowy policzone z liczby zmian napisów, bo rozpoznawanie mowy nie było dostępne dla tej rolki.",
+    "duration_s": 23.5,
+    "cuts": 0,
+    "words_per_s": 4.3,
+    "loudness": {
+      "lufs": -14.2,
+      "true_peak": 0.6,
+      "lra": 4.1
+    },
+    "motion": {
+      "wide_hub_r": 0.156,
+      "wide_final_hub_r": 0.147,
+      "close_hub_r": 0.345,
+      "zoom_ratio": 2.35,
+      "cut_scale": 0.907,
+      "settle_s": 0.22,
+      "drift_per_s": 0.0078,
+      "rotation_pow": 5.0,
+      "rotation_nominal_s": 1.2,
+      "type_cps": 18.0,
+      "spoke_step_s": 0.055,
+      "grid_pitch": 0.0175,
+      "spokes": 8,
+      "rotations": 7,
+      "rotation_visible_s": 0.67,
+      "rotation_10_90_s": 0.36,
+      "build_s": 2.0,
+      "cutaways": 2,
+      "cutaway_s": [
+        2.0,
+        1.7
+      ],
+      "step_gaps_s": [
+        2.7,
+        1.7,
+        3.5,
+        1.6,
+        4.1,
+        1.4
+      ],
+      "finale_rotation_s": 0.9
+    }
+  }
+}

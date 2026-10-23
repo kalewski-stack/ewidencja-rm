@@ -51,6 +51,40 @@ składnia znaczników: [GRAFIKI.md](GRAFIKI.md). Potrzebny jest `pip install pil
 Program ostrzega, gdy element nie mieści się w kadrze albo zasłania twarz. Element, który ma być za Twoją sylwetką, dostaje
 `za: tak` (pierwsze użycie pobiera model 26 MB). Szczegóły i lista znaczników: GRAFIKI.md.
 
+## Format 3: gadająca głowa v3 (cięcia, hasła, błysk)
+
+Dla rolki z cięciami jak w Formacie 1, w której słowa kluczowe wchodzą jako **hasła** (duże słowo w żółtej kursywie, małe nad nim i pod nim),
+a przy wstawce jest biały błysk: szablon `format3` (w interfejsie „Format 3: gadająca głowa v3”). Zasady i liczby ze wzorca:
+[FORMAT3.md](FORMAT3.md), znaczniki: [GRAFIKI.md](GRAFIKI.md). Potrzebny jest `pip install pillow`.
+
+| Krok | Co robisz |
+|---|---|
+| 1. Scenariusz | Tekst, który powiesz. Słowa kluczowe (jedno-dwa na hasło, ok. 4-6 na film) w `*gwiazdkach*`: `Co ma się *zmienić* po tym evencie?`. Grafiki z Formatu 2 dokładasz w klamrach. |
+| 2. Nagranie | Pion, statyw, **szeroko**: twarz ok. 15% wysokości kadru (montaż przybliża ją do 18-28%), najlepiej 4K. Wstawki: osobne klipy (`--broll`). |
+| 3. Film | `python rolka.py nagranie.mp4 --template format3 --graphics scenariusz.txt --broll wstawki/ -o film.mp4`. W interfejsie: krok 2 wstawki, krok 3 scenariusz. Obok filmu powstaje `film.slowa.json`. |
+| 4. Kontrola | Jedna klatka z hasłem i napisami na zdjęciu Twojej klatki: `python rolka.py grafiki scenariusz.txt --template format3 --words film.slowa.json --tlo klatka.jpg --klatka 12`. |
+| 5. Poprawki | Zmiana gwiazdek albo literówka w scenariuszu: ta sama komenda z `--words film.slowa.json` (bez ponownego rozpoznawania mowy). |
+
+Program ostrzega, gdy wyróżnienie jest dłuższe niż dwa słowa, gdy wiersz hasła nie mieści się w bloku i gdy mowa zgadza się ze scenariuszem
+w mniej niż 80% (wtedy napisy i hasła biorą słowa z rozpoznanej mowy). Błysk przy wstawce dokłada szablon; własny: `{przejście: błysk}`.
+
+## Motion, czyli schemat z samego głosu
+
+Dla filmu bez mówiącej głowy: lektor i animowany schemat z kamerą, planszami i napisami w Twoich kolorach. Szablon `motion`
+(w interfejsie „Motion”). Zasady i liczby ze wzorca: [MOTION.md](MOTION.md), znaczniki:
+[GRAFIKI.md](GRAFIKI.md). Potrzebny jest `pip install pillow faster-whisper`.
+
+| Krok | Co robisz |
+|---|---|
+| 1. Hasła | Temat (tekst w piaście, do ok. 18 znaków) i 4-8 haseł po 1-2 krótkie słowa (do ok. 12 znaków). Tarcza ma od 2 do 12 szprych. |
+| 2. Scenariusz | Tekst lektora ze znacznikami: `{tarcza: temat \| nad: mały wiersz}` na początku, `{krok: Hasło}` tuż przed słowem, które je nazywa, `{plansza} … {/plansza}` na zwrocie („ale…”), `{finał: Tytuł}` przed ostatnim zdaniem. `*gwiazdki*` na frazie, która ma wyskoczyć. |
+| 3. Lektor | Samo nagranie głosu (`.m4a`, `.wav`, `.mp3`), cicho, telefon 15-20 cm od ust, czytasz **dokładnie** tekst scenariusza. 3,5-4,3 słowa na sekundę, między hasłami co najmniej 1,5 s mowy. |
+| 4. Film | `python rolka.py glos.m4a --template motion --graphics scenariusz.txt -o film.mp4`. W interfejsie: krok 1 nagranie głosu, krok 3 scenariusz. |
+| 5. Kontrola | Jedna klatka w sekundę: `python rolka.py grafiki scenariusz.txt --template motion --words film.slowa.json --klatka 14`. Poprawki (np. literówka w scenariuszu) i nowy film z `--words film.slowa.json` trwają kilkadziesiąt sekund, bez ponownego rozpoznawania mowy. |
+
+Program ostrzega, gdy hasło albo tekst piasty są za długie, gdy kroki są bliżej niż 1 s od siebie i gdy lektor czyta co innego niż scenariusz. Przejścia między scenami (rozmycie, najazd, przesunięcie, kurtyna) dokładasz znacznikiem `{przejście: ...}`
+przed `{plansza}`: [PRZEJSCIA.md](PRZEJSCIA.md).
+
 ## Szybciej
 
 - Szkic bez napisów: `python rolka.py nagranie.mp4 --no-captions --preset veryfast`.

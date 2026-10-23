@@ -30,6 +30,9 @@ TYPES = {
     "illustration": "illustration", "rozmycie": "blur", "blur": "blur",
     "tekst": "text", "text": "text", "strzalka": "arrow", "arrow": "arrow", "opisy": "labels", "labels": "labels",
     "lista": "list", "list": "list", "porownanie": "list", "comparison": "list", "pierscien": "ring", "ring": "ring",
+    "tarcza": "dial", "dial": "dial", "krok": "step", "step": "step", "final": "finale", "finale": "finale",
+    "plansza": "cutaway", "cutaway": "cutaway", "blysk": "glint", "glint": "glint",
+    "przejscie": "transition", "transition": "transition",
 }
 COMPARISON = ("porownanie", "comparison")  # to samo co lista, ale z kolumnami: „Tytuł: wiersz; wiersz // Tytuł: wiersz”
 KEYS = {
@@ -42,6 +45,8 @@ KEYS = {
     "cel": "to", "luk": "bend", "grot": "head", "kolor": "color", "zaznaczenie": "marker", "odslanianie": "reveal", "kroj": "font",
     "obrot": "rot", "przezroczystosc": "opacity", "za": "behind", "wyswietlenia": "views", "kropki": "dots", "luki": "arcs",
     "pismo": "text_font", "linia": "line", "grubosc": "width", "wystaje": "bleed",
+    "nad": "hub_top", "szybkosc": "cps", "najazd": "drift", "zblizenie": "closeup_at", "wielkoscetykiet": "label_k",
+    "wyrownanie": "align", "kierunek": "dir", "moc": "strength", "dokladnie": "exact",
 }
 # Wartości pisane po polsku -> to, czego oczekuje element (klucz: (typ elementu, pole)).
 VALUES = {
@@ -51,6 +56,7 @@ VALUES = {
     ("text", "reveal"): {"zanik": "fade", "pisanie": "type", "slowa": "words"},
     ("text", "font"): {"szeryf": "serif_italic", "gruby": "display", "pogrubiony": "bold", "polgruby": "semibold", "zwykly": "text"},
     ("text", "align"): {"srodek": "center", "lewo": "left", "prawo": "right"},
+    ("cutaway", "align"): {"srodek": "center", "lewo": "left"},
     ("list", "marker"): {"brak": "none", "kropka": "dot", "ramka": "box", "pole": "box"},
     ("list", "text_font"): {"szeryf": "serif", "zwykly": "plain"},
     ("cards", "label_style"): {"szeryf": "serif", "pogrubione": "bold", "zolte": "yellow"},
@@ -62,8 +68,12 @@ POINTS = {"from", "to"}  # punkt [x, y]: „0,3; 0,5” albo „30% 50%”
 ZONES = {"gora": "top", "lewo": "left", "prawo": "right", "dol": "bottom", "glowa": "head", "calosc": "full", "napisy": "captions"}
 MAIN_FIELD = {"title": "text", "badge": "text", "stat": "value", "cards": "items", "steps": "items", "pills": "items",
               "chips": "items", "axis": "items", "bars": "rows", "callout": "title", "profile": "label", "illustration": "image",
-              "text": "text", "labels": "items", "list": "rows"}
+              "text": "text", "labels": "items", "list": "rows",
+              "dial": "hub_main", "step": "label", "finale": "title", "transition": "kind"}
 DEFAULT_BLUR_DUR = 3.0
+CUTAWAY_HOLD = 0.3  # plansza zostaje tyle po ostatnim słowie (jak we wzorcu: cięcie wraca chwilę po puencie)
+CAPTIONS_FINALE_Y = 0.80  # po cofnięciu kamery napisy schodzą pod schemat, żeby nie zasłaniać tytułu
+TRANSITION_SNAP_S = 0.6  # przejście ze scenariusza przyciąga się do najbliższej granicy sceny (początek albo koniec elementu) w tej odległości
 MIN_COVERAGE = 0.5  # tyle słów scenariusza musi znaleźć się w mowie, żeby uznać, że to ten sam tekst
 
 _TOKEN = re.compile(r"\{([^{}]*)\}|([^\s{}]+)")
@@ -83,7 +93,8 @@ class Cue:
 
 @dataclass
 class Script:
-    words: list[str] = field(default_factory=list)  # słowa scenariusza (to, co mówisz)
+    words: list[str] = field(default_factory=list)  # słowa scenariusza (to, co mówisz), bez gwiazdek
+    emph: list[bool] = field(default_factory=list)  # czy słowo jest wyróżnione (*tak*) w tekście scenariusza: duży krój w napisach i na planszach
     cues: list[Cue] = field(default_factory=list)
 
 
@@ -310,10 +321,21 @@ def parse(text: str) -> Script:
     clean = _BRACKETS.sub(" ", "\n".join(lines))
     script = Script()
     open_cues: list[Cue] = []
+    emph_on = False
     for m in _TOKEN.finditer(clean):
         if m.group(2) is not None:
-            if _fold(m.group(2)):
-                script.words.append(m.group(2))
+            tok = m.group(2)
+            core = tok.replace("*", "")
+            state, word_emph = emph_on, False
+            for ch in tok:  # gwiazdka przełącza wyróżnienie; słowo jest wyróżnione, gdy litery stoją w jego zakresie (*celu*. też)
+                if ch == "*":
+                    state = not state
+                elif state:
+                    word_emph = True
+            emph_on = state
+            if _fold(core):
+                script.words.append(core)
+                script.emph.append(word_emph)
             continue
         res = _marker(m.group(1), len(script.words))
         if isinstance(res, Cue):
@@ -349,11 +371,13 @@ def align(script_words: Sequence[str], spoken: Sequence) -> tuple[list[tuple[flo
     t0, t1 = float(spoken[match[first]].start), float(spoken[match[last]].start)
     per = (t1 - t0) / max(1, last - first) if last > first else 0.35  # średni odstęp słów (do skrajów)
     out: list[tuple[float, float]] = []
+    guessed: list[int] = []  # słowa bez trafienia w mowie: ich czasy są wyliczone, więc nie mogą zachodzić na następne słowo
     for i in range(len(a)):
         if i in match:
             w = spoken[match[i]]
             out.append((float(w.start), float(w.end)))
             continue
+        guessed.append(i)
         left = max((j for j in idx if j < i), default=None)
         right = min((j for j in idx if j > i), default=None)
         if left is not None and right is not None:
@@ -367,6 +391,9 @@ def align(script_words: Sequence[str], spoken: Sequence) -> tuple[list[tuple[flo
         else:
             tail = float(spoken[match[last]].end) + (i - last - 1) * per
             out.append((tail, tail + per * 0.8))
+    for i in guessed:  # koniec słowa z interpolacji nie wychodzi za początek następnego (zostaje co najmniej 0,03 s)
+        if i + 1 < len(out) and out[i][1] > out[i + 1][0] and out[i + 1][0] > out[i][0]:
+            out[i] = (out[i][0], max(out[i][0] + 0.03, out[i + 1][0]))
     return out, len(match) / max(1, len(a))
 
 
@@ -384,8 +411,8 @@ def _find_phrase(words: list[str], phrase: str, after: int) -> tuple[int, int] |
 def to_plan(text: str, spoken: Sequence) -> dict:
     """Plan grafik (słownik jak w JSON) wyliczony ze scenariusza i transkrypcji."""
     script = parse(text)
-    if not script.cues:
-        raise PlanError("W scenariuszu nie ma ani jednego znacznika {typ: ...}.")
+    if not script.cues and not any(script.emph):
+        raise PlanError("W scenariuszu nie ma ani jednego znacznika {typ: ...} ani wyróżnienia *tak*.")
     if not spoken:
         raise PlanError("Scenariusz ze znacznikami potrzebuje transkrypcji: uruchom montaż z napisami (rozpoznawanie mowy) "
                         "albo podaj gotową: --words plik.json.")
@@ -398,6 +425,9 @@ def to_plan(text: str, spoken: Sequence) -> dict:
     n = len(times)
     elements: list[dict] = []
     effects: list[dict] = []
+    transitions: list[dict] = []
+    emph_ranges = _emphasis_ranges(script.emph, times)
+    last_dial: dict | None = None
     for cue in script.cues:
         spec = dict(cue.spec)
         w = min(cue.word, n - 1)
@@ -413,10 +443,34 @@ def to_plan(text: str, spoken: Sequence) -> dict:
                 raise PlanError(f"Znacznik „{{{cue.raw}}}”: fraza do: „{cue.until}” nie występuje w tekście po znaczniku.")
             end = times[found[1]][1]
         if end is not None:
-            dur = max(0.4, end - at)
+            dur = max(0.4, end - at + (CUTAWAY_HOLD if cue.kind == "cutaway" else 0.0))
         blur_on = spec.pop("blur", None)
         spec["at"] = round(at, 3)
         spec["said"] = " ".join(script.words[cue.word:cue.word + 4])
+        if cue.kind == "transition":  # przejście to obróbka klatki w chwili cięcia, a nie element
+            if not str(spec.get("kind", "")).strip():
+                raise PlanError(f"Znacznik „{{{cue.raw}}}”: przejście potrzebuje rodzaju, np. {{przejście: rozmycie}} "
+                                "(rozmycie, zoom, przesunięcie, kurtyna, błysk).")
+            transitions.append({k: v for k, v in spec.items() if k != "type"})
+            continue
+        if cue.kind in ("step", "finale"):  # kroki i finał należą do ostatniej tarczy
+            if last_dial is None:
+                raise PlanError(f"Znacznik „{{{cue.raw}}}” musi stać po znaczniku {{tarcza: ...}}.")
+            if cue.kind == "step":
+                if not str(spec.get("label", "")).strip():
+                    raise PlanError(f"Znacznik „{{{cue.raw}}}”: krok potrzebuje nazwy, np. {{krok: Cel}}.")
+                last_dial["steps"].append({"label": str(spec["label"]).strip(), "at": spec["at"]})
+            else:
+                last_dial["finale"] = {"at": spec["at"], "title": str(spec.get("title", ""))}
+            continue
+        if cue.kind == "dial":
+            spec["hub"] = [str(spec.pop("hub_top", "")), str(spec.pop("hub_main", ""))]
+            spec["steps"] = []
+            if not dur:
+                dur = max(1.0, times[-1][1] + 0.5 - at)
+            last_dial = spec
+        if cue.kind == "cutaway":
+            spec["emphasis"] = [r for r in emph_ranges if r[1] >= at and r[0] <= at + float(dur or 2.0)]
         if cue.kind == "blur":
             spec["dur"] = round(float(dur) if dur else DEFAULT_BLUR_DUR, 3)
             effects.append(spec)
@@ -427,7 +481,66 @@ def to_plan(text: str, spoken: Sequence) -> dict:
         if blur_on:
             d = float(spec.get("dur") or 4.0)
             effects.append({"type": "blur", "at": round(max(0.0, at - 0.1), 3), "dur": round(d + 0.2, 3)})
-    return {"schema": 1, "elements": elements, "effects": effects}
+    _snap_transitions(transitions, elements)
+    caps: dict = {}
+    if emph_ranges:  # wyróżnienia z tekstu (*tak*) dla napisów kinetycznych; resztę ustawień napisów daje szablon
+        caps["emphasis"] = emph_ranges
+    finales = [e["finale"]["at"] for e in elements if e.get("type") == "dial" and e.get("finale")]
+    if finales:
+        caps["shift"] = [{"at": f, "dur": 3600, "y": CAPTIONS_FINALE_Y} for f in finales]
+    if caps:
+        elements.append({"type": "captions", **caps})
+    out = {"schema": 1, "elements": elements, "effects": effects}
+    if transitions:
+        out["transitions"] = transitions
+    return out
+
+
+def _snap_transitions(transitions: list[dict], elements: list[dict]) -> None:
+    """Przejście wpisane w scenariuszu wypada na słowie, a granica sceny (np. koniec planszy: ostatnie słowo plus przytrzymanie) na ogół kilka
+    dziesiątych sekundy od niego. Przejście przyciąga się więc do najbliższego początku albo końca elementu (do TRANSITION_SNAP_S), chyba że
+    ma `dokładnie: tak`. W planie JSON czas przejścia jest zawsze dokładny."""
+    from .elements import REGISTRY
+
+    bounds: set[float] = set()
+    for e in elements:
+        kind = e.get("type")
+        if kind in ("captions", "backdrop", "glint") or "at" not in e:
+            continue
+        bounds.add(round(float(e["at"]), 3))
+        dur = e.get("dur") or (REGISTRY[kind].default_dur if kind in REGISTRY else 0.0)
+        if dur:
+            bounds.add(round(float(e["at"]) + float(dur), 3))
+    for tr in transitions:
+        exact = bool(tr.pop("exact", False))
+        near = min(bounds, key=lambda b: abs(b - tr["at"]), default=None)
+        if not exact and near is not None and abs(near - tr["at"]) <= TRANSITION_SNAP_S:
+            tr["at"] = near
+
+
+def words_from_script(text: str, spoken: Sequence) -> tuple[list, float]:
+    """Słowa scenariusza z czasami z mowy: napisy ze scenariusza, gdy lektor czyta tekst (Motion). Zwraca (słowa, pokrycie 0-1)."""
+    from .. import captions
+
+    script = parse(text)
+    times, coverage = align(script.words, spoken) if script.words and spoken else ([], 0.0)
+    return [captions.Word(w, float(a), float(b)) for w, (a, b) in zip(script.words, times)], coverage
+
+
+def _emphasis_ranges(flags: Sequence[bool], times: Sequence[tuple[float, float]]) -> list[list[float]]:
+    """Ciągi słów wyróżnionych gwiazdkami -> przedziały czasu [od, do] w sekundach."""
+    out: list[list[float]] = []
+    i = 0
+    while i < len(flags):
+        if flags[i]:
+            j = i
+            while j + 1 < len(flags) and flags[j + 1]:
+                j += 1
+            out.append([round(times[i][0], 3), round(times[j][1], 3)])
+            i = j + 1
+        else:
+            i += 1
+    return out
 
 
 def is_script(path) -> bool:

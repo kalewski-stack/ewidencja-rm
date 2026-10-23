@@ -12,12 +12,17 @@ from .core import (Brand, Layer, Layout, Life, PlanError, blur, compose, disc, e
                    rgba_image, rounded_rect, scale_rotate, shadowed, text_size, text_sprite, wrap_text)
 
 REGISTRY: dict[str, type["Element"]] = {}
+VARIANTS: dict[tuple[str, str], type["Element"]] = {}  # (typ, styl) -> klasa: ten sam typ w innym stylu (np. napisy kinetyczne)
 
 
-def register(kind: str):
+def register(kind: str, style: str | None = None):
+    """Rejestruje typ elementu. Z `style` rejestruje wariant istniejącego typu (wybierany polem style w planie)."""
     def deco(cls):
         cls.kind = kind
-        REGISTRY[kind] = cls
+        if style:
+            VARIANTS[(kind, style)] = cls
+        else:
+            REGISTRY[kind] = cls
         return cls
 
     return deco

@@ -95,6 +95,25 @@ class ServerTests(unittest.TestCase):
         self.assertEqual(status, 400)
         self.assertIn("Nieobsługiwany", json.loads(body)["error"])
 
+    def test_voice_recordings_are_accepted_only_as_the_main_file(self):
+        """Motion bierze z pliku sam głos: nagranie audio to pełnoprawne główne wejście, ale nie B-roll ani grafika."""
+        jid = self.new_job()
+        for name in ("glos.m4a", "glos.WAV", "glos.mp3", "lektor.opus"):
+            status, _, body = self.req("PUT", f"/api/job/{jid}/upload?role=video&name={name}", b"abc", H)
+            self.assertEqual(status, 200, name)
+        self.assertEqual(self.req("PUT", f"/api/job/{jid}/upload?role=broll&name=glos.m4a", b"abc", H)[0], 400)
+        self.assertEqual(self.req("PUT", f"/api/job/{jid}/upload?role=grafiki&name=glos.wav", b"abc", H)[0], 400)
+        status, _, body = self.req("PUT", f"/api/job/{jid}/upload?role=video&name=notatki.txt", b"abc", H)
+        self.assertEqual(status, 400)
+        self.assertIn("trybu motion", json.loads(body)["error"])  # komunikat podpowiada, że głos jest dozwolony
+
+    def test_info_lists_motion_and_the_page_mentions_voice_files(self):
+        info = json.loads(self.req("GET", "/api/info")[2])
+        self.assertIn("motion", [t["id"] for t in info["templates"]])
+        page = self.req("GET", "/")[2].decode("utf-8")
+        for ext in (".m4a", ".mp3", ".wav"):
+            self.assertIn(ext, page)
+
     def test_upload_sanitises_file_name(self):
         jid = self.new_job()
         status, _, body = self.req("PUT", f"/api/job/{jid}/upload?role=video&name=..%2F..%2Fevil.mp4", b"abc", H)

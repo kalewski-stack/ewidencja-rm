@@ -333,7 +333,8 @@ class CaptionTrack(Element):
     """Napisy słowo po słowie: 1-3 słowa naraz, biały krój marki, środek kadru nad klatką piersiową.
     Słowa podaje potok montażu (ctx.words, czasy na osi gotowego filmu). Pola: size (wysokość wersalików, ułamek
     wysokości kadru), y (górna krawędź, ułamek wysokości), max_words, shift [{at, dur, y}] przesuwa napisy, gdy dół
-    kadru zajmuje inny element."""
+    kadru zajmuje inny element, skip [[od, do], ...] (sekundy) pomija słowa wypowiedziane w tych przedziałach, bo
+    pokazuje je coś innego (hasło), hide [[od, do], ...] chowa napisy na ten czas (hasło stoi w tym miejscu)."""
     default_dur = 0.0
     default_z = 9
     d_in = 0.0
@@ -351,12 +352,16 @@ class CaptionTrack(Element):
         s, b = self.spec, self.brand
         H = self.ctx.H
         words = list(getattr(self.ctx, "words", []) or [])
+        skip = [(float(lo), float(hi)) for lo, hi in s.get("skip", [])]
+        if skip:
+            words = [w for w in words if not any(lo <= (float(w.start) + float(w.end)) / 2 <= hi for lo, hi in skip)]
         self.groups = cap.group_words(words, int(s.get("max_words", 3)), int(s.get("short_max", 3))) if words else []
         cap_px = float(s.get("size", 0.0188)) * H
         self.font = b.font(s.get("weight", "semibold"), cap_px / 0.66)
         self.top = float(s.get("y", 0.548)) * H
         self.shift = [(float(w["at"]), float(w["at"]) + float(w["dur"]), float(w["y"]) * H) for w in s.get("shift", [])]
         self.lead, self.hold = float(s.get("lead", 0.04)), float(s.get("hold", 0.25))
+        self.hide = [(float(lo), float(hi)) for lo, hi in s.get("hide", [])]
         self.cache: dict[str, object] = {}
         self.starts = [g.start for g in self.groups]
         self.dur = max([self.dur] + [g.end for g in self.groups])
@@ -376,6 +381,8 @@ class CaptionTrack(Element):
     def draw(self, layer: Layer, t: float) -> None:
         import bisect
 
+        if any(lo <= t < hi for lo, hi in self.hide):
+            return
         i = bisect.bisect_right(self.starts, t + self.lead) - 1
         if i < 0:
             return

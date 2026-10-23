@@ -19,6 +19,7 @@ class TemplateError(ValueError):
 class Fx:
     type: str
     dur: float = 0.3
+    edge: str = "start"  # przy którym cięciu ujęcia działa efekt przejścia (flash): "start" = na wejściu w ujęcie, "end" = na wyjściu z niego
 
 
 @dataclass(frozen=True)
@@ -65,8 +66,23 @@ class Template:
     look: dict
     dynamics: dict
     raw: dict
-    mode: str = "cuts"  # cuts = rytm cięć z szablonu | single = jedno ujęcie bez cięć (grafiki robią dynamikę)
+    mode: str = "cuts"  # cuts = rytm cięć z szablonu | single = jedno ujęcie bez cięć (grafiki robią dynamikę) | motion = bez obrazu z nagrania, lektor i grafiki
     graphics: dict = field(default_factory=dict)  # domyślne ustawienia warstwy grafik (napisy biegnące, marka)
+    keep_colors: bool = False  # szablon cięć, który nie przenosi kolorów wzorca: nagranie zostaje w swoich kolorach (kolory marki mają grafiki)
+
+    @property
+    def motion(self) -> bool:
+        """Motion: obraz powstaje z grafik, z pliku bierzemy tylko dźwięk (lektor)."""
+        return self.mode == "motion"
+
+    @property
+    def preview_layer(self) -> bool:
+        """Czy podgląd grafik (`grafiki --template`) ma dołożyć to, co szablon rysuje sam: tło i napisy w motion, napisy i hasła w Formacie 3."""
+        return self.motion or self.graphics.get("lockup") is not None
+
+    @property
+    def single_take(self) -> bool:
+        return self.mode in ("single", "motion")
 
     @property
     def total_frames(self) -> int:
@@ -102,7 +118,8 @@ def parse_template(raw: dict) -> Template:
         _require(role in ("A", "B"), f"Ujęcie {i}: role musi być 'A' albo 'B'.")
         zoom = float(s.get("zoom", 1.0))
         _require(zoom >= 1.0, f"Ujęcie {i}: zoom nie może być mniejszy niż 1.0.")
-        fx = tuple(Fx(str(f["type"]), float(f.get("dur", 0.3))) for f in s.get("fx", []))
+        fx = tuple(Fx(str(f["type"]), float(f.get("dur", 0.3)), str(f.get("edge", "start"))) for f in s.get("fx", []))
+        _require(all(f.edge in ("start", "end") for f in fx), f"Ujęcie {i}: fx.edge to start albo end.")
         face = None
         if s.get("face"):
             fc = s["face"]
@@ -111,11 +128,11 @@ def parse_template(raw: dict) -> Template:
                      f"Ujęcie {i}: face musi mieć h w (0.02, 0.95) oraz cx, cy w [0, 1].")
         segments.append(Segment(frames, role, zoom, int(s.get("alt", 0)), fx, str(s.get("note", "")), face))
     mode = raw.get("mode", "cuts")
-    _require(mode in ("cuts", "single"), "Pole mode: cuts albo single.")
+    _require(mode in ("cuts", "single", "motion"), "Pole mode: cuts, single albo motion.")
     st = raw.get("structure", {})
-    if mode == "single":
+    if mode in ("single", "motion"):
         _require(len(segments) == 1 and segments[0].role == "A",
-                 "Szablon jednoujęciowy (mode=single) ma dokładnie jedno ujęcie z rolą A.")
+                 "Szablon jednoujęciowy (mode=single albo motion) ma dokładnie jedno ujęcie z rolą A.")
         hook, outro, elastic = 0, 1, 0
     else:
         _require(len(segments) >= 3, "Szablon musi mieć co najmniej 3 ujęcia.")
@@ -151,11 +168,12 @@ def parse_template(raw: dict) -> Template:
         raw=raw,
         mode=mode,
         graphics=dict(raw.get("graphics", {})),
+        keep_colors=bool(raw.get("keep_colors", False)),
     )
 
 
 # Nazwy, którymi mówimy o formatach: format1 / format-1 / Format 2 itd. (wielkość liter, spacje, myślniki i podkreślenia bez znaczenia).
-ALIASES = {"format1": "rolka_DeuOaXKtPBb", "format2": "format2", "rolkadez4fpjcr74": "format2"}
+ALIASES = {"format1": "rolka_DeuOaXKtPBb", "format2": "format2", "format3": "format3", "motion": "motion", "rolkadez4fpjcr74": "format2"}
 
 
 def resolve_alias(ref: str) -> str:
@@ -163,7 +181,7 @@ def resolve_alias(ref: str) -> str:
 
 
 def load_template(ref: str | Path | None = None) -> Template:
-    """Wczytuje szablon: z pliku, z katalogu data/ (po nazwie lub aliasie format1, format2) albo z ~/ReelCut/szablony (user/nazwa)."""
+    """Wczytuje szablon: z pliku, z katalogu data/ (po nazwie lub aliasie format1, format2, format3, motion) albo z ~/ReelCut/szablony (user/nazwa)."""
     if ref is None:
         path = DEFAULT_TEMPLATE
     else:
@@ -185,8 +203,8 @@ def list_templates() -> list[tuple[str, str]]:
     """Lista (id, nazwa czytelna): wbudowane szablony, a po nich użytkownika (id zaczyna się od "user/")."""
     out = []
     for prefix, folder in (("", DATA_DIR), ("user/", USER_DIR)):
-        order = {"rolka_DeuOaXKtPBb": 0, "format2": 1}  # Format 1 i Format 2 na początku listy, dalej alfabetycznie
-        for p in sorted(folder.glob("*.json"), key=lambda q: (order.get(q.stem, 2), q.stem)) if folder.exists() else []:
+        order = {"rolka_DeuOaXKtPBb": 0, "format2": 1, "format3": 2, "motion": 3}  # Formaty 1-3 i motion na początku listy, dalej alfabetycznie
+        for p in sorted(folder.glob("*.json"), key=lambda q: (order.get(q.stem, 4), q.stem)) if folder.exists() else []:
             try:
                 out.append((prefix + p.stem, parse_template(json.loads(p.read_text(encoding="utf-8"))).name))
             except (TemplateError, json.JSONDecodeError):

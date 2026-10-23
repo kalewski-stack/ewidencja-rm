@@ -9,6 +9,7 @@ from typing import Callable, Iterator
 from .. import media
 from .core import Layer, PlanError, cover, need_pil
 from .plan import GraphicsPlan
+from .transitions import BACKGROUND_KINDS
 
 IMAGE_SUFFIXES = (".png", ".jpg", ".jpeg", ".webp", ".bmp")
 
@@ -35,11 +36,9 @@ def background_frame(background: str | Path, t: float, size: tuple[int, int]):
     return Image.frombytes("RGB", size, res.stdout)
 
 
-def render_frame(plan: GraphicsPlan, t: float, size: tuple[int, int], matte=None) -> Layer:
-    """Klatka warstwy grafik. Elementy z `behind` rysujemy najpierw i ukrywamy tam, gdzie jest postać (matte.at(t)),
-    a dopiero na nich resztę, więc postać zasłania tylko to, co ma być za nią."""
-    active = plan.active(t)
-    layer = Layer(size)
+def _draw(active, layer: Layer, t: float, matte) -> Layer:
+    """Rysuje elementy w kolejności z; te z `behind` najpierw i ukryte tam, gdzie jest postać (matte.at(t)), a dopiero na nich reszta,
+    więc postać zasłania tylko to, co ma być za nią."""
     behind = [e for e in active if e.behind]
     if behind:
         for e in behind:
@@ -55,13 +54,46 @@ def render_frame(plan: GraphicsPlan, t: float, size: tuple[int, int], matte=None
     return layer
 
 
+def _scene(plan: GraphicsPlan, t: float, size: tuple[int, int], matte, background: bool, cut: float | None = None) -> Layer:
+    """Samo tło (background=True, np. papier z kropkami) albo cała reszta sceny w chwili t. Po cięciu `cut` stare elementy (te, które
+    kończą się dokładnie w chwili cięcia) już nie są rysowane, żeby nowa scena nie nakładała się na starą."""
+    def keep(e) -> bool:
+        if (e.kind in BACKGROUND_KINDS) != background:
+            return False
+        return not (cut is not None and e.end <= cut + 1e-6 and e.start < cut - 1e-6)
+
+    return _draw([e for e in plan.active(t) if keep(e)], Layer(size), t, matte)
+
+
+def render_frame(plan: GraphicsPlan, t: float, size: tuple[int, int], matte=None) -> Layer:
+    """Klatka warstwy grafik. Bez przejść: wszystkie aktywne elementy w kolejności z. W oknie przejścia scena (wszystko poza tłem)
+    jest obrabiana osobno (rozmycie, najazd, przesunięcie, kurtyna) i dopiero potem kładziona na tle; błysk leży na całości."""
+    trs = plan.transitions_at(t)
+    if not trs:
+        return _draw(plan.active(t), Layer(size), t, matte)
+    stage = [tr for tr in trs if not tr.global_overlay]
+    if stage:
+        cut = max((tr.at for tr in stage if t >= tr.at - 1e-9), default=None)
+        layer = _scene(plan, t, size, matte, True)
+        fg = _scene(plan, t, size, matte, False, cut).img
+        for tr in stage:
+            fg = tr.apply(fg, t, lambda tt: _scene(plan, tt, size, matte, False).img)
+        layer.img.alpha_composite(fg)
+    else:
+        layer = _draw(plan.active(t), Layer(size), t, matte)
+    for tr in trs:
+        if tr.global_overlay:
+            layer.img = tr.overlay(layer.img, t)
+    return layer
+
+
 def iter_frames(plan: GraphicsPlan, size: tuple[int, int], fps: int, n_frames: int,
                 progress: Callable[[float], None] | None = None, t0: float = 0.0, matte=None) -> Iterator[bytes]:
     """Kolejne klatki RGBA (surowe bajty) od czasu t0. Puste klatki to jeden współdzielony bufor, więc nic nie kosztują."""
     blank = bytes(size[0] * size[1] * 4)
     for i in range(n_frames):
         t = t0 + i / fps
-        if plan.active(t):
+        if plan.active(t) or plan.transitions_at(t):
             yield render_frame(plan, t, size, matte).tobytes()
         else:
             yield blank

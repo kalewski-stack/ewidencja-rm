@@ -93,6 +93,9 @@ def _items(raw: dict):
     for i, spec in enumerate(raw.get("effects", []) or [], 1):
         if isinstance(spec, dict):
             yield f"Efekt {i}", spec
+    for i, spec in enumerate(raw.get("transitions", []) or [], 1):
+        if isinstance(spec, dict):
+            yield f"Przejście {i}", spec
 
 
 def has_phrases(raw) -> bool:

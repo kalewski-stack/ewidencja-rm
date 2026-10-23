@@ -125,6 +125,15 @@ class AlignTests(unittest.TestCase):
         self.assertGreater(times[2][0], times[1][1] - 1e-6)
         self.assertLess(times[2][0], times[3][0])
 
+    def test_guessed_words_never_run_into_the_next_word(self):
+        # mowa ma zamiast „dwa trzy cztery” jedno przekręcone słowo, więc trzy słowa scenariusza dostają czasy z interpolacji
+        heard = [captions.Word("jeden", 0.0, 0.4), captions.Word("xx", 0.5, 0.6), captions.Word("pięć", 0.9, 1.2), captions.Word("sześć", 1.3, 1.6)]
+        times, cov = script.align("jeden dwa trzy cztery pięć sześć".split(), heard)
+        self.assertAlmostEqual(cov, 0.5)
+        for (a0, a1), (b0, b1) in zip(times, times[1:]):
+            self.assertLessEqual(a1, b0 + 1e-9)
+            self.assertLess(a0, a1)
+
     def test_extra_words_in_speech_do_not_break_the_alignment(self):
         script_words = "zaczynamy od hasła i kończymy".split()
         heard = "yyy zaczynamy no od hasła i eee kończymy".split()

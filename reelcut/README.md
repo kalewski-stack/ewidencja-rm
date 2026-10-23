@@ -12,6 +12,14 @@ Wszystko liczy się na Twoim komputerze. Żaden plik nie jest nigdzie wysyłany.
 - **Format 2: gadająca głowa** (jeden take bez cięć, animowane grafiki w kolorach i kroju marki: tytuły, listy pisane
   na żywo, karty, strzałki, liczniki, także za postacią; czasy ustawiane na słowach ze scenariusza): zasady i słownik
   elementów w [FORMAT2.md](FORMAT2.md), składnia znaczników w [GRAFIKI.md](GRAFIKI.md). Szablon `format2`.
+- **Format 3: gadająca głowa v3** (cięcia i wstawki jak w Formacie 1, ale napisy, hasła z dużym słowem kluczowym i biały błysk przy
+  wstawce rysuje warstwa grafik w kolorach i kroju marki; hasła powstają ze słów w `*gwiazdkach*` w scenariuszu): zasady i liczby
+  ze wzorca w [FORMAT3.md](FORMAT3.md), składnia znaczników w [GRAFIKI.md](GRAFIKI.md). Szablon `format3`.
+- **Motion** (bez mówiącej głowy: wrzucasz samo nagranie lektora, a narzędzie rysuje cały obraz, czyli schemat z tarczą
+  i kamerą, czarne plansze i napisy kinetyczne, w kolorach i kroju marki; każdy ruch ma czas ze słowa, które pada): zasady
+  i liczby ze wzorca w [MOTION.md](MOTION.md), składnia znaczników w [GRAFIKI.md](GRAFIKI.md). Szablon `motion`.
+- **Przejścia między scenami** (rozmycie, najazd, przesunięcie, kurtyna, błysk; znacznik `{przejście: ...}`): zmierzone krzywe, składnia
+  i granice w [PRZEJSCIA.md](PRZEJSCIA.md).
 - **Styl do przeniesienia na inne tematy** (kolory, dynamika, kadry, cięcia, lista ujęć do nagrania, format
   scenariusza z budżetem słów): [STYL.md](STYL.md). Kartę stylu każdego szablonu wypisze `python rolka.py style`.
 
@@ -42,7 +50,7 @@ Wszystko liczy się na Twoim komputerze. Żaden plik nie jest nigdzie wysyłany.
 | **ffmpeg** (z ffprobe) | cały montaż | macOS: `brew install ffmpeg` · Windows: `winget install Gyan.FFmpeg` · Linux: `sudo apt install ffmpeg` |
 | **Python 3.9+** | uruchamia narzędzie | <https://www.python.org/downloads/> |
 | `faster-whisper` *(opcjonalnie)* | napisy (rozpoznawanie mowy) | `pip install faster-whisper` (przy pierwszym użyciu pobiera model, ok. 500 MB dla „small") |
-| `pillow` *(opcjonalnie)* | grafiki na wideo i napisy w kroju marki (szablon `format2`) | `pip install pillow` |
+| `pillow` *(opcjonalnie)* | grafiki na wideo i napisy w kroju marki (szablony `format2`, `format3` i `motion`; w trybie motion cały obraz) | `pip install pillow` |
 | `numpy` + `onnxruntime` *(opcjonalnie)* | kadrowanie po Twojej twarzy, dopasowanie kolorów, role ujęć w `analyze`, grafiki „za postacią” w Formacie 2 | `pip install numpy onnxruntime` (model twarzy YuNet, 230 KB, jest w paczce; model wycinania postaci, 26 MB, pobiera się raz przy pierwszym użyciu) |
 
 Bez `faster-whisper` dostaniesz montaż bez napisów, bez `numpy`/`onnxruntime` kadry zostają stałymi zoomami
@@ -65,6 +73,8 @@ opcjonalnie B-roll, klikasz **Potnij**. Gotowe filmy lądują w `~/ReelCut/wynik
 python rolka.py moje_wideo.mp4
 python rolka.py moje_wideo.mp4 --broll folder_z_ujeciami -o wynik.mp4
 python rolka.py moje_wideo.mp4 --dry-run          # tylko plan cięć, bez renderu
+python rolka.py nagranie.mp4 --template format3 --graphics scenariusz.txt --broll wstawki/   # Format 3: hasła ze słów w *gwiazdkach*, błysk przy wstawce
+python rolka.py glos.m4a --template motion --graphics scenariusz.txt   # Motion: sam głos, obraz robią grafiki
 ```
 
 Wynik: `moje_wideo_rolka.mp4` obok nagrania oraz `moje_wideo_rolka.slowa.json` (transkrypcja, patrz niżej).
@@ -99,7 +109,7 @@ Wynik: `moje_wideo_rolka.mp4` obok nagrania oraz `moje_wideo_rolka.slowa.json` (
 | `--emphasis off` | bez wyróżnionych fraz w napisach |
 | `--fps 30` | klatkaż wyniku (domyślnie 25 jak we wzorcu) |
 | `--words plik.json` | użyj poprawionej transkrypcji zamiast rozpoznawania mowy |
-| `--template ...` | inny szablon (patrz niżej) |
+| `--template ...` | inny szablon: `format2`, `format3`, `motion`, `user/nazwa` albo plik `.json` (patrz niżej) |
 
 Pełna lista: `python rolka.py cut --help`.
 
@@ -163,8 +173,9 @@ python rolka.py style user/moj_szablon -o karta.md
 python -m unittest discover -s tests
 ```
 
-146 testów (planista, pauzy, napisy łącznie z pomiarem pikseli, szablony, `analyze` z kadrami, kolorami i dynamiką,
-moduł kolorów z LUT i winietą, wykrywanie twarzy i kadrowanie, karta stylu, end-to-end na syntetycznym wideo).
+ok. 400 testów (planista, pauzy, napisy łącznie z pomiarem pikseli, szablony, `analyze` z kadrami, kolorami i dynamiką,
+moduł kolorów z LUT i winietą, wykrywanie twarzy i kadrowanie, karta stylu, silnik grafik Formatów 2 i 3, scenariusz ze znacznikami,
+serwer, end-to-end na syntetycznym wideo i samym głosie). Cały zestaw trwa ok. 7 minut.
 Test end-to-end sprawdza, że cięcia w wyniku trafiają dokładnie w klatki szablonu, a test kadrowania, że twarz
 w wyniku ma rozmiar i miejsce z planu. Część testów wymaga `numpy`/`onnxruntime`/Pillow (bez nich są pomijane).
 
@@ -178,6 +189,12 @@ src/reelcut/data/             szablon rolki (JSON), czcionka Anton (SIL OFL, OFL
                               (MIT, YuNet-LICENSE.txt), interfejs
 tests/                        testy (tests/assets: zdjęcie NASA z domeny publicznej do testu twarzy)
 ANALIZA.md                    wyniki analizy rolki wzorcowej (rytm, napisy)
-WORKFLOW.md                   ściąga: nowy film krok po kroku
+WORKFLOW.md                   ściąga: nowy film krok po kroku (Formaty 1, 2, 3 i motion)
 STYL.md                       styl do przeniesienia: kolory, kadry, dynamika, lista ujęć, format scenariusza
+FORMAT2.md                    Format 2: gadająca głowa (zasady, słownik elementów, szkielet scenariusza)
+FORMAT3.md                    Format 3: gadająca głowa v3 (cięcia, hasła, błysk: zasady, liczby ze wzorca, scenariusz, granice)
+MOTION.md                     Motion (schemat z lektorem: zasady, liczby ze wzorca, scenariusz, granice)
+INTRO.md                      szkic intro „o mnie” w rytmie Formatu 3: scenariusz, rozpiska ujęć, co nagrać, decyzje
+PRZEJSCIA.md                  przejścia między scenami (rodzaje, zmierzone krzywe, składnia, granice)
+GRAFIKI.md                    składnia znaczników scenariusza, plan JSON, elementy i pola (Formaty 2, 3 i motion)
 ```
