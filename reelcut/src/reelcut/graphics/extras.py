@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import math
 
-from .core import (SS, Layer, PlanError, clamp01, compose, cover, ease_out, glow_of, lerp, load_image, prog,
+from .core import (SS, Layer, PlanError, clamp01, compose, cover, ease_in_out, ease_out, glow_of, lerp, load_image, prog,
                    round_corners, rounded_rect, scale_rotate, shadowed, text_size, text_sprite, wrap_text)
 from .elements import Element, register
 
@@ -234,10 +234,46 @@ class Stat(Element):
 # Ilustracja z poświatą
 # ---------------------------------------------------------------------------------------------
 
+class Keys:
+    """Klatki kluczowe ruchu: [czas, x, y, skala, obrót]. Czas liczymy od startu elementu (sekundy), x i y to środek (ułamki kadru),
+    skala (domyślnie 1) i obrót w stopniach (domyślnie z pola rot) są opcjonalne. Między kluczami ruch jest płynny: łagodny start i hamowanie."""
+
+    def __init__(self, raw, rot0: float = 0.0):
+        if not isinstance(raw, list) or len(raw) < 2:
+            raise PlanError("path to lista co najmniej dwóch kluczy [czas, x, y] albo [czas, x, y, skala, obrót].")
+        pts = []
+        for k in raw:
+            if not isinstance(k, (list, tuple)) or not 3 <= len(k) <= 5:
+                raise PlanError("Każdy klucz ścieżki to [czas, x, y] albo [czas, x, y, skala, obrót].")
+            try:
+                t, x, y = float(k[0]), float(k[1]), float(k[2])
+                sc = float(k[3]) if len(k) > 3 and k[3] is not None else 1.0
+                rot = float(k[4]) if len(k) > 4 and k[4] is not None else rot0
+            except (TypeError, ValueError) as exc:
+                raise PlanError("Klucze ścieżki muszą być liczbami.") from exc
+            if sc <= 0:
+                raise PlanError("Skala w kluczu ścieżki musi być dodatnia.")
+            pts.append((t, x, y, sc, rot))
+        self.pts = sorted(pts)
+
+    def at(self, lt: float) -> tuple[float, float, float, float]:
+        """(x, y, skala, obrót) w chwili lt (sekundy od startu elementu)."""
+        p = self.pts
+        if lt <= p[0][0]:
+            return p[0][1:]
+        for a, b in zip(p[:-1], p[1:]):
+            if lt <= b[0]:
+                k = ease_in_out(prog(lt, a[0], max(1e-6, b[0] - a[0])))
+                return tuple(lerp(u, v, k) for u, v in zip(a[1:], b[1:]))
+        return p[-1][1:]
+
+
 @register("illustration")
 class Illustration(Element):
     """Dowolny obraz (PNG z przezroczystością albo zdjęcie) z miękką poświatą, np. nad głową. Pola: image, width
-    (ułamek szerokości kadru), glow (kolor marki albo #hex), anchor: head (nad głową) albo strefa, float."""
+    (ułamek szerokości kadru), glow (kolor marki albo #hex; false: bez poświaty), anchor: head (nad głową) albo strefa albo x i y,
+    rot (obrót w stopniach), opacity (0-1), float, round (zaokrąglenie rogów), bleed (true: może wychodzić poza kadr),
+    path: klatki kluczowe [[czas, x, y, skala, obrót], ...] (czas od startu elementu): obraz przesuwa się, rośnie i obraca."""
     default_dur = 3.0
     default_zone = "top"
     d_in = 0.5
@@ -260,20 +296,32 @@ class Illustration(Element):
             g, pad = glow_of(im, gcol, w * 0.09, 0.9)
             parts.insert(0, (g, -pad, -pad))
         self.sprite, self.origin = compose(parts, pad=2)
+        self.rot = float(s.get("rot", 0.0))
+        self.opacity = max(0.0, min(1.0, float(s.get("opacity", 1.0))))
+        self.keys = Keys(s["path"], self.rot) if s.get("path") else None
+        self.free_placement = self.keys is not None
+        self._static = scale_rotate(self.sprite, 1.0, self.rot) if abs(self.rot) > 1e-3 else self.sprite
 
     def draw(self, layer: Layer, t: float) -> None:
         s = self.spec
         lf = self.life(t)
         L = self.ctx.layout
-        w, h = self.sprite.size
-        if s.get("anchor") == "head":
-            x = L.face_cx * L.W - w / 2
-            y = (L.head_top * L.H) - h * 0.78
+        base, float_dy = self._static, 0.0
+        if self.keys:
+            kx, ky, sc, rot = self.keys.at(lf.lt)
+            base = scale_rotate(self.sprite, sc, rot) if (abs(sc - 1) > 1e-3 or abs(rot) > 1e-3) else self.sprite
+            cx, cy = kx * L.W, ky * L.H
         else:
-            x, y = self.place(w, h)
-        dy = 6 * math.sin(2 * math.pi * lf.lt / 3.0) if s.get("float", True) else 0
-        im, dy2, alpha = self.appear(self.sprite, lf, rise=30, blur_px=14, scale_from=0.88)
-        layer.paste_center(im, x + w / 2, y + h / 2 + dy + dy2, alpha)
+            w, h = base.size
+            if s.get("anchor") == "head":
+                x = L.face_cx * L.W - w / 2
+                y = (L.head_top * L.H) - h * 0.78
+            else:
+                x, y = self.place(w, h)
+            cx, cy = x + w / 2, y + h / 2
+            float_dy = 6 * math.sin(2 * math.pi * lf.lt / 3.0) if s.get("float", True) else 0
+        im, dy2, alpha = self.appear(base, lf, rise=30, blur_px=14, scale_from=0.88)
+        layer.paste_center(im, cx, cy + float_dy + dy2, alpha * self.opacity)
 
 
 # ---------------------------------------------------------------------------------------------

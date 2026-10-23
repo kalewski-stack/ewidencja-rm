@@ -11,7 +11,8 @@ ROLE_NAMES = {"A": "mówiąca głowa", "B": "wstawka"}
 GRAPHICS_ELEMENTS = {
     "title": "duży napis (żółty, szeryfowy kursywą albo krojem marki) z małym słowem-akcentem nad prawym końcem",
     "badge": "plakietka: numer w kole i tytuł obok, np. „1 Scenariusz”",
-    "cards": "rząd miniatur 9:16 z etykietami i punktami pod spodem, jedna karta może się powiększyć",
+    "cards": "miniatury 9:16 z etykietą (pogrubioną, szeryfową kursywą albo żółtą), punktami i licznikiem wyświetleń pod spodem: w rzędzie, "
+             "siatce albo w dowolnym miejscu i pod kątem, jedna może się powiększyć",
     "profile": "chip z awatarem (Twoja twarz z nagrania), licznikiem, paskiem postępu i kursorem jadącym po kadrze",
     "pills": "krótkie hasła z ikoną, wlatujące jedna po drugiej (biała, szklana, fioletowa, żółta)",
     "chips": "małe kafelki z etykietą i liczbą, np. wartości do porównania",
@@ -20,7 +21,12 @@ GRAPHICS_ELEMENTS = {
     "bars": "wiersze z etykietami (podwójne, pojedyncze, ze spinnerem)",
     "callout": "wyróżnienie: ikona, tytuł i tekst „pisany” na żywo, opcjonalnie karta po prawej",
     "stat": "duża liczba odliczana od zera z podpisem i paskiem",
-    "illustration": "obraz z miękką poświatą, np. nad głową",
+    "illustration": "obraz z miękką poświatą, np. nad głową; może jechać po ścieżce, rosnąć, obracać się i wychodzić poza kadr",
+    "arrow": "strzałka albo linia rysowana na żywo: łuk, linia ciągła, przerywana lub kropkowana, grot otwarty lub pełny",
+    "labels": "opisy z cienką linią i kropką, które wskazują miejsca na obrazie albo karcie",
+    "text": "tekst z wyróżnieniami (*żółte*, _szeryfowe_), odsłaniany albo pisany na żywo, z podkreśleniem, pędzlem lub nawiasem",
+    "list": "wiersze pojawiające się po kolei z „pisaniem” treści, polami do odhaczenia albo w dwóch kolumnach (porównanie)",
+    "ring": "pierścień z kropek wokół wskazanego miejsca: cały albo dwa łuki",
 }
 
 BRAND_ROLES = {
@@ -204,6 +210,16 @@ def _single_section(tpl: Template) -> list[str]:
     if ld:
         out.append(f"- Głośność rolki: {_n(ld['lufs'])} LUFS, szczyt {_n(ld['true_peak'])} dBTP, zakres LRA {_n(ld['lra'])} LU "
                    f"(cel w szablonie: {_n(tpl.lufs)} LUFS).")
+    reels = dyn.get("reels") or []
+    if reels:
+        out += ["", f"Rolki wzorcowe tego formatu ({len(reels)}, mediany powyżej); położenie i rozmiary jako ułamki kadru:", "",
+                "| Rolka | Czas (s) | Słów/s | LUFS | LRA | Twarz: wys. | Twarz: x | Twarz: y | Napisy: góra | Napisy: wys. linii |",
+                "|---|---|---|---|---|---|---|---|---|---|"]
+        for r in reels:
+            f, c = r.get("face", {}), r.get("caption", {})
+            out.append(f"| {r['id']} | {_n(r['seconds'])} | {_n(r['words_per_s'], 2)} | {_n(r['lufs'])} | {_n(r['lra'])} | "
+                       f"{_n(f.get('h', 0) * 100)}% | {_n(f.get('cx', 0) * 100)}% | {_n(f.get('cy', 0) * 100)}% | "
+                       f"{_n(c.get('top', 0) * 100)}% | {_n(c.get('height', 0) * 100, 2)}% |")
     return out + [""]
 
 
@@ -234,6 +250,8 @@ def _graphics_section(tpl: Template) -> list[str]:
             "- Elementy planu:"]
     out += [f"  - `{k}`: {v}" for k, v in GRAPHICS_ELEMENTS.items()]
     out += ["- Efekt: `blur` rozmywa i przyciemnia obraz na czas pokazywania kart, żeby grafiki były czytelne.",
+            "- Każdy element może stać „za postacią” (`behind: true`, w scenariuszu `za: tak`): program wycina Twoją sylwetkę "
+            "i rysuje element pod nią, np. poświatę za głową albo kartę za ramieniem.",
             "- Miejsce w kadrze wynika z położenia Twojej twarzy: grafiki trafiają nad głowę, na boki albo pod napisy, nigdy na twarz."]
     return out + [""]
 

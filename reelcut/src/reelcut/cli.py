@@ -200,11 +200,15 @@ def cmd_grafiki(args: argparse.Namespace) -> int:
     print(plan.describe())
     for w in plan.warnings:
         print(f"UWAGA: {w}")
+    warned = len(plan.warnings)
     bg = args.tlo
     if args.klatka is not None:
         base = graphics.background_frame(bg, args.od + args.klatka, size) if bg else None
+        matte = graphics.glue.matte_for_background(plan, bg, size, frame=base, log=print)
+        for w in plan.warnings[warned:]:
+            print(f"UWAGA: {w}")
         out = args.out if args.out.suffix.lower() == ".png" else args.out.with_suffix(".png")
-        graphics.render_png(plan, args.klatka, size, base).convert("RGB").save(out)
+        graphics.render_png(plan, args.klatka, size, base, matte).convert("RGB").save(out)
         print(f"Zapisano klatkę: {out}")
         return 0
 
@@ -213,7 +217,10 @@ def cmd_grafiki(args: argparse.Namespace) -> int:
             sys.stdout.write(f"\r  Rysuję grafiki {frac * 100:3.0f}%")
             sys.stdout.flush()
 
-    path = graphics.preview(plan, args.out, size=size, fps=args.fps, duration=args.czas, background=bg, start=args.od, progress=cb)
+    matte = graphics.glue.matte_for_background(plan, bg, size, start=args.od, duration=args.czas, log=print)
+    for w in plan.warnings[warned:]:
+        print(f"UWAGA: {w}")
+    path = graphics.preview(plan, args.out, size=size, fps=args.fps, duration=args.czas, background=bg, start=args.od, progress=cb, matte=matte)
     if sys.stdout.isatty():
         sys.stdout.write("\n")
     print(f"Zapisano podgląd: {path}")

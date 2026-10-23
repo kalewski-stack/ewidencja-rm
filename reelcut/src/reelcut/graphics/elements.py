@@ -64,6 +64,7 @@ class Element:
         if self.dur <= 0:
             raise PlanError(f"Element „{self.kind}”: dur musi być dodatnie.")
         self.z = int(spec.get("z", self.default_z))
+        self.behind = bool(spec.get("behind", False))  # true: element jest rysowany za postacią (wymaga wycięcia sylwetki)
         self.d_in = float(spec.get("in", self.d_in))
         self.d_out = float(spec.get("out", self.d_out))
         self.brand = ctx.brand

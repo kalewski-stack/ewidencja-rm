@@ -1,5 +1,8 @@
 # STYL: styl rolki wzorcowej do przeniesienia na inne tematy
 
+To jest opis **Formatu 1** (mówiąca głowa + B-roll, cięcia w rytmie rolki; szablon `format1`). Format 2 (gadająca głowa,
+jeden take z animowanymi grafikami): [FORMAT2.md](FORMAT2.md).
+
 Ten dokument opisuje to, co **zmierzyłem** w rolce <https://www.instagram.com/reel/DeuOaXKtPBb/>: kolory, kadry, cięcia
 i dynamikę. Z tego da się nagrać nowy materiał w tym samym stylu (rozdziały: kolory, kadry, cięcia), napisać do niego
 scenariusz (rozdział: format scenariusza) i zmontować go automatycznie (rozdział: jak to zastosować).
@@ -284,7 +287,7 @@ Tabele poniżej generuje komenda `python rolka.py style` z szablonu, więc zawsz
 montaż. Jeśli zmienisz szablon, wygeneruj kartę ponownie i wklej między znaczniki (test sprawdza, że karta jest aktualna).
 
 <!-- karta:start -->
-# Karta stylu: Rolka DeuOaXKtPBb: mówiąca głowa + B-roll, napisy słowo po słowie
+# Karta stylu: Format 1: mówiąca głowa + B-roll, cięcia w rytmie rolki, napisy słowo po słowie
 
 Źródło: https://www.instagram.com/reel/DeuOaXKtPBb/. Format 1080x1920, 25 kl./s, 34,0 s.
 

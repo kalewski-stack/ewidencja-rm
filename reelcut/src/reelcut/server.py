@@ -20,7 +20,7 @@ from urllib.parse import parse_qs, urlparse
 
 from . import __version__, captions, media
 from .pipeline import VIDEO_EXT, Options, run
-from .template import TemplateError, list_templates
+from .template import TemplateError, list_templates, resolve_alias
 
 DEFAULT_WORKDIR = Path.home() / "ReelCut"
 UI_FILE = Path(__file__).resolve().parent / "data" / "ui.html"
@@ -113,6 +113,8 @@ def parse_options(data: dict, job: Job) -> Options:
         return v
 
     templates = {t for t, _ in list_templates()}
+    if isinstance(data.get("template"), str):
+        data = {**data, "template": resolve_alias(data["template"])}  # format1 / format2 działają jak pełne nazwy
     try:
         max_zoom = float(data["max_zoom"]) if data.get("max_zoom") not in (None, "", 0) else None
         look = float(data.get("look", 1.0))

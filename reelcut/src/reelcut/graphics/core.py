@@ -272,6 +272,19 @@ def disc(d: float, fill=None, outline=None, outline_w: float = 0.0):
     return big.resize((d, d), Image.LANCZOS)
 
 
+def eye_icon(d: float, color: tuple[int, int, int]):
+    """Ikona oka (liczba wyświetleń): kontur migdału z kropką pośrodku."""
+    d = max(8, int(round(d)))
+    big = Image.new("RGBA", (d * SS, d * SS), (0, 0, 0, 0))
+    g = ImageDraw.Draw(big)
+    c, k = d * SS / 2, d * SS
+    col = tuple(color) + (255,)
+    g.ellipse([c - k * 0.46, c - k * 0.27, c + k * 0.46, c + k * 0.27], outline=col, width=max(2, int(k * 0.12)))
+    r = k * 0.14
+    g.ellipse([c - r, c - r, c + r, c + r], fill=col)
+    return big.resize((d, d), Image.LANCZOS)
+
+
 def polygon(points: Sequence[tuple[float, float]], fill, size: tuple[int, int] | None = None, pad: int = 2):
     """Wielokąt z wygładzonymi krawędziami; punkty w pikselach docelowych."""
     xs, ys = [p[0] for p in points], [p[1] for p in points]
@@ -459,9 +472,9 @@ class Layout:
     """Układ kadru: gdzie jest twarz, a więc gdzie wolno stawiać grafiki, żeby jej nie zasłaniać."""
     W: int
     H: int
-    face_cx: float = 0.55  # środek twarzy (ułamki kadru); wartości domyślne z rolki wzorcowej
-    face_cy: float = 0.45
-    face_h: float = 0.17
+    face_cx: float = 0.4826  # środek twarzy (ułamki kadru); wartości domyślne: mediany czterech rolek formatu 2
+    face_cy: float = 0.458
+    face_h: float = 0.1536
     caption_top: float = 0.548  # górna krawędź napisów biegnących
     caption_bottom: float = 0.575
 

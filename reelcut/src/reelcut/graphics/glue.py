@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Iterator
 
-from .. import framing, media
+from .. import framing, media, render as video_render
 from ..faces import FaceTrack
 from . import script
 from .core import Layout, PlanError, load_brand, need_pil
@@ -23,13 +23,14 @@ class GraphicsJob:
     size: tuple[int, int]
     fps: int
     n_frames: int
+    matte: object | None = None  # sylwetki do grafik „za postacią” (matte.MatteTrack)
 
     @property
     def effects(self) -> list[dict]:
         return self.plan.effects
 
     def frames(self, progress: Callable[[float], None] | None = None) -> Iterator[bytes]:
-        return iter_frames(self.plan, self.size, self.fps, self.n_frames, progress)
+        return iter_frames(self.plan, self.size, self.fps, self.n_frames, progress, matte=self.matte)
 
 
 def face_layout(video_plan, track: FaceTrack | None, tpl, size: tuple[int, int]) -> Layout:
@@ -84,6 +85,64 @@ def extract_avatar(master: Path, track: FaceTrack | None, out: Path) -> Path | N
     return out
 
 
+def make_matte(plan: GraphicsPlan, video_plan, master: Path, canvas: tuple[int, int], duration_s: float,
+               log: Callable[[str], None] = print):
+    """Sylwetki dla elementów z `behind` (grafika za postacią). Gdy się nie da, dopisuje ostrzeżenie do planu i zwraca None:
+    elementy rysują się wtedy przed postacią."""
+    behind = [e for e in plan.elements if e.behind]
+    if not behind or not master.is_file():  # master nie istnieje przy --dry-run
+        return None
+    from . import matte as mt
+
+    if len(video_plan.slots) != 1 or video_plan.slots[0].source != "A":
+        plan.warnings.append("Grafiki za postacią (behind) działają w formacie 2, czyli w jednym ujęciu; tu rysuję je przed postacią.")
+        return None
+    info = media.probe(master)
+    vf = video_render.matte_chain(video_plan.slots[0], (info.width, info.height))
+    try:
+        return mt.build_track(master, vf, canvas, mt.windows_from([(e.start, e.end) for e in behind], duration_s), log=log)
+    except mt.MatteUnavailable as exc:
+        plan.warnings.append(f"{str(exc).rstrip('. ')}. Grafiki za postacią rysuję przed nią.")
+        return None
+
+
+class StaticMatte:
+    """Jedna sylwetka dla wszystkich chwil (podgląd na zdjęciu albo pojedynczej klatce)."""
+
+    def __init__(self, image):
+        self.image = image
+
+    def at(self, t: float):
+        return self.image
+
+
+def matte_for_background(plan: GraphicsPlan, background: Path | None, size: tuple[int, int], *, start: float = 0.0,
+                         duration: float | None = None, frame: object | None = None, log: Callable[[str], None] = print):
+    """Sylwetki dla podglądu na Twoim nagraniu albo zdjęciu (`grafiki --tlo ...`). `frame` (obraz Pillow) to już wczytana klatka tła
+    dla podglądu jednej klatki. Bez elementów behind albo bez tła zwraca None; gdy się nie da, dopisuje ostrzeżenie do planu."""
+    if not any(e.behind for e in plan.elements) or (background is None and frame is None):
+        return None
+    from . import matte as mt
+    from .render import is_image
+
+    try:
+        if frame is not None or is_image(background):
+            from PIL import Image
+            import numpy as np
+
+            img = frame if frame is not None else Image.open(background)
+            w, h = mt.matte_size(size)
+            a = mt.refine(mt.Matter(mt.model_path(log)).alpha(np.asarray(img.convert("RGB").resize((w, h), Image.BILINEAR))))
+            return StaticMatte(Image.fromarray(a).resize(size, Image.BILINEAR))
+        end = start + duration if duration else plan.duration + 0.5
+        spans = [(max(e.start, start), min(e.end, end)) for e in plan.elements if e.behind and e.end > start and e.start < end]
+        vf = f"scale={size[0]}:{size[1]}:force_original_aspect_ratio=increase,crop={size[0]}:{size[1]}"
+        return mt.build_track(Path(background), vf, size, mt.windows_from(spans, end), log=log)
+    except mt.MatteUnavailable as exc:
+        plan.warnings.append(f"{str(exc).rstrip('. ')}. Grafiki za postacią rysuję przed nią.")
+        return None
+
+
 def prepare(graphics_path: str | Path | None, brand_ref: str | Path | None, tpl, video_plan, track: FaceTrack | None,
             master: Path, workdir: Path, words: list, canvas: tuple[int, int], duration_s: float,
             layer_captions: bool, log: Callable[[str], None] = print) -> GraphicsJob | None:
@@ -117,4 +176,4 @@ def prepare(graphics_path: str | Path | None, brand_ref: str | Path | None, tpl,
     log(f"Grafiki: {len([e for e in plan.elements if e.kind != 'captions'])} elementów, marka „{brand.name}”"
         f"{', napisy biegnące' if layer_captions and words else ''}; twarz w kadrze: wysokość {layout.face_h * 100:.0f}%, "
         f"środek ({layout.face_cx * 100:.0f}%, {layout.face_cy * 100:.0f}%).")
-    return GraphicsJob(plan, canvas, video_plan.fps, n)
+    return GraphicsJob(plan, canvas, video_plan.fps, n, make_matte(plan, video_plan, master, canvas, duration_s, log))

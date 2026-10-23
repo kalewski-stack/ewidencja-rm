@@ -25,7 +25,7 @@ HAVE_FFMPEG = bool(shutil.which("ffmpeg") and shutil.which("ffprobe"))
 HAVE_ORT = all(importlib.util.find_spec(m) for m in ("numpy", "onnxruntime"))
 ASSETS = HERE / "assets"
 PHOTO = ASSETS / "face_nasa_astronaut.jpg"
-TEMPLATE = "rolka_Dez4fPJCR74"
+TEMPLATE = "format2"
 
 # kolory marki „Linia Kalewski” (z systemu marki)
 VIOLET, VIOLET_DARK, YELLOW, INK = (121, 93, 255), (99, 67, 255), (255, 211, 70), (27, 20, 64)
@@ -51,6 +51,12 @@ SAMPLES = {
                 "kicker": "prosty\nwniosek", "image": "face_nasa_astronaut.jpg"},
     "stat": {"type": "stat", "at": 1, "dur": 4, "value": 700, "suffix": "+", "label": "wydarzeń"},
     "illustration": {"type": "illustration", "at": 1, "dur": 4, "image": "face_nasa_astronaut.jpg", "anchor": "head", "width": 0.2},
+    "arrow": {"type": "arrow", "at": 1, "dur": 3, "from": [0.3, 0.5], "to": [0.7, 0.7], "bend": 0.2, "style": "dotted", "head": "filled"},
+    "labels": {"type": "labels", "at": 1, "dur": 4, "items": [{"text": "Cel", "x": 0.25, "y": 0.12, "tx": 0.45, "ty": 0.16},
+                                                              {"text": "Odbiorca", "x": 0.75, "y": 0.2, "tx": 0.55, "ty": 0.18}]},
+    "text": {"type": "text", "at": 1, "dur": 4, "text": "Idealna *strategia*\n_treści_", "marker": "bracket", "reveal": "type"},
+    "list": {"type": "list", "at": 1, "dur": 6, "marker": "box", "rows": [{"label": "Cel", "text": "jasny", "state": "done"}, {"text": "konkretny"}]},
+    "ring": {"type": "ring", "at": 1, "dur": 4, "x": 0.5, "y": 0.5, "rx": 0.22, "dots": 24},
 }
 
 
@@ -471,7 +477,12 @@ class TemplateTests(unittest.TestCase):
         self.assertEqual(tpl.mode, "single")
         self.assertEqual([s.role for s in tpl.segments], ["A"])
         self.assertEqual(tpl.graphics["captions"]["max_words"], 3)
-        self.assertAlmostEqual(tpl.duration_s, 58.93, delta=0.05)
+        self.assertAlmostEqual(tpl.duration_s, 61.1, delta=0.05)
+        reels = tpl.dynamics["reels"]
+        self.assertEqual([r["id"] for r in reels], ["Dez4fPJCR74", "DeGQ3NAC2f9", "Dd2i55aj43S", "DdxAwodlOGG"])
+        face = tpl.segments[0].face  # cel kadru to mediana twarzy z czterech rolek
+        hs = sorted(r["face"]["h"] for r in reels)
+        self.assertAlmostEqual(face.h, (hs[1] + hs[2]) / 2, delta=0.003)
 
     def test_single_mode_rules(self):
         raw = json.loads((HERE.parent / "src" / "reelcut" / "data" / f"{TEMPLATE}.json").read_text(encoding="utf-8"))
@@ -514,7 +525,7 @@ class StyleCardTests(unittest.TestCase):
         self.assertIn(start, text)
         embedded = text.split(start, 1)[1].split(end, 1)[0].strip("\n")
         self.assertEqual(embedded, style.describe(load_template(TEMPLATE)).strip("\n"),
-                         "karta w GRAFIKI.md jest nieaktualna: python rolka.py style rolka_Dez4fPJCR74 i wklej między znaczniki")
+                         "karta w GRAFIKI.md jest nieaktualna: python rolka.py style format2 i wklej między znaczniki")
 
     def test_card_lists_exactly_the_registered_elements(self):
         self.assertEqual(set(style.GRAPHICS_ELEMENTS), set(graphics.REGISTRY) - {"captions"})

@@ -1,6 +1,6 @@
 # Rolka: tnie Twoje wideo jak rolka wzorcowa
 
-Wrzucasz swoje nagranie, dostajesz pionowy film (1080×1920) zmontowany według schematu rolki
+**Format 1** (domyślny, ten opis): wrzucasz swoje nagranie, dostajesz pionowy film (1080×1920) zmontowany według schematu rolki
 <https://www.instagram.com/reel/DeuOaXKtPBb/>: ten sam rytm cięć, ten sam układ „mówiąca głowa + wstawki",
 te same proporcje kadrów (rozmiar i miejsce twarzy), te same kolory (ciemny, stonowany look z winietą),
 napisy słowo po słowie z wyróżnionymi frazami i dźwięk znormalizowany do −14 LUFS.
@@ -9,8 +9,9 @@ Wszystko liczy się na Twoim komputerze. Żaden plik nie jest nigdzie wysyłany.
 
 - Szczegóły analizy rolki (czasy cięć, zasady, wymiary napisów): [ANALIZA.md](ANALIZA.md).
 - **Nowy film krok po kroku** (co nagrać, co wrzucić, co sprawdzić): [WORKFLOW.md](WORKFLOW.md), jedna strona.
-- **Krótki format z gadającą głową i animowanymi grafikami** (tytuły, karty, liczniki, listy kroków, napisy w kolorach
-  i kroju marki, czasy ustawiane na słowach ze scenariusza): [GRAFIKI.md](GRAFIKI.md).
+- **Format 2: gadająca głowa** (jeden take bez cięć, animowane grafiki w kolorach i kroju marki: tytuły, listy pisane
+  na żywo, karty, strzałki, liczniki, także za postacią; czasy ustawiane na słowach ze scenariusza): zasady i słownik
+  elementów w [FORMAT2.md](FORMAT2.md), składnia znaczników w [GRAFIKI.md](GRAFIKI.md). Szablon `format2`.
 - **Styl do przeniesienia na inne tematy** (kolory, dynamika, kadry, cięcia, lista ujęć do nagrania, format
   scenariusza z budżetem słów): [STYL.md](STYL.md). Kartę stylu każdego szablonu wypisze `python rolka.py style`.
 
@@ -41,8 +42,8 @@ Wszystko liczy się na Twoim komputerze. Żaden plik nie jest nigdzie wysyłany.
 | **ffmpeg** (z ffprobe) | cały montaż | macOS: `brew install ffmpeg` · Windows: `winget install Gyan.FFmpeg` · Linux: `sudo apt install ffmpeg` |
 | **Python 3.9+** | uruchamia narzędzie | <https://www.python.org/downloads/> |
 | `faster-whisper` *(opcjonalnie)* | napisy (rozpoznawanie mowy) | `pip install faster-whisper` (przy pierwszym użyciu pobiera model, ok. 500 MB dla „small") |
-| `pillow` *(opcjonalnie)* | grafiki na wideo i napisy w kroju marki (szablon `rolka_Dez4fPJCR74`) | `pip install pillow` |
-| `numpy` + `onnxruntime` *(opcjonalnie)* | kadrowanie po Twojej twarzy, dopasowanie kolorów, role ujęć w `analyze` | `pip install numpy onnxruntime` (model twarzy YuNet, 230 KB, jest w paczce) |
+| `pillow` *(opcjonalnie)* | grafiki na wideo i napisy w kroju marki (szablon `format2`) | `pip install pillow` |
+| `numpy` + `onnxruntime` *(opcjonalnie)* | kadrowanie po Twojej twarzy, dopasowanie kolorów, role ujęć w `analyze`, grafiki „za postacią” w Formacie 2 | `pip install numpy onnxruntime` (model twarzy YuNet, 230 KB, jest w paczce; model wycinania postaci, 26 MB, pobiera się raz przy pierwszym użyciu) |
 
 Bez `faster-whisper` dostaniesz montaż bez napisów, bez `numpy`/`onnxruntime` kadry zostają stałymi zoomami
 z szablonu, a kolory bez zmian. Narzędzie samo to zgłosi w ostrzeżeniach.

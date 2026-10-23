@@ -1,10 +1,14 @@
-# GRAFIKI: krótka gadająca głowa z animowanymi elementami w Twoich kolorach
+# GRAFIKI: Format 2 (gadająca głowa) z animowanymi elementami w Twoich kolorach
 
-Wzorzec: <https://www.instagram.com/reel/Dez4fPJCR74/> (jeden ciągły take 58,9 s, zero cięć, kamera nieruchoma).
-Cała dynamika tej rolki to **animowane grafiki nałożone na mówiącą głowę** i małe napisy słowo po słowie. Narzędzie
-odtwarza ten **zestaw elementów i gramatykę animacji** (wejście ze skalą, wjazd i rozmyciem, kolejne karty co ułamek
-sekundy, liczniki, tekst pisany na żywo, kursor jadący po kadrze), ale w kolorach i kroju marki **Linia Kalewski**.
-Nie ma tu obrazu ani treści rolki wzorcowej: elementy dostają Twoje teksty i Twoje obrazy.
+To opis techniczny **Formatu 2**: składnia scenariusza, plan JSON, elementy i ich pola. Zasady samego formatu
+(konstrukcja filmu, słownik elementów, parametry z rolek wzorcowych): [FORMAT2.md](FORMAT2.md).
+
+Wzorce: cztery rolki jednego konta (Dez4fPJCR74, DeGQ3NAC2f9, Dd2i55aj43S, DdxAwodlOGG): jeden ciągły take 42-72 s,
+zero cięć, kamera nieruchoma. Cała dynamika tych rolek to **animowane grafiki nałożone na mówiącą głowę** i małe napisy
+słowo po słowie. Narzędzie odtwarza ten **zestaw elementów i gramatykę animacji** (wejście ze skalą, wjazd i rozmyciem,
+kolejne karty co ułamek sekundy, liczniki, tekst pisany na żywo, strzałki rysowane na żywo, kursor jadący po kadrze),
+ale w kolorach i kroju marki **Linia Kalewski**. Nie ma tu obrazu ani treści rolek wzorcowych: elementy dostają Twoje
+teksty i Twoje obrazy.
 
 ## W skrócie
 
@@ -15,28 +19,29 @@ Nie ma tu obrazu ani treści rolki wzorcowej: elementy dostają Twoje teksty i T
 4. **Kontrola** jednej klatki albo fragmentu bez pełnego renderu.
 
 ```
-python rolka.py nagranie.mp4 --template rolka_Dez4fPJCR74 --graphics scenariusz.txt
+python rolka.py nagranie.mp4 --template format2 --graphics scenariusz.txt
 ```
 
-W interfejsie (`python rolka.py serve`): w ustawieniach wybierz szablon „Rolka Dez4fPJCR74…”, w kroku 3 („Grafiki”)
+W interfejsie (`python rolka.py serve`): w ustawieniach wybierz szablon „Format 2: gadająca głowa”, w kroku 3 („Grafiki”)
 przeciągnij `scenariusz.txt` razem z obrazami, których używa, i kliknij **Potnij**.
 
-Szablon `rolka_Dez4fPJCR74` robi jedno ujęcie bez cięć (kadruje Twoją twarz jak we wzorcu, skraca pauzy powyżej 0,5 s do
+Szablon `format2` robi jedno ujęcie bez cięć (kadruje Twoją twarz jak we wzorcu, skraca pauzy powyżej 0,5 s do
 0,35 s, ustawia głośność −14 LUFS), rysuje napisy słowo po słowie w kroju marki i nakłada grafiki ze scenariusza.
 Kolorów nagrania nie zmienia: kolory marki mają grafiki i napisy.
 
-## Rytm wzorca
+## Rytm wzorców
 
-Z przeglądu klatek co 2 s (30 próbek, oglądane, nie mierzone komputerowo):
+Z przeglądu klatek co 2 s (oglądane, nie mierzone komputerowo). W rolce Dez4fPJCR74 grafika jest na ekranie w 28 z 30
+próbek; w trzech pozostałych w każdej obejrzanej próbce (pierwsze 31-41 s) było widać jakąś grafikę. Dalej:
 
-- grafika jest na ekranie w 28 z 30 próbek; pierwsza wchodzi w 2. sekundzie (wcześniej jest sama głowa i napisy);
+- pierwsza grafika wchodzi w 1.-2. sekundzie (wcześniej jest sama głowa i napisy);
 - często jest kilka elementów naraz (np. chip profilu z licznikiem, karty z podpisami i tytuł), a nowy wchodzi mniej
   więcej co kilka sekund;
 - cały obraz jest rozmyty i przyciemniony tylko przy kartach z długim tekstem (w próbkach raz, ok. 29–32 s); poza tym głowa
   jest ostra;
 - napisy słowo po słowie idą przez cały film w jednym miejscu, na wysokości klatki piersiowej.
 
-Pisząc scenariusz, celuj w podobną gęstość: pierwszy element w ok. 2. sekundzie, potem nowy co 2–6 s, rozmycie tylko tam,
+Pisząc scenariusz, celuj w podobną gęstość: pierwszy element w 1.–2. sekundzie, potem nowy co 2–4 s, rozmycie tylko tam,
 gdzie karta ma dużo tekstu.
 
 ## Szybka pętla: najpierw surowiec, potem grafiki
@@ -45,14 +50,14 @@ Rozpoznawanie mowy trwa najdłużej, a grafiki liczą się w sekundach. Dlatego:
 
 ```
 # 1. surowy montaż z napisami (raz): powstaje nagranie_rolka.mp4 i nagranie_rolka.slowa.json
-python rolka.py nagranie.mp4 --template rolka_Dez4fPJCR74
+python rolka.py nagranie.mp4 --template format2
 
 # 2. ocena grafik na klatce albo fragmencie (kilka sekund), tłem jest ten surowy montaż
 python rolka.py grafiki scenariusz.txt --words nagranie_rolka.slowa.json --tlo nagranie_rolka.mp4 --klatka 12 --twarz 0.17,0.55,0.45
 python rolka.py grafiki scenariusz.txt --words nagranie_rolka.slowa.json --tlo nagranie_rolka.mp4 --od 8 --czas 10 -o podglad.mp4
 
 # 3. film końcowy bez ponownego rozpoznawania mowy
-python rolka.py nagranie.mp4 --template rolka_Dez4fPJCR74 --graphics scenariusz.txt --words nagranie_rolka.slowa.json -o final.mp4
+python rolka.py nagranie.mp4 --template format2 --graphics scenariusz.txt --words nagranie_rolka.slowa.json -o final.mp4
 ```
 
 `--twarz H,X,Y` w podglądzie to położenie Twojej twarzy w kadrze (wysokość, środek x, środek y, ułamki). Wartości, które
@@ -65,14 +70,15 @@ przyjmuje kadr wzorca. Tło `--tlo` może też być zdjęciem (png, jpg).
 |---|---|---|
 | Format | pion 9:16, najlepiej 4K lub 1080p | wynik 1080×1920 |
 | Kamera | nieruchoma, jeden take | cięć nie ma, zmiany robią grafiki |
-| Twarz | wysokość ok. 17% kadru, środek ok. 55% szerokości i 45% wysokości | tak ustawia ją montaż |
-| Nad głową | ok. 30% wysokości wolnego miejsca | tam lądują tytuły, karty, liczniki |
+| Twarz | wysokość ok. 15% kadru (13–19%), środek ok. 48% szerokości i 46% wysokości | mediana czterech rolek; tak ustawia ją montaż |
+| Nad głową | ok. jednej trzeciej wysokości wolnego miejsca | tam lądują tytuły, karty, listy, liczniki |
 | Po bokach głowy | wolne pasy | tam lecą liczniki i profil |
 | Poziom klatki piersiowej | napisy słowo po słowie (ok. 55% wysokości) | dół zostaje na listy i pigułki |
 | Tempo | ok. 4 słowa na sekundę, pauzy do 0,5 s | tak mówi wzorzec; dłuższe pauzy program skraca |
 | Tło | spokojne, raczej ciemne | grafiki mają miękki cień, ale jasne, ruchliwe tło zawsze obniża czytelność |
 
-Grafiki **nie chowają się za głową**: strefy kadru wyznacza położenie Twojej twarzy i elementy trafiają obok niej.
+Strefy kadru wyznacza położenie Twojej twarzy i elementy trafiają obok niej, nie na nią. Gdy coś ma być **za postacią**
+(poświata za głową, ilustracja wystająca zza ramienia), dopisz `za: tak` (rozdział „Grafiki za postacią”).
 Gdy karty z punktami nie mieszczą się w górnej strefie, program ostrzega i zmniejsza tekst; wtedy użyj `strefa: całość`
 razem z rozmyciem obrazu (niżej).
 
@@ -90,6 +96,8 @@ To zwykły plik tekstowy (`.txt` albo `.md`) z tekstem, który powiesz, i znaczn
   `czas: sekundy`. Bez żadnego z nich działa czas domyślny elementu (tabela niżej).
 - `przesuń: -0,3` przesuwa start o sekundy (ujemne = wcześniej).
 - `strefa:` góra, lewo, prawo, dół, głowa, całość (albo `x: 0,5 | y: 0,3`, środek elementu w ułamkach kadru).
+- Położenia i rozmiary podajesz jako ułamek kadru (`0,3`) albo w procentach (`30%`). Punkt to dwie liczby: `od: 20%; 30%`.
+- `za: tak` rysuje element za Twoją sylwetką (rozdział „Grafiki za postacią”).
 - `wejście:` i `wyjście:` zmieniają czas wejścia i wyjścia (sekundy), `rozmycie: tak` dokłada rozmycie obrazu na czas elementu.
 - Linie zaczynające się od `#` lub `//` oraz tekst w `[nawiasach kwadratowych]` to uwagi: nie są mową i nie liczą się
   do dopasowania.
@@ -117,7 +125,7 @@ Częsty błąd w briefie to {tytuł: Brak celu | akcent: błąd nr 1 | styl: ser
 | `tytuł` | tekst tytułu | `akcent` (małe słowo obrócone nad prawym końcem), `styl` serif/bold, `rozmiar`, `strefa` | duży żółty napis, wejście ze skalą i rozmyciem | 3 s |
 | `plakietka` | tekst | `numer` | numer w fioletowym kole i tytuł obok | 4 s |
 | `licznik` | liczba z jednostką: `700+`, `15 834 zł`, `2,5 mln` | `podpis`, `od`, `pasek` tak/nie, `rozmiar` | duża liczba odliczana do wartości, pasek postępu | 4 s |
-| `karty` | `Etykieta = punkt / punkt; Etykieta; …` (w punktach `*wyróżnienie*` świeci żółto) | `obrazy: a.jpg; ; c.png` (puste = miniatura-zaślepka), `etykiety: serif` (podpisy kursywą szeryfową zamiast pogrubionego kroju), `fokus: 1`, `focus_at: 2,5`, `układ: grid`, `kolumny`, `strefa` | rząd miniatur 9:16 wjeżdżających kolejno, jedna może się powiększyć | 4 s |
+| `karty` | `Etykieta = punkt / punkt; Etykieta; …` (w punktach `*wyróżnienie*` świeci żółto) | `obrazy: a.jpg; ; c.png` (puste = miniatura-zaślepka), `etykiety: szeryf` (kursywa szeryfowa) albo `żółte`, `wyświetlenia: 153K; ; 12,4K` (oko z liczbą pod kartą), `fokus: 1`, `focus_at: 2,5`, `układ: grid`, `kolumny`, `strefa` | rząd miniatur 9:16 wjeżdżających kolejno, jedna może się powiększyć | 4 s |
 | `profil` | podpis | `tryb` mini/full, `licznik: 25; 60`, `jednostka`, `pasek: 0,3; 1`, `znacznik`, `korona: tak`, `kursor: nie`, `badge: clock` | chip z Twoją twarzą (wycięta z nagrania), licznikiem, paskiem i kursorem | 6 s |
 | `pigułki` | `Tekst = znacznik; …` | `rozmiar`; style i ikona przy każdej: w planie JSON | etykiety wlatujące na przemian z lewej i prawej | 4 s |
 | `kafelki` | `Etykieta = wartość; …` | `chip_w` | małe kafelki z odliczaną wartością | 4 s |
@@ -125,7 +133,13 @@ Częsty błąd w briefie to {tytuł: Brak celu | akcent: błąd nr 1 | styl: ser
 | `oś` | podpisy od najniższego | `step` | wykres schodkowy w kształcie litery L, ostatni punkt żółty | 6 s |
 | `paski` | podpisy wierszy | rodzaje pasków: w planie JSON | wiersze z paskami albo obracającym się kółkiem | 5 s |
 | `wyróżnienie` | tytuł | `tekst` (pisany na żywo), `ikona` bulb/check/star/none, `hasło` (szeryfowy podpis po prawej), `obraz` (karta po prawej), `cps` | kafelek z ikoną i tekstem pojawiającym się znak po znaku | 5 s |
-| `ilustracja` | nazwa pliku | `szerokość`, `poświata`, `kotwica: głowa` | obraz z miękką poświatą, np. nad głową | 3 s |
+| `ilustracja` | nazwa pliku | `szerokość`, `poświata` (nie: bez poświaty), `kotwica: głowa`, `obrót`, `przezroczystość`, `za: tak`, `wystaje: tak` (może wyjść za kadr); ruch po ścieżce: `path` w planie JSON | obraz z miękką poświatą, np. nad głową; jedzie, rośnie i obraca się wg ścieżki | 3 s |
+| `tekst` | tekst; `*wyróżnienie*` świeci żółto, `_kursywa_` to krój szeryfowy, `\n` łamie wiersz | `rozmiar`, `krój` (szeryf, gruby, pogrubiony, półgruby, zwykły), `kolor`, `zaznaczenie` (pędzel, nawias, podkreślenie), `odsłanianie` (zanik, pisanie, słowa), `znacznik` (mała żółta etykieta pod tekstem), `x`, `y` albo `strefa` | tekst z formatowaniem, odsłaniany albo pisany na żywo | 3,5 s |
+| `strzałka` | (brak) | `od`, `cel` (punkty), `łuk` (0 = prosta, 0,25 = wyraźny łuk, minus = w drugą stronę), `styl` (ciągła, przerywana, kropkowana), `grot` (otwarty, pełny, brak), `grubość`, `kolor` | linia rysowana na żywo od początku do końca | 3 s |
+| `opisy` | `Tekst @ x y > cel_x cel_y; …` (bez `>` sam napis) | `kolor`, `rozmiar`, `krój`, `linia` (ciągła, przerywana, kropkowana, brak), `łuk` | napisy z cienką linią i kropką, które wskazują miejsce | 5 s |
+| `lista` | `Etykieta = tekst / komentarz; …`, `+` na początku = odhaczone | `zaznaczenie` (brak, kropka, ramka), `pismo` (szeryf, zwykły), `rozmiar`, `szerokość`, `x`, `y` albo `strefa` | wiersze pojawiające się po kolei, treść „pisana” na żywo | 8 s |
+| `porównanie` | `Tytuł: wiersz; wiersz // Tytuł: wiersz` | jak `lista` plus `rule: tak` (kreska między kolumnami), `rule_to` | dwie kolumny z kreską pośrodku | 8 s |
+| `pierścień` | (brak) | `x`, `y` (środek), `rx`, `ry`, `kropki`, `luki: 100..260; -80..80` (kąty: 0 to góra, rosną zgodnie ze wskazówkami zegara), `rozmiar`, `kolor` | kropki układają się w pierścień albo łuki wokół wskazanego miejsca | 3,5 s |
 | `rozmycie` | (brak) | `siła` (14), `ściemnienie` (0,25) | rozmywa i przyciemnia cały obraz na czas działania, żeby grafiki były czytelne | 3 s |
 
 Obrazy podajesz samą nazwą pliku; plik leży obok scenariusza (w interfejsie wrzucasz je razem ze scenariuszem).
@@ -175,7 +189,39 @@ różnice zapisu w dłuższych słowach też nie). Gdy nie znajdzie, komunikat p
 czas. Plan z frazami wymaga transkrypcji: program rozpozna mowę sam albo weź gotową (`--words`).
 
 Wszystkie pola elementów (tytuł, plakietka, karty, profil z `path` ruchu kursora, pigułki ze stylami, kafelki, kroki, oś,
-paski ze spinnerem, wyróżnienie, licznik, ilustracja) opisują komentarze w kodzie: `src/reelcut/graphics/`.
+paski ze spinnerem, wyróżnienie, licznik, ilustracja, tekst, strzałka, opisy, lista, pierścień) opisują komentarze w kodzie:
+`src/reelcut/graphics/`.
+
+### Elementy Formatu 2 w planie JSON
+
+Tego, czego scenariusz nie wyrazi (karty w dowolnym miejscu, ścieżka ilustracji), używasz w planie JSON. Pliki obrazów
+leżą obok planu.
+
+<!-- plan-f2:start -->
+```json
+{
+  "schema": 1,
+  "elements": [
+    {"type": "illustration", "at": 2.0, "dur": 20, "image": "schemat.png", "width": 0.6, "glow": false, "behind": true, "bleed": true,
+     "path": [[0, 0.5, 0.2, 1.0, 0], [6, 0.8, 0.45, 1.4, 6], [14, 0.8, 0.45, 1.4, 6]]},
+    {"type": "cards", "at": 9.0, "dur": 10, "label_style": "serif",
+     "items": [{"label": "Pierwsza", "image": "a.jpg", "x": 0.27, "y": 0.22, "w": 0.24, "rot": -4, "views": "153K"},
+               {"label": "Druga", "kind": "blank", "x": 0.73, "y": 0.22, "w": 0.21, "rot": 3, "label_style": "yellow", "at": 1.2}]},
+    {"type": "arrow", "at": 10.0, "dur": 4, "from": [0.45, 0.3], "to": [0.58, 0.3], "bend": 0.2, "style": "dashed", "head": "filled"},
+    {"type": "ring", "at": 11.0, "dur": 4, "x": 0.27, "y": 0.22, "rx": 0.17, "arcs": [[100, 260], [-80, 80]]}
+  ]
+}
+```
+<!-- plan-f2:end -->
+
+| Pole | Znaczenie |
+|---|---|
+| `behind` | `true`: element jest za Twoją sylwetką (dowolny typ) |
+| `bleed` | `true`: element może wychodzić poza kadr bez ostrzeżenia (ilustracja wystająca zza krawędzi) |
+| ilustracja: `path` | klatki kluczowe `[czas od startu elementu, x, y, skala, obrót]`; skala i obrót są opcjonalne, ruch jest płynny |
+| ilustracja: `rot`, `opacity` | stały obrót w stopniach, krycie 0-1 |
+| karta: `x`, `y`, `w`, `rot` | środek (ułamki kadru), szerokość (ułamek szerokości kadru) i obrót karty; pozostałe karty układają się w rzędzie |
+| karta: `at`, `views`, `label_style` | start tej karty (sekundy od startu elementu), licznik wyświetleń pod kartą, styl podpisu: `bold`, `serif`, `yellow` |
 
 ## Marka i kolory
 
@@ -192,8 +238,8 @@ Instrument Serif Italic (tytuły szeryfowe), oba na licencji OFL, w paczce.
 | `highlight` | żółty | **jedyny jasny element naraz**: liczba, kursor, aktywna pozycja, słowo kluczowe |
 | `panel` | tusz | tło paneli |
 
-We wzorcu kolorem grafik jest pomarańcz. Tutaj jego rolę (jedyny jasny akcent) przejmuje żółty marki, a fiolet jest
-kolorem etykiet, linii i tła kart.
+We wzorcach akcentem jest pomarańcz (Dez4fPJCR74) albo żółty (pozostałe trzy rolki). Tutaj rolę jedynego jasnego akcentu
+zawsze pełni żółty marki, a fiolet jest kolorem etykiet, linii i tła kart.
 
 Reguła marki: żółty to jeden akcent naraz (najważniejszy element), nie dekoracja. Kolory po kompresji H.264 różnią się
 od wzoru o ±2 na kanał (sprawdzone na wyjściu: `#6343FF` wraca jako `#6142FD`, `#FFD346` jako `#FED246`).
@@ -218,16 +264,31 @@ w planie). Pliki krojów podajesz względem folderu `fonts` obok pliku marki.
   po cichu: przestaw `strefa` (albo `x`/`y`), skróć tekst albo przesuń czas.
 - Teksty w wąskich strefach (tytuł, plakietka, licznik, rząd kafelków) **same się zmniejszają**, żeby się zmieścić (do 45% rozmiaru).
 
+## Grafiki za postacią
+
+`za: tak` w scenariuszu albo `"behind": true` w planie rysuje element **pod Twoją sylwetką**: poświatę za głową, ilustrację
+wystającą zza ramienia, kartę chowającą się za dłonią. Zasady:
+
+- Sylwetkę wycina model MODNet (Apache-2.0, 26 MB). Program pobiera go **raz** do `~/ReelCut/modele` (suma SHA-256 jest
+  sprawdzana), potem działa bez internetu. Własny plik: zmienna `REELCUT_MODNET`.
+- Potrzebne są `numpy` i `onnxruntime` (te same co do kadrowania twarzy).
+- Sylwetka jest liczona tylko w oknach czasu, w których jest taki element (15 klatek na sekundę), więc koszt rośnie z liczbą
+  takich okien, nie z długością filmu.
+- Działa tylko w Formacie 2 (jedno ujęcie). Gdy modelu albo pakietów brak, element rysuje się z przodu, a program mówi o tym
+  w ostrzeżeniu.
+- Podgląd jednej klatki też uwzględnia sylwetkę: `python rolka.py grafiki plan.json --tlo nagranie_rolka.mp4 --klatka 12`.
+- Sprawdzone na klatkach z rolek wzorcowych i na zdjęciu, **nie na Twoim nagraniu**. Obejrzyj brzegi (włosy, palce, rękawy).
+
 ## Napisy słowo po słowie
 
-Szablon rysuje je sam, w Bricolage Grotesque: do 3 słów naraz, wysokość wersalików 1,9% wysokości kadru (36 px z 1920),
+Szablon rysuje je sam, w Bricolage Grotesque: do 3 słów naraz, wysokość wersalików 2,0% wysokości kadru (39 px z 1920),
 górna krawędź na 54,8% wysokości (klatka piersiowa). Poprawki literówek: edytujesz `*.slowa.json` (pole `w`, czasów nie
 ruszaj) i uruchamiasz ponownie z `--words`.
 
 ## Czego to narzędzie nie robi
 
-- **Grafiki nie wchodzą za głowę.** We wzorcu niektóre elementy chowają się za postacią; tu zawsze leżą obok twarzy (strefy
-  liczone z jej położenia).
+- **Domyślnie grafiki leżą obok postaci, nie za nią.** Za postacią stawia je dopiero `za: tak` (wycinanie sylwetki,
+  tylko Format 2, patrz wyżej); strefy domyślne są liczone z położenia twarzy.
 - **Karty nie odtwarzają wideo.** Pokazują obraz, który podasz, albo zaślepkę w barwach marki (ciemna miniatura z przyciskiem
   odtwarzania, pusta karta z kreskami).
 - **Treści są Twoje.** Teksty, liczby i obrazy podajesz Ty. Narzędzie niczego nie wymyśla.
@@ -250,35 +311,46 @@ ruszaj) i uruchamiasz ponownie z `--words`.
 | „zasłania twarz” | inna strefa albo `rozmycie: tak` na ten czas; `strefa: głowa` i `kotwica: głowa` to świadomy wybór |
 | „karty zmieściły się tylko w szerokości … px” | `strefa: całość` i `rozmycie: tak`, krótsze punkty albo mniej kart naraz |
 | „Do grafik potrzebny jest pakiet Pillow” | `pip install pillow` |
+| „Nie udało się pobrać modelu wycinania postaci… Grafiki za postacią rysuję przed nią” | pobierz model ręcznie z adresu z komunikatu i zapisz jako `~/ReelCut/modele/modnet_fp32.onnx` (albo wskaż plik zmienną `REELCUT_MODNET`); do tego `pip install numpy onnxruntime` |
+| „Grafiki za postacią (behind) działają w formacie 2…” | użyj szablonu `format2` (jedno ujęcie) |
 | „Znacznik „{…}”: nieznany typ” | lista typów w komunikacie; nazwy jak w tabeli powyżej |
 
 ## Ściąga komend
 
 ```
-python rolka.py nagranie.mp4 --template rolka_Dez4fPJCR74                          # surowy montaż z napisami marki
-python rolka.py nagranie.mp4 --template rolka_Dez4fPJCR74 --graphics scenariusz.txt # z grafikami
-python rolka.py nagranie.mp4 --template rolka_Dez4fPJCR74 --graphics plan.json --brand moja_marka.json
-python rolka.py nagranie.mp4 --template rolka_Dez4fPJCR74 --graphics scenariusz.txt --dry-run --words nagranie.slowa.json
+python rolka.py nagranie.mp4 --template format2                          # surowy montaż z napisami marki
+python rolka.py nagranie.mp4 --template format2 --graphics scenariusz.txt # z grafikami
+python rolka.py nagranie.mp4 --template format2 --graphics plan.json --brand moja_marka.json
+python rolka.py nagranie.mp4 --template format2 --graphics scenariusz.txt --dry-run --words nagranie.slowa.json
 python rolka.py grafiki scenariusz.txt --words slowa.json --tlo klip.mp4 --klatka 12    # jedna klatka (PNG)
 python rolka.py grafiki plan.json --czas 8 -o podglad.mp4                                # grafiki na ciemnym tle
-python rolka.py style rolka_Dez4fPJCR74                                                  # karta stylu szablonu
+python rolka.py style format2                                                  # karta stylu szablonu
 ```
 
 ## Dodatek: karta stylu szablonu (wygenerowana)
 
-Zmierzone liczby szablonu `rolka_Dez4fPJCR74`. Odświeżysz ją poleceniem `python rolka.py style rolka_Dez4fPJCR74`.
+Zmierzone liczby szablonu `format2`. Odświeżysz ją poleceniem `python rolka.py style format2`.
 
 <!-- karta:start -->
-# Karta stylu: Rolka Dez4fPJCR74: gadająca głowa w jednym ujęciu, grafiki i napisy marki
+# Karta stylu: Format 2: gadająca głowa (jedno ujęcie, animowane grafiki, napisy marki)
 
-Źródło: https://www.instagram.com/reel/Dez4fPJCR74/. Format 1080x1920, 30 kl./s, 58,9 s.
+Źródło: https://www.instagram.com/reel/Dez4fPJCR74/ https://www.instagram.com/reel/DeGQ3NAC2f9/ https://www.instagram.com/reel/Dd2i55aj43S/ https://www.instagram.com/reel/DdxAwodlOGG/. Format 1080x1920, 30 kl./s, 61,1 s.
 
 ## Montaż i tempo
 
-- Jedno ujęcie bez cięć, 58,9 s. Dynamika pochodzi z warstwy grafik i napisów, nie z montażu.
+- Jedno ujęcie bez cięć, 61,1 s. Dynamika pochodzi z warstwy grafik i napisów, nie z montażu.
 - Pauzy w mowie: powyżej 0,50 s skracane do 0,35 s.
 - Tempo mowy: 4,2 słowa na sekundę.
-- Głośność rolki: -14,4 LUFS, szczyt -0,8 dBTP, zakres LRA 3,6 LU (cel w szablonie: -14,0 LUFS).
+- Głośność rolki: -14,2 LUFS, szczyt -1,1 dBTP, zakres LRA 2,9 LU (cel w szablonie: -14,0 LUFS).
+
+Rolki wzorcowe tego formatu (4, mediany powyżej); położenie i rozmiary jako ułamki kadru:
+
+| Rolka | Czas (s) | Słów/s | LUFS | LRA | Twarz: wys. | Twarz: x | Twarz: y | Napisy: góra | Napisy: wys. linii |
+|---|---|---|---|---|---|---|---|---|---|
+| Dez4fPJCR74 | 58,9 | 4,19 | -14,3 | 3,6 | 17,2% | 55,2% | 45,4% | 54,8% | 2,03% |
+| DeGQ3NAC2f9 | 63,3 | 3,87 | -14,3 | 3,3 | 15,0% | 48,4% | 46,2% | 54,5% | 2,19% |
+| Dd2i55aj43S | 41,8 | 4,14 | -14,1 | 2,3 | 15,7% | 47,6% | 48,2% | 58,1% | 2,19% |
+| DdxAwodlOGG | 71,8 | 4,24 | -14,1 | 2,6 | 14,8% | 48,1% | 44,8% | 53,3% | 2,34% |
 
 ## Kadry
 
@@ -286,9 +358,9 @@ Rozmiar i położenie twarzy w ujęciach z mową, jako ułamki kadru (x: 0% = le
 
 | Ujęcie | Czas (s) | Plan | Twarz: wysokość | Twarz: x | Twarz: y | Oczy: y |
 |---|---|---|---|---|---|---|
-| 1 | 0,0-58,9 | plan ogólny | 17% | 55% | 45% | 43% |
+| 1 | 0,0-61,1 | plan ogólny | 15% | 48% | 46% | 44% |
 
-Kadr stały, bez najazdów. Nad czubkiem głowy zostaje ok. 32% wysokości kadru wolnego miejsca na grafiki; napisy stoją na wysokości klatki piersiowej.
+Kadr stały, bez najazdów. Nad czubkiem głowy zostaje ok. 34% wysokości kadru wolnego miejsca na grafiki; napisy stoją na wysokości klatki piersiowej.
 
 ## Kolory
 
@@ -307,12 +379,12 @@ Marka: Linia Kalewski.
 
 ## Grafiki i napisy
 
-- Napisy rysuje warstwa grafik, w kroju marki: do 3 słów naraz, wysokość wersalików 1,9% wysokości kadru (ok. 36 px z 1920), górna krawędź na 54,8% wysokości.
+- Napisy rysuje warstwa grafik, w kroju marki: do 3 słów naraz, wysokość wersalików 2,0% wysokości kadru (ok. 39 px z 1920), górna krawędź na 54,8% wysokości.
 - Resztę dynamiki daje plan grafik: plik JSON z czasami (`--graphics plan.json` albo przeciągnięcie w interfejsie).
 - Elementy planu:
   - `title`: duży napis (żółty, szeryfowy kursywą albo krojem marki) z małym słowem-akcentem nad prawym końcem
   - `badge`: plakietka: numer w kole i tytuł obok, np. „1 Scenariusz”
-  - `cards`: rząd miniatur 9:16 z etykietami i punktami pod spodem, jedna karta może się powiększyć
+  - `cards`: miniatury 9:16 z etykietą (pogrubioną, szeryfową kursywą albo żółtą), punktami i licznikiem wyświetleń pod spodem: w rzędzie, siatce albo w dowolnym miejscu i pod kątem, jedna może się powiększyć
   - `profile`: chip z awatarem (Twoja twarz z nagrania), licznikiem, paskiem postępu i kursorem jadącym po kadrze
   - `pills`: krótkie hasła z ikoną, wlatujące jedna po drugiej (biała, szklana, fioletowa, żółta)
   - `chips`: małe kafelki z etykietą i liczbą, np. wartości do porównania
@@ -321,11 +393,17 @@ Marka: Linia Kalewski.
   - `bars`: wiersze z etykietami (podwójne, pojedyncze, ze spinnerem)
   - `callout`: wyróżnienie: ikona, tytuł i tekst „pisany” na żywo, opcjonalnie karta po prawej
   - `stat`: duża liczba odliczana od zera z podpisem i paskiem
-  - `illustration`: obraz z miękką poświatą, np. nad głową
+  - `illustration`: obraz z miękką poświatą, np. nad głową; może jechać po ścieżce, rosnąć, obracać się i wychodzić poza kadr
+  - `arrow`: strzałka albo linia rysowana na żywo: łuk, linia ciągła, przerywana lub kropkowana, grot otwarty lub pełny
+  - `labels`: opisy z cienką linią i kropką, które wskazują miejsca na obrazie albo karcie
+  - `text`: tekst z wyróżnieniami (*żółte*, _szeryfowe_), odsłaniany albo pisany na żywo, z podkreśleniem, pędzlem lub nawiasem
+  - `list`: wiersze pojawiające się po kolei z „pisaniem” treści, polami do odhaczenia albo w dwóch kolumnach (porównanie)
+  - `ring`: pierścień z kropek wokół wskazanego miejsca: cały albo dwa łuki
 - Efekt: `blur` rozmywa i przyciemnia obraz na czas pokazywania kart, żeby grafiki były czytelne.
+- Każdy element może stać „za postacią” (`behind: true`, w scenariuszu `za: tak`): program wycina Twoją sylwetkę i rysuje element pod nią, np. poświatę za głową albo kartę za ramieniem.
 - Miejsce w kadrze wynika z położenia Twojej twarzy: grafiki trafiają nad głowę, na boki albo pod napisy, nigdy na twarz.
 
 ## Opis ujęć
 
-1. (A) Kadr średni, kamera nieruchoma przez cały film. Głowa w środku-dolnej części kadru, nad nią ok. 30% wysokości wolnego miejsca na grafiki, napisy na wysokości klatki piersiowej.
+1. (A) Kadr średni, kamera nieruchoma przez cały film. Głowa nieco na lewo od środka i w środku-dolnej części kadru, nad nią ok. 30% wysokości wolnego miejsca na grafiki, napisy na wysokości klatki piersiowej.
 <!-- karta:end -->

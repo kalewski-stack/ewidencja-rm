@@ -34,20 +34,22 @@ Terminal zamiast strony: `python rolka.py nagranie.mp4 --broll folder_z_b_rollem
 4. **Napisy**: przeczytaj całość. Literówki popraw w pobranym pliku `*.slowa.json` (pole `w`, czasów nie ruszaj) i uruchom
    w terminalu: `python rolka.py nagranie.mp4 --words plik.slowa.json` (bez ponownego rozpoznawania mowy).
 
-## Krótki format: gadająca głowa z grafikami (jeden take)
+## Format 2: gadająca głowa z grafikami (jeden take)
 
-Dla rolki bez cięć, w której dynamikę dają animowane grafiki i napisy w Twoich kolorach: szablon `rolka_Dez4fPJCR74`,
-pełny opis w [GRAFIKI.md](GRAFIKI.md). Potrzebny jest `pip install pillow`.
+Dla rolki bez cięć, w której dynamikę dają animowane grafiki i napisy w Twoich kolorach: szablon `format2`
+(w interfejsie „Format 2: gadająca głowa”). Zasady formatu i gotowy szkielet scenariusza: [FORMAT2.md](FORMAT2.md),
+składnia znaczników: [GRAFIKI.md](GRAFIKI.md). Potrzebny jest `pip install pillow`.
 
 | Krok | Co robisz |
 |---|---|
-| 1. Scenariusz | Tekst, który powiesz, z grafikami w klamrach: `{tytuł: Brak celu \| akcent: błąd nr 1}`, `{licznik: 700+ \| podpis: wydarzeń B2B}`, `{karty: …}`, `{kroki: …}`. Znacznik działa od następnego słowa. |
+| 1. Scenariusz | Tekst, który powiesz, z grafikami w klamrach: `{tytuł: Brak celu \| akcent: błąd nr 1}`, `{licznik: 700+ \| podpis: wydarzeń B2B}`, `{lista: …}`, `{porównanie: …}`, `{strzałka: …}`, `{karty: …}`. Znacznik działa od następnego słowa. |
 | 2. Nagranie | Jeden ciągły take, pion, statyw. Twarz ok. 17% wysokości kadru, nad głową ok. 30% wolnego miejsca. |
-| 3. Surowiec | `python rolka.py nagranie.mp4 --template rolka_Dez4fPJCR74` (raz): montaż z napisami marki + `nagranie_rolka.slowa.json`. |
+| 3. Surowiec | `python rolka.py nagranie.mp4 --template format2` (raz): montaż z napisami marki + `nagranie_rolka.slowa.json`. |
 | 4. Podgląd | `python rolka.py grafiki scenariusz.txt --words nagranie_rolka.slowa.json --tlo nagranie_rolka.mp4 --klatka 12` (sekundy). |
-| 5. Film | `python rolka.py nagranie.mp4 --template rolka_Dez4fPJCR74 --graphics scenariusz.txt --words nagranie_rolka.slowa.json`. W interfejsie: krok 3 „Grafiki”. |
+| 5. Film | `python rolka.py nagranie.mp4 --template format2 --graphics scenariusz.txt --words nagranie_rolka.slowa.json`. W interfejsie: krok 3 „Grafiki”. |
 
-Program ostrzega, gdy element nie mieści się w kadrze albo zasłania twarz. Szczegóły i lista znaczników: GRAFIKI.md.
+Program ostrzega, gdy element nie mieści się w kadrze albo zasłania twarz. Element, który ma być za Twoją sylwetką, dostaje
+`za: tak` (pierwsze użycie pobiera model 26 MB). Szczegóły i lista znaczników: GRAFIKI.md.
 
 ## Szybciej
 

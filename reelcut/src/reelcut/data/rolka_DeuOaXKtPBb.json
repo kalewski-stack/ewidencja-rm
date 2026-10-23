@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "name": "Rolka DeuOaXKtPBb: mówiąca głowa + B-roll, napisy słowo po słowie",
+  "name": "Format 1: mówiąca głowa + B-roll, cięcia w rytmie rolki, napisy słowo po słowie",
   "source": "https://www.instagram.com/reel/DeuOaXKtPBb/",
   "notes": "Szablon zawiera wyłącznie parametry montażu: czasy cięć, role ujęć, kadry (rozmiar i położenie twarzy), geometrię napisów, statystyki koloru i dynamikę. Nie zawiera obrazu ani treści z oryginału.",
   "fps": 25,

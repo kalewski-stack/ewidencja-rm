@@ -35,32 +35,45 @@ def background_frame(background: str | Path, t: float, size: tuple[int, int]):
     return Image.frombytes("RGB", size, res.stdout)
 
 
-def render_frame(plan: GraphicsPlan, t: float, size: tuple[int, int]) -> Layer:
+def render_frame(plan: GraphicsPlan, t: float, size: tuple[int, int], matte=None) -> Layer:
+    """Klatka warstwy grafik. Elementy z `behind` rysujemy najpierw i ukrywamy tam, gdzie jest postać (matte.at(t)),
+    a dopiero na nich resztę, więc postać zasłania tylko to, co ma być za nią."""
+    active = plan.active(t)
     layer = Layer(size)
-    for e in plan.active(t):
-        e.draw(layer, t)
+    behind = [e for e in active if e.behind]
+    if behind:
+        for e in behind:
+            e.draw(layer, t)
+        m = matte.at(t) if matte is not None else None
+        if m is not None:
+            from PIL import ImageChops
+
+            layer.img.putalpha(ImageChops.multiply(layer.img.getchannel("A"), ImageChops.invert(m)))
+    for e in active:
+        if not e.behind:
+            e.draw(layer, t)
     return layer
 
 
 def iter_frames(plan: GraphicsPlan, size: tuple[int, int], fps: int, n_frames: int,
-                progress: Callable[[float], None] | None = None, t0: float = 0.0) -> Iterator[bytes]:
+                progress: Callable[[float], None] | None = None, t0: float = 0.0, matte=None) -> Iterator[bytes]:
     """Kolejne klatki RGBA (surowe bajty) od czasu t0. Puste klatki to jeden współdzielony bufor, więc nic nie kosztują."""
     blank = bytes(size[0] * size[1] * 4)
     for i in range(n_frames):
         t = t0 + i / fps
         if plan.active(t):
-            yield render_frame(plan, t, size).tobytes()
+            yield render_frame(plan, t, size, matte).tobytes()
         else:
             yield blank
         if progress and i % 5 == 0:
             progress(i / max(1, n_frames))
 
 
-def render_png(plan: GraphicsPlan, t: float, size: tuple[int, int], bg=None):
+def render_png(plan: GraphicsPlan, t: float, size: tuple[int, int], bg=None, matte=None):
     """Pojedyncza klatka jako obraz Pillow (na tle bg, jeśli podano): do podglądu i testów."""
     from PIL import Image
 
-    layer = render_frame(plan, t, size)
+    layer = render_frame(plan, t, size, matte)
     if bg is None:
         bg = Image.new("RGBA", size, (22, 24, 26, 255))
     out = bg.convert("RGBA").resize(size)
@@ -70,7 +83,7 @@ def render_png(plan: GraphicsPlan, t: float, size: tuple[int, int], bg=None):
 
 def preview(plan: GraphicsPlan, out: str | Path, *, size: tuple[int, int] = (1080, 1920), fps: int = 30,
             duration: float | None = None, background: str | Path | None = None, start: float = 0.0,
-            progress: Callable[[float], None] | None = None) -> Path:
+            progress: Callable[[float], None] | None = None, matte=None) -> Path:
     """Film z samymi grafikami na tle (jednolitym albo wideo z `background`). Służy do szybkiego sprawdzenia planu."""
     need_pil()
     out = Path(out)
@@ -96,7 +109,7 @@ def preview(plan: GraphicsPlan, out: str | Path, *, size: tuple[int, int] = (108
         t = threading.Thread(target=lambda: err.append(proc.stderr.read()), daemon=True)  # type: ignore[union-attr]
         t.start()
         try:
-            for frame in iter_frames(plan, size, fps, n, progress, t0=start):
+            for frame in iter_frames(plan, size, fps, n, progress, t0=start, matte=matte):
                 proc.stdin.write(frame)
         except BrokenPipeError:
             pass

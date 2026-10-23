@@ -145,10 +145,10 @@ class ServerTests(unittest.TestCase):
 
     def test_start_options_carry_the_graphics_plan(self):
         job = server.Job("a" * 12, self.tmp)
-        self.assertIsNone(server.parse_options({"template": "rolka_Dez4fPJCR74"}, job).graphics)
+        self.assertIsNone(server.parse_options({"template": "format2"}, job).graphics)
         job.graphics = self.tmp / "plan.json"
-        opts = server.parse_options({"template": "rolka_Dez4fPJCR74"}, job)
-        self.assertEqual((opts.graphics, opts.template), (job.graphics, "rolka_Dez4fPJCR74"))
+        opts = server.parse_options({"template": "format2"}, job)
+        self.assertEqual((opts.graphics, opts.template), (job.graphics, "format2"))
 
     def test_start_without_video_is_refused(self):
         jid = self.new_job()

@@ -4,7 +4,7 @@ from __future__ import annotations
 import shutil
 import tempfile
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Callable
 
@@ -103,7 +103,12 @@ def auto_max_zoom(crop_w: int, canvas_w: int) -> float:
 def run(a_roll: str | Path, out: str | Path | None, opts: Options, log: LogFn = print,
         progress: ProgressFn | None = None) -> Result:
     t0 = time.time()
-    a_roll = Path(a_roll)
+    # ffmpeg pracuje w katalogu roboczym, więc wszystkie ścieżki od użytkownika muszą być bezwzględne (inaczej „nagranie.mp4” nie istnieje)
+    a_roll = Path(a_roll).resolve()
+    out = Path(out).resolve() if out else None
+    opts = replace(opts, broll=tuple(Path(p).resolve() for p in opts.broll),
+                   words_file=Path(opts.words_file).resolve() if opts.words_file else None,
+                   graphics=Path(opts.graphics).resolve() if opts.graphics else None)
     tpl = load_template(opts.template)
     fps = opts.fps or tpl.fps
     canvas = tpl.canvas

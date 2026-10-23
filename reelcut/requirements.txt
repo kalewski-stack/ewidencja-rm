@@ -7,6 +7,7 @@ faster-whisper>=1.0
 pillow>=10
 
 # Opcjonalnie: kadrowanie po Twojej twarzy, dopasowanie kolorów do wzorca, role ujęć i pomiary w poleceniu "analyze"
+# oraz grafiki „za postacią” w Formacie 2 (model wycinania postaci, 26 MB, pobiera się raz przy pierwszym użyciu)
 numpy>=1.24
 onnxruntime>=1.16
 

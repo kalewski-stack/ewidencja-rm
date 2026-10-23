@@ -8,7 +8,7 @@ from pathlib import Path
 from . import script
 from .anchors import has_phrases, resolve as resolve_anchors
 from .core import Brand, Layer, Layout, PlanError, load_brand
-from . import cards as _cards, diagrams as _diagrams, extras as _extras, profile as _profile  # noqa: F401  (rejestrują typy)
+from . import cards as _cards, diagrams as _diagrams, extras as _extras, format2 as _format2, profile as _profile  # noqa: F401  (rejestrują typy)
 from .elements import REGISTRY, Context, Element
 
 EFFECT_TYPES = ("blur",)
@@ -50,7 +50,8 @@ def _short(spec: dict) -> str:
 def _free_placement(e: Element) -> bool:
     """Elementy, które same wyznaczają miejsce (ruchoma ścieżka, nad głową, współrzędne x/y), nie liczą się do stref."""
     s = e.spec
-    return e.kind == "captions" or "x" in s or "y" in s or bool(s.get("path")) or s.get("anchor") == "head"
+    return (e.kind == "captions" or getattr(e, "free_placement", False) or "x" in s or "y" in s or bool(s.get("path"))
+            or s.get("anchor") == "head")
 
 
 def lint(elements: list[Element]) -> list[str]:
@@ -94,12 +95,12 @@ def layout_notes(elements: list[Element], effects: list[dict], ctx: Context) -> 
         x0, y0, x1, y1 = bb
         where = "x/y" if ("x" in e.spec or "y" in e.spec) else e.spec.get("zone", e.default_zone)
         label = f"„{e.kind}” ({e.start:.1f}-{e.end:.1f} s)"
-        if x0 <= 0 or y0 <= 0 or x1 >= W or y1 >= H:
+        if (x0 <= 0 or y0 <= 0 or x1 >= W or y1 >= H) and not e.spec.get("bleed"):
             out.append(f"{label}: nie mieści się w kadrze (zajmuje {x0}-{x1} px z {W} w poziomie, strefa „{where}”): "
                        "zmniejsz rozmiar (size), skróć tekst albo wybierz inną strefę.")
             continue
-        if where == "head" or e.spec.get("anchor") == "head":
-            continue
+        if where == "head" or e.spec.get("anchor") == "head" or e.behind or getattr(e, "thin", False):
+            continue  # świadomy wybór albo cienka dekoracja (strzałka, linia, kropki), która może wskazywać na twarz
         ix = max(0.0, min(x1, face[2]) - max(x0, face[0]))
         iy = max(0.0, min(y1, face[3]) - max(y0, face[1]))
         blurred = any(min(e.end, f["at"] + f["dur"]) - max(e.start, f["at"]) > 0.5 for f in effects)

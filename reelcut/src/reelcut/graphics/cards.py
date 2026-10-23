@@ -5,7 +5,7 @@ import math
 import re
 
 from .core import (Layer, PlanError, blur, clamp01, compose, cover, disc, ease_in_out, ease_out, ease_out_back,
-                   glow_of, lerp, load_image, polygon, prog, rgba_image, rounded_rect, round_corners, scale_rotate,
+                   eye_icon, glow_of, lerp, load_image, polygon, prog, rgba_image, rounded_rect, round_corners, scale_rotate,
                    text_sprite, vgradient, wrap_text)
 from .elements import Element, register
 
@@ -22,13 +22,21 @@ def _split_marked(text: str) -> list[tuple[str, bool]]:
 @register("cards")
 class Cards(Element):
     """Karty (miniatury 9:16) z etykietami nad spodem. Pola:
-    items: [{label, image, kind: image|play|blank, bullets: [tekst z *wyróżnieniem*]}], layout: row|grid, cols,
-    label_style: bold (domyślnie) albo serif (kursywa szeryfowa), stagger (opóźnienie między kartami),
-    focus (numer karty od 0) i focus_at (sekundy od startu), float."""
+    items: [{label, image, kind: image|play|blank, bullets: [tekst z *wyróżnieniem*], views, label_style, x, y, w, rot, at}],
+    layout: row|grid, cols, label_style: bold (domyślnie), serif (kursywa szeryfowa) albo yellow (pogrubiony żółty),
+    stagger (opóźnienie między kartami), focus (numer karty od 0) i focus_at (sekundy od startu), float.
+    Karta z x i y stoi w tym miejscu (środek, ułamki kadru; w to samo wchodzi w, szerokość jako ułamek szerokości kadru, i rot,
+    obrót w stopniach); pozostałe układają się w rzędzie albo siatce w strefie. views: np. „153K” (oko i liczba pod kartą)."""
     default_dur = 4.0
     default_zone = "top"
     d_in = 0.5
     d_out = 0.35
+
+    def _label_font(self, style: str, size: float):
+        b = self.brand
+        if style not in ("bold", "serif", "yellow"):
+            raise PlanError("Karty: label_style to bold, serif albo yellow.")
+        return b.font("serif_italic", size * 1.55) if style == "serif" else b.font("display", size)
 
     def build(self) -> None:
         s, b = self.spec, self.brand
@@ -37,32 +45,37 @@ class Cards(Element):
             raise PlanError("Karty (cards) wymagają listy items.")
         self.items = [dict(i) if isinstance(i, dict) else {"label": str(i)} for i in items]
         n = len(self.items)
-        W = self.ctx.W
+        W, H = self.ctx.W, self.ctx.H
         x0, y0, x1, y1 = self.zone()
+        free = [i for i, it in enumerate(self.items) if "x" in it and "y" in it]
+        auto = [i for i in range(n) if i not in free]
+        self.free_placement = not auto  # wszystkie karty mają własne miejsce: nie zajmują strefy, więc nie kolidują z innymi w niej
         layout = s.get("layout", "row")
-        cols = n if layout == "row" else int(s.get("cols", min(3, n)))
-        rows = math.ceil(n / cols)
+        cols = max(1, len(auto) if layout == "row" else int(s.get("cols", min(3, len(auto) or 1))))
+        rows = max(1, math.ceil(len(auto) / cols))
         gap = float(s.get("gap", 0.028)) * W
         label_size = float(s.get("label_size", 0.03)) * W
-        style = s.get("label_style", "bold")
-        if style not in ("bold", "serif"):
-            raise PlanError("Karty: label_style to bold albo serif.")
-        self.serif_labels = style == "serif"
-        self.label_font = b.font("serif_italic", label_size * 1.55) if self.serif_labels else b.font("display", label_size)
+        self.label_size = label_size
+        self.label_style = s.get("label_style", "bold")
+        self.label_font = self._label_font(self.label_style, label_size)
+        for it in self.items:  # styl etykiety karty sprawdzamy od razu, także gdy karta nie ma jeszcze etykiety
+            if it.get("label_style") is not None:
+                self._label_font(it["label_style"], label_size)
+        self.serif_labels = self.label_style == "serif"
         asc, desc = self.label_font.getmetrics()
         label_h = (asc + desc) * 2 * 0.88 + 6  # miejsce na dwa wiersze etykiety
         has_bullets = any(i.get("bullets") for i in self.items)
-        bullets_h = float(s.get("bullets_h", 0.16)) * self.ctx.H if has_bullets else 0.0
+        bullets_h = float(s.get("bullets_h", 0.16)) * H if has_bullets else 0.0
         zw, zh = x1 - x0, y1 - y0
-        cw = min(float(s.get("card_w", 0.21)) * W, (zw - (cols - 1) * gap) / cols)
+        cw = min(float(s.get("card_w", 0.21)) * W, (zw - (cols - 1) * gap) / cols) if auto else float(s.get("card_w", 0.21)) * W
         ch = cw * 16 / 9
         max_ch = (zh - rows * (label_h + bullets_h) - (rows - 1) * gap * 0.6) / rows
-        if ch > max_ch:
+        if auto and ch > max_ch:
             ch = max(60.0, max_ch)
             cw = ch * 9 / 16
         self.cw, self.ch = int(cw), int(ch)
         self.cw_wanted = float(s.get("card_w", 0.21)) * W
-        if self.cw < 0.6 * self.cw_wanted:
+        if auto and self.cw < 0.6 * self.cw_wanted:
             self.notes.append(f"karty zmieściły się tylko w szerokości {self.cw} px (chciane {self.cw_wanted:.0f} px), więc tekst jest drobny: "
                               "dodaj zone: full (i rozmycie obrazu), skróć punkty albo pokaż mniej kart naraz.")
         self.gap = gap
@@ -70,14 +83,21 @@ class Cards(Element):
         row_h = ch + label_h + bullets_h + gap * 0.6
         total_h = rows * row_h - gap * 0.6
         top = y0 + (zh - total_h) / 2 if s.get("valign", "top") != "top" else y0
-        self.cells: list[tuple[float, float]] = []  # środek karty (x, y)
-        for i in range(n):
-            r, c = divmod(i, cols)
-            in_row = min(cols, n - r * cols)
+        self.cells: list[tuple[float, float]] = [(0.0, 0.0)] * n  # środek karty (x, y)
+        self.dims: list[tuple[int, int]] = [(self.cw, self.ch)] * n
+        for pos, i in enumerate(auto):
+            r, c = divmod(pos, cols)
+            in_row = min(cols, len(auto) - r * cols)
             row_w = in_row * cw + (in_row - 1) * gap
             rx = x0 + (zw - row_w) / 2 + c * (cw + gap)
             ry = top + r * row_h + label_h
-            self.cells.append((rx + cw / 2, ry + ch / 2))
+            self.cells[i] = (rx + cw / 2, ry + ch / 2)
+        for i in free:
+            it = self.items[i]
+            self.cells[i] = (float(it["x"]) * W, float(it["y"]) * H)
+            if it.get("w") is not None:
+                wi = float(it["w"]) * W
+                self.dims[i] = (int(wi), int(wi * 16 / 9))
         self.zone_center = ((x0 + x1) / 2, y0 + label_h + ch / 2)
         self.stagger = float(s.get("stagger", 0.12))
         self.sprites = [self._make_card(i, it) for i, it in enumerate(self.items)]
@@ -89,9 +109,9 @@ class Cards(Element):
         self.focus_scale = float(s.get("focus_scale", 1.3))
 
     # --- obrazy ---
-    def _card_image(self, it: dict):
+    def _card_image(self, it: dict, cw: int | None = None, ch: int | None = None):
         b = self.brand
-        cw, ch = self.cw, self.ch
+        cw, ch = cw or self.cw, ch or self.ch
         kind = it.get("kind") or ("image" if it.get("image") else "play")
         if kind not in ("image", "play", "blank"):
             raise PlanError(f"Karta: nieznany typ „{kind}”. Dostępne: image, play, blank.")
@@ -118,39 +138,54 @@ class Cards(Element):
         return body
 
     def _make_card(self, i: int, it: dict):
-        """Etykieta, karta i punkty pod spodem w jednym obrazie; (obraz, y środka karty w obrazie)."""
+        """Etykieta, karta, liczba wyświetleń i punkty pod spodem w jednym obrazie: (obraz, y górnej krawędzi karty w obrazie,
+        x lewej krawędzi karty w obrazie, szerokość karty, wysokość karty)."""
         b = self.brand
-        cw, ch = self.cw, self.ch
+        cw, ch = self.dims[i]
         parts = []
-        card = self._card_image(it)
+        card = self._card_image(it, cw, ch)
         sh, pad = glow_of(card, (0, 0, 0), 14, 0.8)
         parts.append((sh, -pad, -pad + 10))
         parts.append((card, 0, 0))
         label = str(it.get("label", "")).strip()
+        below = 0.0
         if label:
-            lcol = b.rgb("label")
-            lines = wrap_text(label, self.label_font, cw + self.gap * 0.9, tracking=-0.4)
-            asc, desc = self.label_font.getmetrics()
+            style = it.get("label_style", self.label_style)
+            font = self.label_font if style == self.label_style else self._label_font(style, self.label_size)
+            lcol = b.rgb("highlight") if style == "yellow" else b.rgb("label")
+            lines = wrap_text(label, font, cw + self.gap * 0.9, tracking=-0.4)
+            asc, desc = font.getmetrics()
             lh = (asc + desc) * 0.88
             for k, ln in enumerate(lines[-2:] if len(lines) > 2 else lines):
-                im, _ = text_sprite(ln, self.label_font, lcol + (255,), tracking=0.0 if self.serif_labels else -0.4, pad=3)
+                im, _ = text_sprite(ln, font, lcol + (255,), tracking=0.0 if style == "serif" else -0.4, pad=3)
                 yy = -(len(lines[-2:]) - k) * lh - 4
                 parts.append((im, (cw - im.size[0]) / 2, yy))
+        if it.get("views"):
+            fs = self.ctx.W * 0.026
+            f = b.font("display", fs)
+            num, _ = text_sprite(str(it["views"]), f, b.rgba("text"), tracking=-0.3, pad=0)
+            d = int(fs * 1.15)
+            eye = eye_icon(d, b.rgb("highlight"))
+            w = d + 6 + num.size[0]
+            x = (cw - w) / 2
+            parts += [(eye, x, ch + 10), (num, x + d + 6, ch + 10 + (d - num.size[1]) / 2)]
+            below = d + 14
         bl = it.get("bullets")
         if bl:
-            parts.extend(self._bullets(bl))
+            parts.extend(self._bullets(bl, cw, ch, below))
         im, (ox, oy) = compose(parts, pad=2)
-        return im, -oy, -ox  # (obraz, y górnej krawędzi karty w obrazie, x lewej krawędzi karty w obrazie)
+        return im, -oy, -ox, cw, ch
 
-    def _bullets(self, bullets):
+    def _bullets(self, bullets, cw: int | None = None, ch: int | None = None, y_start: float = 0.0):
         b = self.brand
-        fs = float(self.spec.get("bullet_size", 0.026)) * self.ctx.W * min(1.0, self.cw / self.cw_wanted)  # tekst maleje razem z kartą
+        cw, ch = cw or self.cw, ch or self.ch
+        fs = float(self.spec.get("bullet_size", 0.026)) * self.ctx.W * min(1.0, cw / self.cw_wanted)  # tekst maleje razem z kartą
         font = b.font("semibold", fs)
         asc, desc = font.getmetrics()
         lh = (asc + desc) * 1.02
-        width = self.cw + self.gap * 0.6
+        width = cw + self.gap * 0.6
         parts = []
-        y = self.ch + 18.0
+        y = ch + 18.0 + y_start
         dot_d = fs * 0.36
         for text in bullets:
             segs = _split_marked(str(text))
@@ -187,7 +222,7 @@ class Cards(Element):
                 if li == 0:
                     dot = disc(dot_d, fill=b.rgba("accent"))
                     row.alpha_composite(dot, dest=(int(dot_d * 0.5), int(asc * 0.55 - dot_d / 2) + 2))
-                parts.append((row, (self.cw - width) / 2 - 10, y))
+                parts.append((row, (cw - width) / 2 - 10, y))
                 y += lh
                 pos += len(ln)
             y += lh * 0.25
@@ -196,13 +231,13 @@ class Cards(Element):
     # --- czas ---
     def draw(self, layer: Layer, t: float) -> None:
         lf = self.life(t)
-        n = len(self.items)
         lt = lf.lt
         fk = prog(lt, self.focus_at, self.focus_dur) if self.focus is not None else 0.0
         fk = ease_in_out(fk)
-        for i, (im, top_y, left_x) in enumerate(self.sprites):
+        for i, (im, top_y, left_x, cw, ch) in enumerate(self.sprites):
+            it = self.items[i]
             cx, cy = self.cells[i]
-            k = prog(lt, i * self.stagger, 0.5)
+            k = prog(lt, float(it["at"]) if it.get("at") is not None else i * self.stagger, 0.5)
             k_out = lf.k_out
             alpha = ease_out(k) * k_out
             dy = (1 - ease_out(k)) * 70 + (1 - k_out) * -18
@@ -219,18 +254,15 @@ class Cards(Element):
                     sc *= lerp(1.0, 0.92, fk)
             if self.spec.get("float", True):
                 dy += 4 * math.sin(2 * math.pi * lt / 3.4 + i * 1.3) * clamp01(k)
-            spr = im
-            if abs(sc - 1.0) > 1e-3:
-                spr = scale_rotate(spr, sc)
+            rot = float(it.get("rot", 0.0))
+            spr = scale_rotate(im, sc, rot) if (abs(sc - 1.0) > 1e-3 or abs(rot) > 1e-3) else im
             if bl > 0.5:
                 pad = int(bl * 2.5)
                 tmp = rgba_image(spr.size[0] + 2 * pad, spr.size[1] + 2 * pad)
                 tmp.alpha_composite(spr, dest=(pad, pad))
                 spr = blur(tmp, bl)
-                pad_x = pad_y = pad
-            else:
-                pad_x = pad_y = 0
-            # kotwica: środek karty w obrazie to (left_x + cw/2, top_y + ch/2), po skalowaniu przeliczamy
-            anchor_x = (left_x + self.cw / 2) * sc + pad_x
-            anchor_y = (top_y + self.ch / 2) * sc + pad_y
-            layer.paste(spr, cx - anchor_x, cy + dy - anchor_y, alpha)
+            # środek karty w obrazie (przed skalowaniem i obrotem) względem środka obrazu; po skalowaniu i obrocie liczymy go na nowo
+            vx, vy = (left_x + cw / 2 - im.size[0] / 2) * sc, (top_y + ch / 2 - im.size[1] / 2) * sc
+            a = math.radians(rot)
+            rvx, rvy = vx * math.cos(a) + vy * math.sin(a), -vx * math.sin(a) + vy * math.cos(a)
+            layer.paste_center(spr, cx - rvx, cy + dy - rvy, alpha)

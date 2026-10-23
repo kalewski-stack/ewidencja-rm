@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -153,12 +154,20 @@ def parse_template(raw: dict) -> Template:
     )
 
 
+# Nazwy, którymi mówimy o formatach: format1 / format-1 / Format 2 itd. (wielkość liter, spacje, myślniki i podkreślenia bez znaczenia).
+ALIASES = {"format1": "rolka_DeuOaXKtPBb", "format2": "format2", "rolkadez4fpjcr74": "format2"}
+
+
+def resolve_alias(ref: str) -> str:
+    return ALIASES.get(re.sub(r"[\s_\-]+", "", ref.lower()), ref)
+
+
 def load_template(ref: str | Path | None = None) -> Template:
-    """Wczytuje szablon: z pliku, z katalogu data/ (po nazwie) albo z ~/ReelCut/szablony (user/nazwa)."""
+    """Wczytuje szablon: z pliku, z katalogu data/ (po nazwie lub aliasie format1, format2) albo z ~/ReelCut/szablony (user/nazwa)."""
     if ref is None:
         path = DEFAULT_TEMPLATE
     else:
-        text = str(ref)
+        text = resolve_alias(str(ref))
         path = Path(text)
         if text.startswith("user/"):
             path = USER_DIR / f"{text[5:]}.json"
@@ -176,7 +185,8 @@ def list_templates() -> list[tuple[str, str]]:
     """Lista (id, nazwa czytelna): wbudowane szablony, a po nich użytkownika (id zaczyna się od "user/")."""
     out = []
     for prefix, folder in (("", DATA_DIR), ("user/", USER_DIR)):
-        for p in sorted(folder.glob("*.json")) if folder.exists() else []:
+        order = {"rolka_DeuOaXKtPBb": 0, "format2": 1}  # Format 1 i Format 2 na początku listy, dalej alfabetycznie
+        for p in sorted(folder.glob("*.json"), key=lambda q: (order.get(q.stem, 2), q.stem)) if folder.exists() else []:
             try:
                 out.append((prefix + p.stem, parse_template(json.loads(p.read_text(encoding="utf-8"))).name))
             except (TemplateError, json.JSONDecodeError):

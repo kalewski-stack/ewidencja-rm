@@ -137,6 +137,18 @@ def _slot_chain(slot: Slot, master_size: tuple[int, int], canvas: tuple[int, int
     return ",".join(chain)
 
 
+def matte_chain(slot: Slot, master_size: tuple[int, int]) -> str:
+    """Kadrowanie jak w montażu (samo przycięcie do zoomu ujęcia, bez skalowania), żeby sylwetka pasowała do obrazu wyniku."""
+    mw, mh = master_size
+    if slot.zoom <= 1.001:
+        return "null"
+    cw = _even(mw / slot.zoom)
+    ch = _even(cw * mh / mw)
+    x = int(_clamp(round(slot.fx * mw - cw / 2), 0, mw - cw))
+    y = int(_clamp(round(slot.fy * mh - ch / 2), 0, mh - ch))
+    return f"crop={cw}:{ch}:{x - x % 2}:{y - y % 2}"
+
+
 def effects_chain(src: str, effects: Sequence[dict], dst: str) -> list[str]:
     """Rozmycie (z lekkim przyciemnieniem) całego obrazu w oknach czasu: kopia rozmyta wchodzi i znika płynnie."""
     parts, cur = [], src

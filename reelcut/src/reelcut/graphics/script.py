@@ -28,7 +28,10 @@ TYPES = {
     "kroki": "steps", "steps": "steps", "os": "axis", "axis": "axis", "paski": "bars", "bars": "bars",
     "wyroznienie": "callout", "callout": "callout", "licznik": "stat", "stat": "stat", "ilustracja": "illustration",
     "illustration": "illustration", "rozmycie": "blur", "blur": "blur",
+    "tekst": "text", "text": "text", "strzalka": "arrow", "arrow": "arrow", "opisy": "labels", "labels": "labels",
+    "lista": "list", "list": "list", "porownanie": "list", "comparison": "list", "pierscien": "ring", "ring": "ring",
 }
+COMPARISON = ("porownanie", "comparison")  # to samo co lista, ale z kolumnami: „Tytuł: wiersz; wiersz // Tytuł: wiersz”
 KEYS = {
     "akcent": "accent", "styl": "style", "strefa": "zone", "czas": "dur", "przesun": "shift", "podpis": "label",
     "numer": "number", "tekst": "text", "ikona": "icon", "haslo": "kicker", "obraz": "image", "obrazy": "images",
@@ -36,10 +39,30 @@ KEYS = {
     "tryb": "mode", "jednostka": "unit", "pasek": "bar", "licznik": "count", "korona": "crown", "kursor": "cursor",
     "sila": "sigma", "sciemnienie": "dim", "uklad": "layout", "fokus": "focus", "do": "until", "znacznik": "tag",
     "wejscie": "in", "wyjscie": "out", "aktywne": "active", "kotwica": "anchor", "etykiety": "label_style", "poswiata": "glow", "cien": "shadow", "rozmycie": "blur", "tytul": "title", "kolumny": "cols",
+    "cel": "to", "luk": "bend", "grot": "head", "kolor": "color", "zaznaczenie": "marker", "odslanianie": "reveal", "kroj": "font",
+    "obrot": "rot", "przezroczystosc": "opacity", "za": "behind", "wyswietlenia": "views", "kropki": "dots", "luki": "arcs",
+    "pismo": "text_font", "linia": "line", "grubosc": "width", "wystaje": "bleed",
 }
+# Wartości pisane po polsku -> to, czego oczekuje element (klucz: (typ elementu, pole)).
+VALUES = {
+    ("arrow", "style"): {"ciagla": "solid", "przerywana": "dashed", "kropkowana": "dotted"},
+    ("arrow", "head"): {"otwarty": "open", "pelny": "filled", "brak": "none"},
+    ("text", "marker"): {"brak": "none", "podkreslenie": "underline", "pedzel": "brush", "nawias": "bracket"},
+    ("text", "reveal"): {"zanik": "fade", "pisanie": "type", "slowa": "words"},
+    ("text", "font"): {"szeryf": "serif_italic", "gruby": "display", "pogrubiony": "bold", "polgruby": "semibold", "zwykly": "text"},
+    ("text", "align"): {"srodek": "center", "lewo": "left", "prawo": "right"},
+    ("list", "marker"): {"brak": "none", "kropka": "dot", "ramka": "box", "pole": "box"},
+    ("list", "text_font"): {"szeryf": "serif", "zwykly": "plain"},
+    ("cards", "label_style"): {"szeryf": "serif", "pogrubione": "bold", "zolte": "yellow"},
+    ("labels", "font"): {"szeryf": "serif", "pogrubiony": "bold", "gruby": "display"},
+    ("labels", "line"): {"ciagla": "solid", "przerywana": "dashed", "kropkowana": "dotted", "brak": "none"},
+}
+FRACTIONS = {"x", "y", "dx", "dy", "rx", "ry", "tx", "ty", "width", "size", "row_gap", "rule_to", "opacity"}  # ułamki kadru: można podać 30%
+POINTS = {"from", "to"}  # punkt [x, y]: „0,3; 0,5” albo „30% 50%”
 ZONES = {"gora": "top", "lewo": "left", "prawo": "right", "dol": "bottom", "glowa": "head", "calosc": "full", "napisy": "captions"}
 MAIN_FIELD = {"title": "text", "badge": "text", "stat": "value", "cards": "items", "steps": "items", "pills": "items",
-              "chips": "items", "axis": "items", "bars": "rows", "callout": "title", "profile": "label", "illustration": "image"}
+              "chips": "items", "axis": "items", "bars": "rows", "callout": "title", "profile": "label", "illustration": "image",
+              "text": "text", "labels": "items", "list": "rows"}
 DEFAULT_BLUR_DUR = 3.0
 MIN_COVERAGE = 0.5  # tyle słów scenariusza musi znaleźć się w mowie, żeby uznać, że to ten sam tekst
 
@@ -84,6 +107,80 @@ def _coerce(value: str):
     return v
 
 
+def _frac(value: str):
+    """Liczba z kropką albo przecinkiem, także w procentach: „30%” -> 0.3. Cokolwiek innego przechodzi jak zwykła wartość."""
+    m = re.fullmatch(r"\s*(-?\d+(?:[.,]\d+)?)\s*(%?)\s*", value)
+    if not m:
+        return _coerce(value)
+    x = float(m.group(1).replace(",", "."))
+    return x / 100.0 if m.group(2) else x
+
+
+def _point(value: str, what: str) -> list[float]:
+    parts = [p for p in re.split(r"[;\s]+", value.strip()) if p]
+    try:
+        pt = [float(_frac(p)) for p in parts]
+    except (TypeError, ValueError) as exc:
+        raise PlanError(f"{what}: podaj punkt jako dwie liczby, np. „0,3; 0,5” albo „30% 50%”.") from exc
+    if len(pt) != 2:
+        raise PlanError(f"{what}: podaj punkt jako dwie liczby, np. „0,3; 0,5” albo „30% 50%”.")
+    return pt
+
+
+def _arcs(value: str) -> list[list[float]]:
+    out = []
+    for part in value.split(";"):
+        m = re.fullmatch(r"\s*(-?\d+(?:[.,]\d+)?)\s*(?:\.\.|-|do)\s*(-?\d+(?:[.,]\d+)?)\s*", part)
+        if not m:
+            raise PlanError("luki: podaj zakresy kątów w stopniach, np. „100..260; -80..80”.")
+        out.append([float(m.group(1).replace(",", ".")), float(m.group(2).replace(",", "."))])
+    return out
+
+
+_LABEL = re.compile(r"^(?P<text>.+?)\s*@\s*(?P<x>\S+)\s+(?P<y>\S+)(?:\s*>\s*(?P<tx>\S+)\s+(?P<ty>\S+))?\s*$")
+
+
+def _labels(value: str) -> list[dict]:
+    items = []
+    for it in _split_items(value):
+        m = _LABEL.match(it)
+        if not m:
+            raise PlanError(f"opisy: „{it}” ma być w postaci „tekst @ x y > cel_x cel_y” (np. Cel @ 20% 12% > 42% 15%).")
+        d: dict = {"text": m.group("text").strip(), "x": _frac(m.group("x")), "y": _frac(m.group("y"))}
+        if m.group("tx"):
+            d["tx"], d["ty"] = _frac(m.group("tx")), _frac(m.group("ty"))
+        items.append(d)
+    return items
+
+
+def _list_row(item: str) -> dict:
+    """„+ Etykieta = tekst / szczegół”: plus na początku oznacza wiersz odhaczony, etykieta i szczegół są opcjonalne."""
+    item = item.strip()
+    done = item.startswith("+")
+    if done:
+        item = item[1:].strip()
+    label, _, rest = item.partition("=") if "=" in item else ("", "", item)
+    text, _, detail = rest.partition("/")
+    row = {"text": text.strip()}
+    if label.strip():
+        row["label"] = label.strip()
+    if detail.strip():
+        row["detail"] = detail.strip()
+    if done:
+        row["state"] = "done"
+    return row
+
+
+def _columns(value: str) -> list[dict]:
+    cols = []
+    for chunk in value.split("//"):
+        title, colon, rows = chunk.partition(":")
+        if not colon:
+            raise PlanError("porównanie: każda kolumna to „Tytuł: wiersz; wiersz”, kolumny rozdziela //.")
+        cols.append({"title": title.strip(), "rows": [_list_row(r) for r in _split_items(rows) if r.strip()]})
+    return cols
+
+
 def _split_items(value: str) -> list[str]:
     return [p.strip() for p in value.split(";")]
 
@@ -109,12 +206,21 @@ def _pair(item: str) -> tuple[str, str]:
     return left.strip(), right.strip()
 
 
-def _main(kind: str, value: str, spec: dict) -> None:
+def _main(kind: str, value: str, spec: dict, alias: str = "") -> None:
     f = MAIN_FIELD.get(kind)
     if not f or not value.strip():
         return
     if kind == "stat":
         return _stat(value, spec)
+    if kind == "labels":
+        spec["items"] = _labels(value)
+        return
+    if kind == "list":
+        if alias in COMPARISON:
+            spec["columns"] = _columns(value)
+        else:
+            spec["rows"] = [_list_row(r) for r in _split_items(value) if r.strip()]
+        return
     if kind == "cards":
         items = []
         for it in _split_items(value):
@@ -162,7 +268,7 @@ def _marker(body: str, word: int) -> Cue | tuple[str, str]:
         raise PlanError(f"Znacznik „{{{body}}}”: nieznany typ „{head.strip()}”. Dostępne: "
                         f"{', '.join(sorted({k for k in TYPES if k.isascii()}))} (polskie nazwy mogą mieć ogonki).")
     spec: dict = {"type": kind}
-    _main(kind, main, spec)
+    _main(kind, main, spec, _fold(head))
     until = None
     for seg in parts[1:]:
         if not seg:
@@ -178,8 +284,21 @@ def _marker(body: str, word: int) -> Cue | tuple[str, str]:
             for i, it in enumerate(spec.get("items", [])):
                 if i < len(imgs) and imgs[i]:
                     it["image"], it["kind"] = imgs[i], "image"
+        elif k == "views" and kind == "cards":
+            views = [v.strip() for v in value.split(";")]
+            for i, it in enumerate(spec.get("items", [])):
+                if i < len(views) and views[i]:
+                    it["views"] = views[i]
         elif k in ("zone", "anchor"):
             spec[k] = ZONES.get(_fold(value), value.strip())
+        elif k in POINTS:
+            spec[k] = _point(value, f"{key.strip()}")
+        elif k == "arcs":
+            spec[k] = _arcs(value)
+        elif (kind, k) in VALUES:
+            spec[k] = VALUES[(kind, k)].get(_fold(value), value.strip())
+        elif k in FRACTIONS:
+            spec[k] = _frac(value)
         else:
             spec[k] = _coerce(value)
     return Cue(kind, spec, word, None, until, body)
