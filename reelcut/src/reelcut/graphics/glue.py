@@ -1,0 +1,120 @@
+"""Wpięcie grafik w potok montażu: układ kadru z wykrytej twarzy, awatar z Twojego nagrania, kontekst i strumień klatek."""
+from __future__ import annotations
+
+import json
+import subprocess
+import tempfile
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Callable, Iterator
+
+from .. import framing, media
+from ..faces import FaceTrack
+from . import script
+from .core import Layout, PlanError, load_brand, need_pil
+from .elements import Context
+from .plan import GraphicsPlan, build_plan
+from .render import iter_frames
+
+
+@dataclass
+class GraphicsJob:
+    plan: GraphicsPlan
+    size: tuple[int, int]
+    fps: int
+    n_frames: int
+
+    @property
+    def effects(self) -> list[dict]:
+        return self.plan.effects
+
+    def frames(self, progress: Callable[[float], None] | None = None) -> Iterator[bytes]:
+        return iter_frames(self.plan, self.size, self.fps, self.n_frames, progress)
+
+
+def face_layout(video_plan, track: FaceTrack | None, tpl, size: tuple[int, int]) -> Layout:
+    """Gdzie w kadrze wynikowym jest Twoja twarz (średnia z ujęć z mową), a stąd, gdzie wolno stawiać grafiki."""
+    W, H = size
+    fps = video_plan.fps
+    if track is not None and track.global_estimate() is not None:
+        acc = []
+        for s in video_plan.slots:
+            if s.source != "A" or s.role != "A":
+                continue
+            est = track.estimate(s.start / fps, s.end / fps) or track.global_estimate()
+            cx, cy, h = framing.face_in_output(est, s.zoom, s.fx, s.fy)
+            acc.append((cx, cy, h, s.frames))
+        if acc:
+            tot = sum(a[3] for a in acc)
+            cx, cy, h = (sum(a[i] * a[3] for a in acc) / tot for i in range(3))
+            return Layout(W, H, cx, cy, h)
+    for seg in tpl.segments:  # bez wykrytej twarzy: kadr docelowy z szablonu
+        if seg.role == "A" and seg.face is not None:
+            return Layout(W, H, seg.face.cx, seg.face.cy, seg.face.h)
+    return Layout(W, H)
+
+
+def extract_avatar(master: Path, track: FaceTrack | None, out: Path) -> Path | None:
+    """Wycina z nagrania kwadrat z Twoją twarzą (klatka z typowym rozmiarem twarzy i najlepszym wynikiem detekcji)."""
+    need_pil()
+    if track is None:
+        return None
+    dets = [(t, f) for t, f in track.samples if f is not None]
+    if not dets:
+        return None
+    hs = sorted(f.h for _, f in dets)
+    med = hs[len(hs) // 2]
+    cand = [(t, f) for t, f in dets if abs(f.h - med) <= 0.12 * med] or dets
+    t, f = max(cand, key=lambda x: x[1].score)
+    from PIL import Image
+
+    with tempfile.TemporaryDirectory() as d:
+        png = Path(d) / "f.png"
+        res = subprocess.run([media.find_binary("ffmpeg"), "-v", "error", "-y", "-ss", f"{t:.3f}", "-i", str(master), "-frames:v", "1", str(png)],
+                             capture_output=True)
+        if res.returncode != 0 or not png.exists():
+            return None
+        img = Image.open(png).convert("RGB")
+    W, H = img.size
+    side = max(f.w * W, f.h * H) * 1.95
+    cx, cy = f.cx * W, (f.cy + 0.04 * f.h) * H
+    x0, y0 = int(max(0, min(W - side, cx - side / 2))), int(max(0, min(H - side, cy - side / 2)))
+    side_i = int(min(side, W - x0, H - y0))
+    img.crop((x0, y0, x0 + side_i, y0 + side_i)).resize((512, 512), Image.LANCZOS).save(out)
+    return out
+
+
+def prepare(graphics_path: str | Path | None, brand_ref: str | Path | None, tpl, video_plan, track: FaceTrack | None,
+            master: Path, workdir: Path, words: list, canvas: tuple[int, int], duration_s: float,
+            layer_captions: bool, log: Callable[[str], None] = print) -> GraphicsJob | None:
+    """Buduje plan grafik: z pliku JSON (jeśli podano) i napisów biegnących (gdy szablon ich chce). None = nic do narysowania."""
+    need_pil()
+    raw: dict = {"schema": 1, "elements": [], "effects": []}
+    base_dir = Path(".")
+    if graphics_path:
+        gp = Path(graphics_path)
+        try:
+            text = gp.read_text(encoding="utf-8-sig")
+            raw = script.to_plan(text, words) if script.is_script(gp) else json.loads(text)
+        except (OSError, json.JSONDecodeError) as exc:
+            raise PlanError(f"Nie da się wczytać planu grafik {gp}: {exc}") from exc
+        base_dir = gp.parent
+    raw.setdefault("elements", [])
+    if layer_captions and words:
+        cap = {"type": "captions", **tpl.graphics.get("captions", {})}
+        raw["elements"] = [e for e in raw["elements"] if e.get("type") != "captions"] + [cap]
+    if not raw["elements"] and not raw.get("effects"):
+        return None
+    brand = load_brand(brand_ref if brand_ref is not None else raw.get("brand") or tpl.graphics.get("brand"))
+    layout = face_layout(video_plan, track, tpl, canvas)
+    avatar = extract_avatar(master, track, workdir / "avatar.png")
+    ctx = Context(brand, layout, video_plan.fps, base_dir, avatar, list(words), duration_s)
+    plan = build_plan(raw, ctx)
+    n = video_plan.total_frames
+    over = [e for e in plan.elements if e.kind != "captions" and e.start > duration_s]
+    if over:
+        log(f"UWAGA: {len(over)} elementów grafik zaczyna się po końcu filmu ({duration_s:.1f} s) i nie będzie widocznych.")
+    log(f"Grafiki: {len([e for e in plan.elements if e.kind != 'captions'])} elementów, marka „{brand.name}”"
+        f"{', napisy biegnące' if layer_captions and words else ''}; twarz w kadrze: wysokość {layout.face_h * 100:.0f}%, "
+        f"środek ({layout.face_cx * 100:.0f}%, {layout.face_cy * 100:.0f}%).")
+    return GraphicsJob(plan, canvas, video_plan.fps, n)

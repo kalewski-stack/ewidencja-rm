@@ -7,6 +7,31 @@ from .template import Template
 
 ROLE_NAMES = {"A": "mówiąca głowa", "B": "wstawka"}
 
+# Elementy planu grafik widoczne na karcie stylu (test pilnuje, żeby lista zgadzała się z rejestrem elementów).
+GRAPHICS_ELEMENTS = {
+    "title": "duży napis (żółty, szeryfowy kursywą albo krojem marki) z małym słowem-akcentem nad prawym końcem",
+    "badge": "plakietka: numer w kole i tytuł obok, np. „1 Scenariusz”",
+    "cards": "rząd miniatur 9:16 z etykietami i punktami pod spodem, jedna karta może się powiększyć",
+    "profile": "chip z awatarem (Twoja twarz z nagrania), licznikiem, paskiem postępu i kursorem jadącym po kadrze",
+    "pills": "krótkie hasła z ikoną, wlatujące jedna po drugiej (biała, szklana, fioletowa, żółta)",
+    "chips": "małe kafelki z etykietą i liczbą, np. wartości do porównania",
+    "steps": "lista kroków w szklanym panelu, która przewija się do aktywnego kroku",
+    "axis": "wykres schodkowy z podpisanymi punktami (rosnący trend)",
+    "bars": "wiersze z etykietami (podwójne, pojedyncze, ze spinnerem)",
+    "callout": "wyróżnienie: ikona, tytuł i tekst „pisany” na żywo, opcjonalnie karta po prawej",
+    "stat": "duża liczba odliczana od zera z podpisem i paskiem",
+    "illustration": "obraz z miękką poświatą, np. nad głową",
+}
+
+BRAND_ROLES = {
+    "text": "napisy i tekst na grafikach",
+    "title": "tytuły",
+    "accent": "etykiety, linie, pierścienie",
+    "accent_strong": "plakietki i tła kart",
+    "highlight": "jedyny jasny element naraz: liczba, kursor, aktywna pozycja, słowo kluczowe",
+    "panel": "tło paneli",
+}
+
 
 def _n(x: float, nd: int = 1) -> str:
     """Liczba z przecinkiem dziesiętnym (karta jest dokumentem po polsku)."""
@@ -92,9 +117,14 @@ def _framing_section(tpl: Template) -> list[str]:
                        f"{f.cy * 100:.0f}% | {eyes} |")
         hs = [r[1].face.h for r in with_face]
         cys = [r[1].face.cy for r in with_face]
-        out += ["", f"Drabinka: najszerszy kadr ma twarz {min(hs) * 100:.0f}% wysokości, zbliżenia do {max(hs) * 100:.0f}% "
-                    f"({_n(max(hs) / min(hs))} raza więcej). Środek twarzy leży między {min(cys) * 100:.0f}% a {max(cys) * 100:.0f}% "
-                    "wysokości kadru, więc dół kadru zostaje wolny na napisy."]
+        if len(with_face) == 1:
+            f = with_face[0][1].face
+            out += ["", f"Kadr stały, bez najazdów. Nad czubkiem głowy zostaje ok. {max(0.0, f.cy - 0.78 * f.h) * 100:.0f}% wysokości kadru "
+                        "wolnego miejsca na grafiki; napisy stoją na wysokości klatki piersiowej."]
+        else:
+            out += ["", f"Drabinka: najszerszy kadr ma twarz {min(hs) * 100:.0f}% wysokości, zbliżenia do {max(hs) * 100:.0f}% "
+                        f"({_n(max(hs) / min(hs))} raza więcej). Środek twarzy leży między {min(cys) * 100:.0f}% a {max(cys) * 100:.0f}% "
+                        "wysokości kadru, więc dół kadru zostaje wolny na napisy."]
     elif a_rows:
         zs = sorted({s.zoom for _, s, _, _ in a_rows})
         out.append("Szablon nie ma pomiaru twarzy; kadry to drabinka zoomu względem najszerszego ujęcia: "
@@ -162,12 +192,61 @@ def _captions_section(tpl: Template) -> list[str]:
     return out + [""]
 
 
+def _single_section(tpl: Template) -> list[str]:
+    """Montaż i tempo rolki z jednym ujęciem: cięć nie ma, więc liczą się tempo mowy, pauzy i głośność."""
+    dyn = tpl.dynamics
+    out = ["## Montaż i tempo", "",
+           f"- Jedno ujęcie bez cięć, {_n(tpl.duration_s)} s. Dynamika pochodzi z warstwy grafik i napisów, nie z montażu.",
+           f"- Pauzy w mowie: powyżej {_n(tpl.max_pause_s, 2)} s skracane do {_n(tpl.keep_pause_s, 2)} s."]
+    if dyn.get("words_per_s"):
+        out.append(f"- Tempo mowy: {_n(dyn['words_per_s'])} słowa na sekundę.")
+    ld = dyn.get("loudness")
+    if ld:
+        out.append(f"- Głośność rolki: {_n(ld['lufs'])} LUFS, szczyt {_n(ld['true_peak'])} dBTP, zakres LRA {_n(ld['lra'])} LU "
+                   f"(cel w szablonie: {_n(tpl.lufs)} LUFS).")
+    return out + [""]
+
+
+def _brand_section(tpl: Template) -> list[str]:
+    """Kolory grafik z marki. Kolory nagrania szablon jednego ujęcia zostawia bez zmian."""
+    from .graphics.core import PlanError, load_brand
+
+    out = ["## Kolory", "", "Szablon nie zmienia kolorów nagrania. Kolory mają grafiki i napisy, z marki."]
+    try:
+        brand = load_brand(tpl.graphics.get("brand"))
+    except PlanError:
+        return out + [""]
+    out += ["", f"Marka: {brand.name}.", "", "| Rola | Kolor | Do czego |", "|---|---|---|"]
+    for role, use in BRAND_ROLES.items():
+        r, g, b = brand.rgb(role)
+        out.append(f"| {role} | `#{r:02X}{g:02X}{b:02X}` | {use} |")
+    return out + [""]
+
+
+def _graphics_section(tpl: Template) -> list[str]:
+    out = ["## Grafiki i napisy", ""]
+    c = (tpl.graphics or {}).get("captions")
+    if c:
+        out.append(f"- Napisy rysuje warstwa grafik, w kroju marki: do {c.get('max_words', 3)} słów naraz, wysokość wersalików "
+                   f"{_n(c.get('size', 0) * 100)}% wysokości kadru (ok. {round(c.get('size', 0) * tpl.canvas[1])} px z {tpl.canvas[1]}), "
+                   f"górna krawędź na {_n(c.get('y', 0) * 100)}% wysokości.")
+    out += ["- Resztę dynamiki daje plan grafik: plik JSON z czasami (`--graphics plan.json` albo przeciągnięcie w interfejsie).",
+            "- Elementy planu:"]
+    out += [f"  - `{k}`: {v}" for k, v in GRAPHICS_ELEMENTS.items()]
+    out += ["- Efekt: `blur` rozmywa i przyciemnia obraz na czas pokazywania kart, żeby grafiki były czytelne.",
+            "- Miejsce w kadrze wynika z położenia Twojej twarzy: grafiki trafiają nad głowę, na boki albo pod napisy, nigdy na twarz."]
+    return out + [""]
+
+
 def describe(tpl: Template) -> str:
     """Karta stylu w Markdown."""
     head = [f"# Karta stylu: {tpl.name}", "",
             f"Źródło: {tpl.source or 'brak'}. Format {tpl.canvas[0]}x{tpl.canvas[1]}, {tpl.fps} kl./s, {_n(tpl.duration_s)} s.", ""]
     notes = [f"{i + 1}. ({s.role}) {s.note}" for i, s in enumerate(tpl.segments) if s.note]
-    body = _cuts_section(tpl) + _framing_section(tpl) + _look_section(tpl) + _captions_section(tpl)
+    if tpl.mode == "single":
+        body = _single_section(tpl) + _framing_section(tpl) + _brand_section(tpl) + _graphics_section(tpl)
+    else:
+        body = _cuts_section(tpl) + _framing_section(tpl) + _look_section(tpl) + _captions_section(tpl)
     if notes:
         body += ["## Opis ujęć", ""] + notes + [""]
     return "\n".join(head + body).rstrip() + "\n"

@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable
 
-from . import captions, faces, look, media, render
+from . import captions, faces, graphics, look, media, render
 from .planner import Plan, build_plan, describe_plan
 from .template import DATA_DIR, load_template
 
@@ -34,6 +34,8 @@ class Options:
     tighten: bool = True
     snap: bool = True
     look: float = 1.0  # siła dopasowania kolorów do wzorca, 0-1 (0 = obraz bez zmian)
+    graphics: Path | None = None  # plan grafik (JSON): tytuły, karty, listy, liczniki z czasami na osi filmu
+    brand: str | None = None  # marka grafik: plik JSON albo nazwa (domyślnie „Linia Kalewski”)
     fps: int | None = None
     seed: int = 7
     crf: int = 18
@@ -57,6 +59,7 @@ class Result:
     master_seconds: float = 0.0
     face: dict = field(default_factory=dict)  # co wykryliśmy: pokrycie, wysokość i środek twarzy
     look: dict = field(default_factory=dict)  # jak dopasowaliśmy kolory
+    graphics: dict = field(default_factory=dict)  # co narysowano: liczba elementów, marka, napisy biegnące
 
 
 def collect_broll(paths: tuple[Path, ...], warnings: list[str]) -> list[media.MediaInfo]:
@@ -159,7 +162,21 @@ def run(a_roll: str | Path, out: str | Path | None, opts: Options, log: LogFn = 
         warnings += plan.warnings
         if opts.framing != "off":
             warnings.append("Kadrowanie po twarzy i dobór napisów są liczone dopiero przy renderze.")
-        return Result(None, plan, describe_plan(plan), warnings, time.time() - t0,
+        text = describe_plan(plan)
+        if opts.graphics:
+            if graphics.plan_needs_words(opts.graphics) and not opts.words_file:
+                text += "\n\nPlan grafik używa fraz z mowy: czasy poznasz po rozpoznaniu mowy (bez --dry-run) albo z gotową transkrypcją (--words)."
+            else:
+                try:
+                    dry_words = captions.load_words(opts.words_file) if opts.words_file else []
+                    job = graphics.glue.prepare(opts.graphics, opts.brand, tpl, plan, None, Path("."), Path("."), dry_words, canvas,
+                                                master_s, False, lambda m: None)
+                    if job:
+                        text += "\n\nGrafiki (czasy na osi gotowego filmu):\n" + job.plan.describe()
+                        warnings += job.plan.warnings
+                except (graphics.GraphicsUnavailable, graphics.PlanError) as exc:
+                    raise media.MediaError(f"Plan grafik: {exc}") from exc
+        return Result(None, plan, text, warnings, time.time() - t0,
                       input_seconds=info.duration, master_seconds=master_s)
 
     workdir = Path(tempfile.mkdtemp(prefix="reelcut_"))
@@ -216,6 +233,8 @@ def run(a_roll: str | Path, out: str | Path | None, opts: Options, log: LogFn = 
                     f"{', dołożona winieta' if angle else ''}).")
             except look.LookUnavailable as exc:
                 warnings.append(f"{str(exc).rstrip('. ')}. Kolory zostają bez zmian.")
+        elif opts.look > 0 and tpl.mode == "single":
+            log("Kolory nagrania zostają bez zmian (ten szablon ich nie zmienia; kolory marki mają grafiki).")
         elif opts.look > 0:
             warnings.append("Szablon nie ma opisu kolorów (blok look), więc kolory zostają bez zmian.")
 
@@ -225,7 +244,8 @@ def run(a_roll: str | Path, out: str | Path | None, opts: Options, log: LogFn = 
         cap_stats: dict = {}
         words_path: Path | None = None
         want_caps = opts.captions != "off" and info.has_audio
-        if want_caps:
+        anchored = bool(opts.graphics) and graphics.plan_needs_words(opts.graphics)  # plan z frazami potrzebuje transkrypcji
+        if want_caps or (anchored and info.has_audio):
             try:
                 if opts.words_file:
                     words = captions.load_words(opts.words_file)
@@ -234,7 +254,12 @@ def run(a_roll: str | Path, out: str | Path | None, opts: Options, log: LogFn = 
                     prog(0.4, 0.55, "Rozpoznawanie mowy")
                     words = captions.transcribe(media.read_pcm(master), model=opts.model, language=opts.lang, log=log)
                     log(f"Rozpoznano {len(words)} słów.")
+            except captions.WordsFileError as exc:  # plik podany wprost: błąd zawsze zatrzymuje montaż
+                raise media.MediaError(str(exc)) from exc
             except captions.CaptionsUnavailable as exc:
+                if anchored:
+                    raise media.MediaError(f"{exc} Plan grafik używa fraz z mowy, więc bez rozpoznawania mowy nie da się go zastosować "
+                                           "(albo podaj gotową transkrypcję: --words plik.json).") from exc
                 if opts.captions == "on":
                     raise
                 warnings.append(f"{exc} Robię montaż bez napisów.")
@@ -242,20 +267,26 @@ def run(a_roll: str | Path, out: str | Path | None, opts: Options, log: LogFn = 
             except (OSError, RuntimeError, ValueError) as exc:  # np. brak internetu przy pierwszym pobraniu modelu
                 msg = (f"Rozpoznawanie mowy nie powiodło się ({type(exc).__name__}: {exc}). Przy pierwszym uruchomieniu "
                        "model trzeba pobrać z internetu.")
-                if opts.captions == "on":
+                if opts.captions == "on" or anchored:
                     raise media.MediaError(msg) from exc
                 warnings.append(msg + " Robię montaż bez napisów.")
                 want_caps = False
-        if want_caps and words:
-            ass_text, cap_stats = captions.build_ass(words, tpl.captions, canvas, master_s, opts.emphasis)
-            (workdir / "captions.ass").write_text(ass_text, encoding="utf-8")
-            (workdir / "fonts").mkdir(exist_ok=True)
-            shutil.copy(FONT_FILE, workdir / "fonts" / FONT_FILE.name)
-            ass_name, fonts_dir = "captions.ass", "fonts"
+        layer_caps = bool(tpl.graphics.get("captions"))  # napisy rysuje warstwa grafik (krój marki), nie ASS
+        if words:
             words_path = out_path.with_suffix(".slowa.json")
             captions.save_words(words, words_path)
             breaks = breaks + captions.word_breaks(words, fps)  # granice zdań z transkrypcji są dokładniejsze
-            log(f"Napisy: {cap_stats['groups']} napisów bieżących, {cap_stats['emphasis']} fraz akcentowych.")
+        if want_caps and words:
+            if layer_caps:
+                cap_stats = {"groups": len(captions.group_words(words, int(tpl.graphics["captions"].get("max_words", 3)))), "emphasis": 0}
+                log(f"Napisy: {cap_stats['groups']} napisów bieżących (krój marki).")
+            else:
+                ass_text, cap_stats = captions.build_ass(words, tpl.captions, canvas, master_s, opts.emphasis)
+                (workdir / "captions.ass").write_text(ass_text, encoding="utf-8")
+                (workdir / "fonts").mkdir(exist_ok=True)
+                shutil.copy(FONT_FILE, workdir / "fonts" / FONT_FILE.name)
+                ass_name, fonts_dir = "captions.ass", "fonts"
+                log(f"Napisy: {cap_stats['groups']} napisów bieżących, {cap_stats['emphasis']} fraz akcentowych.")
         elif want_caps:
             warnings.append("Nie rozpoznano żadnej mowy: robię montaż bez napisów.")
 
@@ -263,13 +294,34 @@ def run(a_roll: str | Path, out: str | Path | None, opts: Options, log: LogFn = 
         plan = build_plan(tpl, master_frames, fps, breaks=breaks, track=track, **plan_args)
         warnings += plan.warnings
         picks = render.assign_broll(plan.slots, clips, fps, opts.seed) if clips else {}
+
+        # 7) grafiki: tytuły, karty, listy, liczniki (warstwa RGBA) i napisy biegnące w kroju marki
+        job, graphics_info = None, {}
+        use_layer_caps = layer_caps and want_caps and bool(words)
+        if opts.graphics or use_layer_caps:
+            try:
+                prog(0.55, 0.57, "Przygotowuję grafiki")
+                job = graphics.glue.prepare(opts.graphics, opts.brand, tpl, plan, track, master, workdir, words,
+                                            canvas, plan.total_frames / fps, use_layer_caps, log)
+            except graphics.GraphicsUnavailable as exc:
+                if opts.graphics:
+                    raise media.MediaError(str(exc)) from exc
+                warnings.append(f"{str(exc).rstrip('. ')}. Robię montaż bez napisów biegnących.")
+            except graphics.PlanError as exc:
+                raise media.MediaError(f"Plan grafik: {exc}") from exc
+            if job:
+                warnings += job.plan.warnings
+                n_el = len([e for e in job.plan.elements if e.kind != "captions"])
+                graphics_info = {"elements": n_el, "effects": len(job.effects), "brand": job.plan.brand.name if job.plan.brand else "",
+                                 "captions": use_layer_caps}
         log(f"Składam rolkę: {len(plan.slots)} ujęć, {plan.total_frames / fps:.1f} s...")
         out_path.parent.mkdir(parents=True, exist_ok=True)
         try:
             render.render_final(master, master_info, geom.size, plan, picks, out_path, workdir, canvas=canvas,
                                 look_chain=look_chain, ass_file=ass_name, fonts_dir=fonts_dir, normalize=opts.normalize,
                                 lufs=tpl.lufs, tp=tpl.true_peak, lra=tpl.lra, crf=opts.crf, preset=opts.preset,
-                                on_progress=prog(0.55 if want_caps else 0.4, 1.0, "Montaż"))
+                                on_progress=prog(0.57 if job else (0.55 if want_caps else 0.4), 1.0, "Montaż"),
+                                graphics_frames=job.frames() if job else None, effects=job.effects if job else ())
         except Exception:
             out_path.unlink(missing_ok=True)
             raise
@@ -278,9 +330,13 @@ def run(a_roll: str | Path, out: str | Path | None, opts: Options, log: LogFn = 
             warnings.append(f"Długość wyniku ({final.duration:.2f} s) odbiega od planu ({plan.total_frames / fps:.2f} s).")
         if progress:
             progress(1.0, "Gotowe")
-        return Result(out_path, plan, describe_plan(plan), warnings, time.time() - t0,
-                      captions_used=bool(ass_name), caption_stats=cap_stats, words_file=words_path,
-                      input_seconds=info.duration, master_seconds=master_s, face=face_info, look=look_info)
+        plan_text = describe_plan(plan)
+        if job and any(e.kind != "captions" for e in job.plan.elements):
+            plan_text += "\n\nGrafiki (czasy na osi gotowego filmu):\n" + job.plan.describe()
+        return Result(out_path, plan, plan_text, warnings, time.time() - t0,
+                      captions_used=bool(ass_name) or use_layer_caps, caption_stats=cap_stats, words_file=words_path,
+                      input_seconds=info.duration, master_seconds=master_s, face=face_info, look=look_info,
+                      graphics=graphics_info)
     finally:
         if not opts.keep_temp:
             shutil.rmtree(workdir, ignore_errors=True)

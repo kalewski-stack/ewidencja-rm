@@ -7,7 +7,7 @@ import re
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Sequence
+from typing import Iterable, Sequence
 
 from . import media
 from .media import MediaError, MediaInfo, ProgressCb
@@ -137,9 +137,25 @@ def _slot_chain(slot: Slot, master_size: tuple[int, int], canvas: tuple[int, int
     return ",".join(chain)
 
 
+def effects_chain(src: str, effects: Sequence[dict], dst: str) -> list[str]:
+    """Rozmycie (z lekkim przyciemnieniem) całego obrazu w oknach czasu: kopia rozmyta wchodzi i znika płynnie."""
+    parts, cur = [], src
+    for k, fx in enumerate(effects):
+        a, d, ramp = float(fx["at"]), float(fx["dur"]), min(float(fx.get("ramp", 0.4)), float(fx["dur"]) / 2)
+        sigma, dim = float(fx.get("sigma", 14)), float(fx.get("dim", 0.25))
+        nxt = dst if k == len(effects) - 1 else f"[fx{k}]"
+        parts.append(f"{cur}split[fa{k}][fb{k}]")
+        parts.append(f"[fb{k}]gblur=sigma={sigma:g}:steps=2,eq=brightness={-dim * 0.5:.3f},format=yuva420p,"
+                     f"fade=t=in:st={a:.3f}:d={ramp:.3f}:alpha=1,fade=t=out:st={a + d - ramp:.3f}:d={ramp:.3f}:alpha=1[fc{k}]")
+        parts.append(f"[fa{k}][fc{k}]overlay=format=yuv420,format=yuv420p{nxt}")
+        cur = nxt
+    return parts
+
+
 def build_final_graph(plan: Plan, master_size: tuple[int, int], canvas: tuple[int, int],
                       picks: dict[int, BrollPick], input_index: dict[int, int], *, look_chain: str | None,
-                      ass_file: str | None, fonts_dir: str | None) -> str:
+                      ass_file: str | None, fonts_dir: str | None, graphics_input: int | None = None,
+                      effects: Sequence[dict] = ()) -> str:
     fps, W, H = plan.fps, *canvas
     a_slots = [s for s in plan.slots if s.source == "A"]
     parts: list[str] = []
@@ -167,11 +183,25 @@ def build_final_graph(plan: Plan, master_size: tuple[int, int], canvas: tuple[in
             parts.append(f"[ba{i}]format=yuv420p[bd{i}]")
             parts.append(f"[bd{i}][bc{i}]overlay=format=yuv420,format=yuv420p{final}")
         labels.append(final)
-    tail = [look_chain] if look_chain else []
+    head = [look_chain] if look_chain else []
+    tail = []
     if ass_file:
         tail.append(f"ass={ass_file}" + (f":fontsdir={fonts_dir}" if fonts_dir else ""))
     tail.append("format=yuv420p")
-    parts.append("".join(labels) + f"concat=n={len(labels)}:v=1:a=0," + ",".join(tail) + "[vout]")
+    if not effects and graphics_input is None:
+        parts.append("".join(labels) + f"concat=n={len(labels)}:v=1:a=0," + ",".join(head + tail) + "[vout]")
+        return ";\n".join(parts)
+    parts.append("".join(labels) + f"concat=n={len(labels)}:v=1:a=0," + ",".join(head + ["format=yuv420p"]) + "[vc]")
+    cur = "[vc]"
+    if effects:
+        nxt = "[vfx]"
+        parts += effects_chain(cur, effects, nxt)
+        cur = nxt
+    if graphics_input is not None:  # warstwa grafik RGBA nakładana po korekcji kolorów, żeby kolory marki zostały dokładne
+        parts.append(f"[{graphics_input}:v]format=rgba,scale=out_color_matrix=bt709:out_range=tv,format=yuva420p[gl]")
+        parts.append(f"{cur}[gl]overlay=0:0:format=yuv420:eof_action=pass,format=yuv420p[vg]")
+        cur = "[vg]"
+    parts.append(f"{cur}{','.join(tail)}[vout]")
     return ";\n".join(parts)
 
 
@@ -204,7 +234,8 @@ def render_final(master: Path, master_info: MediaInfo, master_size: tuple[int, i
                  picks: dict[int, BrollPick], out: Path, workdir: Path, *, canvas: tuple[int, int],
                  look_chain: str | None = None, ass_file: str | None = None, fonts_dir: str | None = None,
                  normalize: bool = True, lufs: float = -14.0, tp: float = -1.0, lra: float = 11.0,
-                 crf: int = 18, preset: str = "medium", on_progress: ProgressCb | None = None) -> None:
+                 crf: int = 18, preset: str = "medium", on_progress: ProgressCb | None = None,
+                 graphics_frames: Iterable[bytes] | None = None, effects: Sequence[dict] = ()) -> None:
     inputs = ["-i", str(master)]
     input_index: dict[int, int] = {}
     for s in plan.slots:
@@ -212,8 +243,12 @@ def render_final(master: Path, master_info: MediaInfo, master_size: tuple[int, i
             pick = picks[s.index]
             input_index[s.index] = 1 + len(input_index)
             inputs += ["-ss", f"{pick.start:.3f}", "-t", f"{s.frames / plan.fps + 0.2:.3f}", "-i", pick.path]
+    graphics_input = None
+    if graphics_frames is not None:  # warstwa grafik: surowe klatki RGBA z naszego strumienia (stdin ffmpeg)
+        graphics_input = 1 + len(input_index)
+        inputs += ["-f", "rawvideo", "-pix_fmt", "rgba", "-s", f"{canvas[0]}x{canvas[1]}", "-framerate", str(plan.fps), "-i", "pipe:0"]
     graph = build_final_graph(plan, master_size, canvas, picks, input_index, look_chain=look_chain,
-                              ass_file=ass_file, fonts_dir=fonts_dir)
+                              ass_file=ass_file, fonts_dir=fonts_dir, graphics_input=graphics_input, effects=effects)
     total_s = plan.total_frames / plan.fps
     has_audio = master_info.has_audio
     args = [*inputs, *media.filter_script_args(graph, workdir, "graph_final"), "-map", "[vout]"]
@@ -222,8 +257,8 @@ def render_final(master: Path, master_info: MediaInfo, master_size: tuple[int, i
         args += ["-map", "0:a:0", "-af", af, "-c:a", "aac", "-b:a", "192k", "-ar", "48000"]
     else:
         args += ["-an"]
-    if look_chain:  # po obróbce w RGB kodujemy w BT.709 i tak oznaczamy plik, żeby odtwarzacze pokazały dokładnie te kolory
+    if look_chain or graphics_input is not None:  # po obróbce w RGB kodujemy w BT.709 i tak oznaczamy plik, żeby odtwarzacze pokazały dokładnie te kolory
         args += ["-colorspace", "bt709", "-color_primaries", "bt709", "-color_trc", "bt709", "-color_range", "tv"]
     args += ["-c:v", "libx264", "-preset", preset, "-crf", str(crf), "-profile:v", "high", "-pix_fmt", "yuv420p",
              "-r", str(plan.fps), "-movflags", "+faststart", "-t", f"{total_s:.3f}", str(out)]
-    media.run_ffmpeg(args, total_s=total_s, on_progress=on_progress, cwd=workdir)
+    media.run_ffmpeg(args, total_s=total_s, on_progress=on_progress, cwd=workdir, stdin_frames=graphics_frames)

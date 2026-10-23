@@ -3,6 +3,9 @@
 # Opcjonalnie: napisy (rozpoznawanie mowy)
 faster-whisper>=1.0
 
+# Opcjonalnie: grafiki na wideo (tytuły, karty, liczniki, napisy w kroju marki) i szablon jednego ujęcia
+pillow>=10
+
 # Opcjonalnie: kadrowanie po Twojej twarzy, dopasowanie kolorów do wzorca, role ujęć i pomiary w poleceniu "analyze"
 numpy>=1.24
 onnxruntime>=1.16

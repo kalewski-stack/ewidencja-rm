@@ -65,7 +65,7 @@
 <body>
 <main>
   <h1>Rolka</h1>
-  <p class="lead">Wrzuć swoje nagranie. Dostaniesz je pocięte tak jak rolka wzorcowa: ten sam rytm cięć, kadry, kolory, wstawki, napisy słowo po słowie i dźwięk −14 LUFS.</p>
+  <p class="lead">Wrzuć swoje nagranie. Dostaniesz je pocięte tak jak rolka wzorcowa: ten sam rytm cięć, kadry, kolory, wstawki, napisy słowo po słowie i dźwięk −14 LUFS. Do krótkiego formatu z jednym ujęciem wybierz w ustawieniach szablon „Rolka Dez4fPJCR74” i dodaj scenariusz z grafikami (krok 3).</p>
 
   <section class="card" id="c-video">
     <h2><span class="step">1</span>Twoje nagranie</h2>
@@ -85,6 +85,16 @@
     </div>
     <input type="file" id="in-broll" accept="video/*,.mp4,.mov,.m4v,.mkv,.webm" multiple hidden>
     <div id="broll-files"></div>
+  </section>
+
+  <section class="card" id="c-gfx">
+    <h2><span class="step">3</span>Grafiki <span class="muted">(opcjonalnie)</span></h2>
+    <div class="drop small" id="drop-gfx" tabindex="0">
+      <strong>Przeciągnij scenariusz ze znacznikami (.txt) albo plan grafik (.json) i obrazy do kart</strong>
+      <span class="muted">Obrazy wskazuj samą nazwą pliku i wrzucaj razem ze scenariuszem. Bez niego dostaniesz same napisy.</span>
+    </div>
+    <input type="file" id="in-gfx" accept=".txt,.md,.json,.png,.jpg,.jpeg,.webp" multiple hidden>
+    <div id="gfx-files"></div>
   </section>
 
   <section class="card">
@@ -144,6 +154,7 @@ const $ = (s) => document.querySelector(s);
 const HDR = { 'X-Reelcut': '1' };
 let video = null;
 let brolls = [];
+let gfx = [];
 let busy = false;
 
 const fmtSize = (n) => n > 1e9 ? (n / 1e9).toFixed(2) + ' GB' : n > 1e6 ? (n / 1e6).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1e3)) + ' kB';
@@ -188,6 +199,9 @@ function renderFiles() {
     ? `<div class="file"><span class="name">${esc(video.name)}</span><span class="muted">${fmtSize(video.size)} <button class="link" id="rm-video">usuń</button></span></div>` : '';
   $('#broll-files').innerHTML = brolls.map((f, i) =>
     `<div class="file"><span class="name">${esc(f.name)}</span><span class="muted">${fmtSize(f.size)} <button class="link" data-i="${i}">usuń</button></span></div>`).join('');
+  $('#gfx-files').innerHTML = gfx.map((f, i) =>
+    `<div class="file"><span class="name">${esc(f.name)}${/\.(json|txt|md)$/i.test(f.name) ? ' <span class="muted">(plan)</span>' : ''}</span><span class="muted">${fmtSize(f.size)} <button class="link" data-g="${i}">usuń</button></span></div>`).join('');
+  document.querySelectorAll('#gfx-files button').forEach((b) => b.addEventListener('click', () => { gfx.splice(+b.dataset.g, 1); renderFiles(); }));
   $('#rm-video')?.addEventListener('click', () => { video = null; renderFiles(); });
   document.querySelectorAll('#broll-files button').forEach((b) => b.addEventListener('click', () => { brolls.splice(+b.dataset.i, 1); renderFiles(); }));
   $('#go').disabled = !video || busy;
@@ -195,6 +209,15 @@ function renderFiles() {
 
 bindDrop($('#drop-video'), $('#in-video'), false, (fs) => { if (fs[0]) { video = fs[0]; renderFiles(); } });
 bindDrop($('#drop-broll'), $('#in-broll'), true, (fs) => { brolls.push(...fs); renderFiles(); });
+bindDrop($('#drop-gfx'), $('#in-gfx'), true, (fs) => {
+  for (const f of fs) {
+    if (!/\.(json|txt|md|png|jpe?g|webp)$/i.test(f.name)) continue;
+    const isPlan = (n) => /\.(json|txt|md)$/i.test(n);
+    gfx = gfx.filter((g) => g.name !== f.name && !(isPlan(f.name) && isPlan(g.name)));  // jeden plan, obrazy po nazwie
+    gfx.push(f);
+  }
+  renderFiles();
+});
 
 function setProgress(label, pct, extra) {
   $('#p-label').textContent = label;
@@ -208,9 +231,9 @@ async function start() {
   $('#c-progress').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   try {
     const { id } = await api('POST', '/api/job', {});
-    const total = video.size + brolls.reduce((a, f) => a + f.size, 0);
+    const total = video.size + brolls.reduce((a, f) => a + f.size, 0) + gfx.reduce((a, f) => a + f.size, 0);
     let done = 0;
-    const files = [['video', video], ...brolls.map((f) => ['broll', f])];
+    const files = [['video', video], ...brolls.map((f) => ['broll', f]), ...gfx.map((f) => ['grafiki', f])];
     for (const [role, f] of files) {
       await upload(id, role, f, (p) => setProgress('Wgrywam pliki', ((done + p * f.size) / total) * 100, `${f.name}: ${(p * 100).toFixed(0)}%`));
       done += f.size;
@@ -243,6 +266,7 @@ function showResult(id, r) {
   $('#r-words').hidden = !r.words; if (r.words) { $('#r-words').href = `/files/${id}/words`; $('#r-words').setAttribute('download', r.words); }
   $('#r-sum').textContent = `${r.slots} ujęć, ${r.output_seconds} s (z nagrania ${r.input_seconds} s), ` +
     (r.captions ? `napisy: ${r.caption_stats.groups} + ${r.caption_stats.emphasis} wyróżnień, ` : 'bez napisów, ') +
+    (r.graphics && r.graphics.elements ? `grafiki: ${r.graphics.elements} elementów, ` : '') +
     (r.face && r.face.h ? `twarz wykryta (${(r.face.h * 100).toFixed(0)}% kadru), kadry jak we wzorcu, ` : 'kadry wg stałych zoomów, ') +
     (r.look && r.look.strength ? `kolory dopasowane w ${(r.look.strength * 100).toFixed(0)}%, ` : '') +
     `policzone w ${r.seconds} s. Plik: ${r.folder}`;
@@ -253,7 +277,7 @@ function showResult(id, r) {
 
 $('#o-look').addEventListener('input', () => { $('#o-look-val').textContent = $('#o-look').value + '%'; });
 $('#go').addEventListener('click', start);
-$('#r-again').addEventListener('click', () => { video = null; brolls = []; renderFiles(); $('#c-result').hidden = true; window.scrollTo({ top: 0, behavior: 'smooth' }); });
+$('#r-again').addEventListener('click', () => { video = null; brolls = []; gfx = []; renderFiles(); $('#c-result').hidden = true; window.scrollTo({ top: 0, behavior: 'smooth' }); });
 
 (async () => {
   try {

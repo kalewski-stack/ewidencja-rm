@@ -1,0 +1,315 @@
+"""Scenariusz ze znacznikami: tekst, który mówisz, z grafikami wpisanymi w nawiasach klamrowych.
+
+    Dzisiaj o tym, czym jest {tytuł: Content Strategy | akcent: najgorsza | styl: serif} content strategy.
+    {licznik: 700+ | podpis: wydarzeń B2B} Zrobiłem ich ponad siedemset.
+
+Znacznik zaczyna działać od następnego słowa tekstu. Po nagraniu program rozpoznaje mowę, dopasowuje Twój tekst do
+transkrypcji (słowa przekręcone przez rozpoznawanie nie przeszkadzają) i z tego wylicza czasy grafik. Na końcu powstaje
+zwykły plan grafik (taki jak plik JSON), więc wszystko, co umie plan, umie też scenariusz.
+
+Składnia znacznika: {typ: główna treść | klucz: wartość | klucz: wartość}. Zamknięcie: {/typ} kończy ostatnio otwarty
+znacznik tego typu po poprzednim słowie. Poza tym koniec wyznacza `do: fraza` (fraza z tekstu, po której element znika)
+albo `czas: sekundy`, a bez nich czas trwania domyślny dla danego elementu. Linie zaczynające się od # albo // i tekst
+w nawiasach kwadratowych [tak] to uwagi, które nie są mową.
+"""
+from __future__ import annotations
+
+import difflib
+import re
+from dataclasses import dataclass, field
+from typing import Sequence
+
+from .anchors import norm
+from .core import PlanError
+
+TYPES = {
+    "tytul": "title", "title": "title", "plakietka": "badge", "badge": "badge", "karty": "cards", "cards": "cards",
+    "profil": "profile", "profile": "profile", "pigulki": "pills", "pills": "pills", "kafelki": "chips", "chips": "chips",
+    "kroki": "steps", "steps": "steps", "os": "axis", "axis": "axis", "paski": "bars", "bars": "bars",
+    "wyroznienie": "callout", "callout": "callout", "licznik": "stat", "stat": "stat", "ilustracja": "illustration",
+    "illustration": "illustration", "rozmycie": "blur", "blur": "blur",
+}
+KEYS = {
+    "akcent": "accent", "styl": "style", "strefa": "zone", "czas": "dur", "przesun": "shift", "podpis": "label",
+    "numer": "number", "tekst": "text", "ikona": "icon", "haslo": "kicker", "obraz": "image", "obrazy": "images",
+    "szerokosc": "width", "rozmiar": "size", "od": "from", "przedrostek": "prefix", "przyrostek": "suffix",
+    "tryb": "mode", "jednostka": "unit", "pasek": "bar", "licznik": "count", "korona": "crown", "kursor": "cursor",
+    "sila": "sigma", "sciemnienie": "dim", "uklad": "layout", "fokus": "focus", "do": "until", "znacznik": "tag",
+    "wejscie": "in", "wyjscie": "out", "aktywne": "active", "kotwica": "anchor", "etykiety": "label_style", "poswiata": "glow", "cien": "shadow", "rozmycie": "blur", "tytul": "title", "kolumny": "cols",
+}
+ZONES = {"gora": "top", "lewo": "left", "prawo": "right", "dol": "bottom", "glowa": "head", "calosc": "full", "napisy": "captions"}
+MAIN_FIELD = {"title": "text", "badge": "text", "stat": "value", "cards": "items", "steps": "items", "pills": "items",
+              "chips": "items", "axis": "items", "bars": "rows", "callout": "title", "profile": "label", "illustration": "image"}
+DEFAULT_BLUR_DUR = 3.0
+MIN_COVERAGE = 0.5  # tyle słów scenariusza musi znaleźć się w mowie, żeby uznać, że to ten sam tekst
+
+_TOKEN = re.compile(r"\{([^{}]*)\}|([^\s{}]+)")
+_BRACKETS = re.compile(r"\[[^\]]*\]")
+_STAT = re.compile(r"^(\D*?)(\d{1,3}(?:[  ]\d{3})+(?:[.,]\d+)?|\d+(?:[.,]\d+)?)(.*)$")
+
+
+@dataclass
+class Cue:
+    kind: str  # typ elementu ("title", ...) albo "blur"
+    spec: dict  # pola jak w planie JSON, bez czasów
+    word: int  # numer słowa scenariusza, od którego element startuje
+    end_word: int | None = None  # numer ostatniego słowa pod elementem (z zamknięcia {/typ}), jeśli jest
+    until: str | None = None  # fraza kończąca element
+    raw: str = ""
+
+
+@dataclass
+class Script:
+    words: list[str] = field(default_factory=list)  # słowa scenariusza (to, co mówisz)
+    cues: list[Cue] = field(default_factory=list)
+
+
+def _fold(s: str) -> str:
+    return norm(s)
+
+
+def _coerce(value: str):
+    v = value.strip()
+    low = v.lower()
+    if low in ("tak", "true"):
+        return True
+    if low in ("nie", "false"):
+        return False
+    if re.fullmatch(r"-?\d+", v):
+        return int(v)
+    if re.fullmatch(r"-?\d+[.,]\d+", v):
+        return float(v.replace(",", "."))
+    if ";" in v:
+        return [_coerce(p) for p in v.split(";")]
+    return v
+
+
+def _split_items(value: str) -> list[str]:
+    return [p.strip() for p in value.split(";")]
+
+
+def _stat(value: str, spec: dict) -> None:
+    m = _STAT.match(value.strip())
+    if not m:
+        raise PlanError(f"licznik: nie widzę liczby w „{value}” (np. 700+, 15 834 zł, 2,5 mln).")
+    prefix, num, suffix = m.group(1), m.group(2), m.group(3)
+    digits = re.sub(r"[  ]", "", num)
+    frac = re.search(r"[.,](\d+)$", digits)
+    spec["value"] = float(digits.replace(",", ".")) if frac else int(digits)
+    if frac:
+        spec["decimals"] = len(frac.group(1))
+    if prefix:
+        spec.setdefault("prefix", prefix)
+    if suffix:
+        spec.setdefault("suffix", suffix)
+
+
+def _pair(item: str) -> tuple[str, str]:
+    left, _, right = item.partition("=")
+    return left.strip(), right.strip()
+
+
+def _main(kind: str, value: str, spec: dict) -> None:
+    f = MAIN_FIELD.get(kind)
+    if not f or not value.strip():
+        return
+    if kind == "stat":
+        return _stat(value, spec)
+    if kind == "cards":
+        items = []
+        for it in _split_items(value):
+            label, bullets = _pair(it)
+            d = {"label": label, "kind": "play"}
+            if bullets:
+                d["bullets"] = [b.strip() for b in bullets.split("/") if b.strip()]
+            items.append(d)
+        spec["items"] = items
+    elif kind == "steps":
+        spec["items"] = [{"title": a, **({"sub": b} if b else {})} for a, b in map(_pair, _split_items(value))]
+    elif kind == "chips":
+        items = []
+        for it in _split_items(value):
+            label, val = _pair(it)
+            d = {"label": label}
+            if val:
+                tmp: dict = {}
+                _stat(val, tmp)
+                d.update(tmp)
+            items.append(d)
+        spec["items"] = items
+    elif kind == "pills":
+        spec["items"] = [{"text": a, **({"tag": b} if b else {})} for a, b in map(_pair, _split_items(value))]
+    elif kind in ("axis",):
+        spec["items"] = _split_items(value)
+    elif kind == "bars":
+        spec["rows"] = _split_items(value)
+    else:
+        spec[f] = value.strip()
+
+
+def _marker(body: str, word: int) -> Cue | tuple[str, str]:
+    """Znacznik {typ: treść | klucz: wartość}; zwraca Cue albo ("close", typ) dla {/typ}."""
+    body = body.strip()
+    if body.startswith("/"):
+        t = TYPES.get(_fold(body[1:]))
+        if not t:
+            raise PlanError(f"Znacznik zamykający „{{{body}}}”: nieznany typ. Dostępne: {', '.join(sorted(set(TYPES)))}.")
+        return ("close", t)
+    parts = [p.strip() for p in body.split("|")]
+    head, _, main = parts[0].partition(":")
+    kind = TYPES.get(_fold(head))
+    if not kind:
+        raise PlanError(f"Znacznik „{{{body}}}”: nieznany typ „{head.strip()}”. Dostępne: "
+                        f"{', '.join(sorted({k for k in TYPES if k.isascii()}))} (polskie nazwy mogą mieć ogonki).")
+    spec: dict = {"type": kind}
+    _main(kind, main, spec)
+    until = None
+    for seg in parts[1:]:
+        if not seg:
+            continue
+        key, colon, value = seg.partition(":")
+        if not colon:
+            raise PlanError(f"Znacznik „{{{body}}}”: „{seg}” nie ma dwukropka (pisz klucz: wartość).")
+        k = KEYS.get(_fold(key), key.strip())
+        if k == "until":
+            until = value.strip()
+        elif k == "images" and kind == "cards":
+            imgs = [i.strip() for i in value.split(";")]
+            for i, it in enumerate(spec.get("items", [])):
+                if i < len(imgs) and imgs[i]:
+                    it["image"], it["kind"] = imgs[i], "image"
+        elif k in ("zone", "anchor"):
+            spec[k] = ZONES.get(_fold(value), value.strip())
+        else:
+            spec[k] = _coerce(value)
+    return Cue(kind, spec, word, None, until, body)
+
+
+def parse(text: str) -> Script:
+    """Rozbija scenariusz na słowa i znaczniki."""
+    lines = [ln for ln in text.splitlines() if not ln.lstrip().startswith(("#", "//"))]
+    clean = _BRACKETS.sub(" ", "\n".join(lines))
+    script = Script()
+    open_cues: list[Cue] = []
+    for m in _TOKEN.finditer(clean):
+        if m.group(2) is not None:
+            if _fold(m.group(2)):
+                script.words.append(m.group(2))
+            continue
+        res = _marker(m.group(1), len(script.words))
+        if isinstance(res, Cue):
+            script.cues.append(res)
+            open_cues.append(res)
+        else:
+            for c in reversed(open_cues):
+                if c.kind == res[1] and c.end_word is None:
+                    c.end_word = len(script.words) - 1
+                    break
+            else:
+                raise PlanError(f"Zamknięcie „{{/{m.group(1)[1:].strip()}}}” nie ma wcześniejszego otwarcia tego typu.")
+    leftover = _TOKEN.sub(" ", clean)
+    if "{" in leftover or "}" in leftover:
+        raise PlanError("W scenariuszu jest nawias klamrowy bez pary: każdy znacznik musi być w całości w { }.")
+    return script
+
+
+def align(script_words: Sequence[str], spoken: Sequence) -> tuple[list[tuple[float, float]], float]:
+    """Czasy (start, koniec) każdego słowa scenariusza na podstawie transkrypcji oraz odsetek słów znalezionych w mowie.
+    Słowa, których rozpoznawanie nie oddało, dostają czas z interpolacji między sąsiednimi trafieniami."""
+    a = [_fold(w) for w in script_words]
+    b = [_fold(w.text) for w in spoken]
+    sm = difflib.SequenceMatcher(None, a, b, autojunk=False)
+    match: dict[int, int] = {}
+    for blk in sm.get_matching_blocks():
+        for k in range(blk.size):
+            match[blk.a + k] = blk.b + k
+    if not match:
+        return [], 0.0
+    idx = sorted(match)
+    first, last = idx[0], idx[-1]
+    t0, t1 = float(spoken[match[first]].start), float(spoken[match[last]].start)
+    per = (t1 - t0) / max(1, last - first) if last > first else 0.35  # średni odstęp słów (do skrajów)
+    out: list[tuple[float, float]] = []
+    for i in range(len(a)):
+        if i in match:
+            w = spoken[match[i]]
+            out.append((float(w.start), float(w.end)))
+            continue
+        left = max((j for j in idx if j < i), default=None)
+        right = min((j for j in idx if j > i), default=None)
+        if left is not None and right is not None:
+            ts, te = float(spoken[match[left]].end), float(spoken[match[right]].start)
+            k = (i - left) / (right - left)
+            start = ts + (te - ts) * k
+            out.append((start, start + max(0.1, per * 0.8)))
+        elif left is None:
+            start = max(0.0, t0 - (first - i) * per)
+            out.append((start, start + per * 0.8))
+        else:
+            tail = float(spoken[match[last]].end) + (i - last - 1) * per
+            out.append((tail, tail + per * 0.8))
+    return out, len(match) / max(1, len(a))
+
+
+def _find_phrase(words: list[str], phrase: str, after: int) -> tuple[int, int] | None:
+    toks = [t for t in (_fold(p) for p in phrase.split()) if t]
+    if not toks:
+        return None
+    folded = [_fold(w) for w in words]
+    for i in range(max(0, after), len(folded) - len(toks) + 1):
+        if folded[i:i + len(toks)] == toks:
+            return i, i + len(toks) - 1
+    return None
+
+
+def to_plan(text: str, spoken: Sequence) -> dict:
+    """Plan grafik (słownik jak w JSON) wyliczony ze scenariusza i transkrypcji."""
+    script = parse(text)
+    if not script.cues:
+        raise PlanError("W scenariuszu nie ma ani jednego znacznika {typ: ...}.")
+    if not spoken:
+        raise PlanError("Scenariusz ze znacznikami potrzebuje transkrypcji: uruchom montaż z napisami (rozpoznawanie mowy) "
+                        "albo podaj gotową: --words plik.json.")
+    if not script.words:
+        raise PlanError("W scenariuszu są same znaczniki, bez tekstu do dopasowania do mowy.")
+    times, coverage = align(script.words, spoken)
+    if coverage < MIN_COVERAGE:
+        raise PlanError(f"Scenariusz nie pasuje do nagrania: w mowie znalazłem tylko {coverage * 100:.0f}% jego słów "
+                        f"(potrzeba co najmniej {MIN_COVERAGE * 100:.0f}%). Czy to na pewno ten tekst? Porównaj z plikiem .slowa.json.")
+    n = len(times)
+    elements: list[dict] = []
+    effects: list[dict] = []
+    for cue in script.cues:
+        spec = dict(cue.spec)
+        w = min(cue.word, n - 1)
+        at = times[w][0] if cue.word < n else times[-1][1]
+        at += float(spec.pop("shift", 0.0) or 0.0)
+        dur = spec.pop("dur", None)
+        end = None
+        if cue.end_word is not None and cue.end_word >= cue.word:
+            end = times[min(cue.end_word, n - 1)][1]
+        elif cue.until:
+            found = _find_phrase(script.words, cue.until, cue.word)
+            if not found:
+                raise PlanError(f"Znacznik „{{{cue.raw}}}”: fraza do: „{cue.until}” nie występuje w tekście po znaczniku.")
+            end = times[found[1]][1]
+        if end is not None:
+            dur = max(0.4, end - at)
+        blur_on = spec.pop("blur", None)
+        spec["at"] = round(at, 3)
+        spec["said"] = " ".join(script.words[cue.word:cue.word + 4])
+        if cue.kind == "blur":
+            spec["dur"] = round(float(dur) if dur else DEFAULT_BLUR_DUR, 3)
+            effects.append(spec)
+            continue
+        if dur:
+            spec["dur"] = round(float(dur), 3)
+        elements.append(spec)
+        if blur_on:
+            d = float(spec.get("dur") or 4.0)
+            effects.append({"type": "blur", "at": round(max(0.0, at - 0.1), 3), "dur": round(d + 0.2, 3)})
+    return {"schema": 1, "elements": elements, "effects": effects}
+
+
+def is_script(path) -> bool:
+    return str(path).lower().endswith((".txt", ".md"))

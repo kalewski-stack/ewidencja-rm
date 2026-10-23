@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "name": "Linia Kalewski",
+  "note": "Tokeny marki z systemu „Linia Kalewski”. Role mówią, do czego służy kolor w grafikach na wideo: akcent to etykiety, pierścienie i linie, wyróżnik to jedyny jasny element naraz (kursor, aktywna pozycja, słowo kluczowe).",
+  "colors": {
+    "ink": "#1B1440",
+    "violet": "#795DFF",
+    "violet_dark": "#6343FF",
+    "yellow": "#FFD346",
+    "paper": "#F7F4EC",
+    "white": "#FFFFFF"
+  },
+  "roles": {
+    "text": "white",
+    "text_dim": "paper",
+    "accent": "violet",
+    "accent_strong": "violet_dark",
+    "highlight": "yellow",
+    "label": "violet",
+    "title": "yellow",
+    "badge": "violet_dark",
+    "panel": "ink",
+    "line": "violet"
+  },
+  "series": ["yellow", "violet", "violet_dark", "paper", "white", "violet"],
+  "fonts": {
+    "display": "BricolageGrotesque_800ExtraBold.ttf",
+    "bold": "BricolageGrotesque_700Bold.ttf",
+    "semibold": "BricolageGrotesque_600SemiBold.ttf",
+    "text": "BricolageGrotesque_500Medium.ttf",
+    "serif_italic": "InstrumentSerif_400Regular_Italic.ttf"
+  }
+}

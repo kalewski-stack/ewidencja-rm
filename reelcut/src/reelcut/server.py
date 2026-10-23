@@ -28,6 +28,9 @@ JOB_ID = r"[0-9a-f]{12}"
 RUN_LOCK = threading.Lock()  # jedno zadanie na raz: ffmpeg i tak zużywa wszystkie rdzenie
 
 LOCAL_HOSTS = {"127.0.0.1", "localhost", "[::1]"}
+PLAN_EXT = {".json", ".txt", ".md"}  # plan grafik (JSON) albo scenariusz ze znacznikami
+GRAPHICS_EXT = PLAN_EXT | {".png", ".jpg", ".jpeg", ".webp"}  # plan i obrazy, których używa
+MAX_PLAN_BYTES, MAX_IMAGE_BYTES = 2_000_000, 40_000_000
 
 
 @dataclass
@@ -40,6 +43,7 @@ class Job:
     log: list[str] = field(default_factory=list)
     video: Path | None = None
     broll: list[Path] = field(default_factory=list)
+    graphics: Path | None = None  # plan grafik (JSON); obrazy z planu leżą obok
     result: dict | None = None
     error: str | None = None
     served: dict[str, Path] = field(default_factory=dict)
@@ -117,6 +121,7 @@ def parse_options(data: dict, job: Job) -> Options:
     return Options(
         template=pick("template", templates, "rolka_DeuOaXKtPBb"),
         broll=tuple(job.broll),
+        graphics=job.graphics,
         captions=pick("captions", {"auto", "on", "off"}, "auto"),
         lang=pick("lang", {"pl", "en", "de", "cs", "uk", "es", "fr", "it", "auto"}, "pl"),
         model=pick("model", {"tiny", "base", "small", "medium", "large-v3"}, "small"),
@@ -145,7 +150,7 @@ def run_job(state: State, job: Job, opts: Options) -> None:
                 "seconds": round(res.seconds, 1), "input_seconds": round(res.input_seconds, 1),
                 "output_seconds": round(res.plan.total_frames / res.plan.fps, 1), "slots": len(res.plan.slots),
                 "captions": res.captions_used, "caption_stats": res.caption_stats, "mode": res.plan.mode,
-                "face": res.face, "look": res.look,
+                "face": res.face, "look": res.look, "graphics": res.graphics,
             }
             job.state, job.percent, job.label = "done", 100.0, "Gotowe"
         except (media.MediaError, TemplateError, captions.CaptionsUnavailable, ValueError) as exc:
@@ -308,16 +313,22 @@ class Handler(BaseHTTPRequestHandler):
             return self._fail(404, "Nie ma takiego zadania albo już ruszyło.")
         q = parse_qs(url.query)
         role, name = (q.get("role") or [""])[0], safe_name((q.get("name") or ["plik"])[0])
-        if role not in ("video", "broll"):
-            return self._fail(400, "role musi być video albo broll.")
-        if Path(name).suffix.lower() not in VIDEO_EXT:
+        if role not in ("video", "broll", "grafiki"):
+            return self._fail(400, "role musi być video, broll albo grafiki.")
+        suffix = Path(name).suffix.lower()
+        if role == "grafiki":
+            if suffix not in GRAPHICS_EXT:
+                return self._fail(400, f"Nieobsługiwany typ pliku: {name}. Wgraj plan grafik (.json), scenariusz (.txt, .md) albo obraz (.png, .jpg, .webp).")
+        elif suffix not in VIDEO_EXT:
             return self._fail(400, f"Nieobsługiwany typ pliku: {name}. Wgraj nagranie wideo (np. .mp4, .mov).")
         length = int(self.headers.get("Content-Length") or 0)
         if length <= 0:
             return self._fail(400, "Pusty plik.")
-        updir = job.dir / ("broll" if role == "broll" else "video")
+        if role == "grafiki" and length > (MAX_PLAN_BYTES if suffix in PLAN_EXT else MAX_IMAGE_BYTES):
+            return self._fail(413, f"Plik {name} jest za duży.")
+        updir = job.dir / role
         updir.mkdir(exist_ok=True)
-        dest = unique_path(updir, name)
+        dest = updir / name if role == "grafiki" else unique_path(updir, name)  # plan odwołuje się do obrazów po nazwie
         left = length
         with open(dest, "wb") as fh:
             while left > 0:
@@ -331,8 +342,10 @@ class Handler(BaseHTTPRequestHandler):
             return self._fail(400, "Wgrywanie przerwane.")
         if role == "video":
             job.video = dest
-        else:
+        elif role == "broll":
             job.broll.append(dest)
+        elif suffix in PLAN_EXT:
+            job.graphics = dest
         self._json({"ok": True, "name": dest.name, "size": length})
 
     def do_DELETE(self):  # noqa: N802

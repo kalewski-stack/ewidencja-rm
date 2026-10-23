@@ -103,6 +103,53 @@ class ServerTests(unittest.TestCase):
         self.assertEqual(name, "evil.mp4")
         self.assertTrue((self.state.jobs_dir / jid / "video" / "evil.mp4").exists())
 
+    def test_graphics_upload_takes_a_plan_and_images_next_to_it(self):
+        jid = self.new_job()
+        base = f"/api/job/{jid}/upload?role=grafiki&name="
+        self.assertEqual(self.req("PUT", base + "plan.json", b'{"elements": []}', H)[0], 200)
+        self.assertEqual(self.req("PUT", base + "astro.jpg", b"\xff\xd8\xff", H)[0], 200)
+        self.assertEqual(self.req("PUT", base + "ikona.PNG", b"\x89PNG", H)[0], 200)
+        job = self.state.get(jid)
+        self.assertEqual(job.graphics, self.state.jobs_dir / jid / "grafiki" / "plan.json")
+        self.assertTrue((job.dir / "grafiki" / "astro.jpg").exists() and (job.dir / "grafiki" / "ikona.PNG").exists())
+        self.assertIsNone(job.video)  # grafiki nie podmieniają nagrania
+        self.assertEqual(self.req("PUT", base + "plan.json", b'{"elements": [1]}', H)[0], 200)  # drugi plan zastępuje pierwszy
+        self.assertEqual((job.dir / "grafiki" / "plan.json").read_bytes(), b'{"elements": [1]}')
+        self.assertEqual(self.req("PUT", base + "scenariusz.txt", "{tytuł: X} a".encode("utf-8"), H)[0], 200)  # scenariusz ze znacznikami
+        self.assertEqual(job.graphics.name, "scenariusz.txt")
+
+    def test_graphics_upload_rejects_other_file_types_and_traversal(self):
+        jid = self.new_job()
+        base = f"/api/job/{jid}/upload?role="
+        for name in ("virus.exe", "film.mp4", "notatki.docx"):
+            status, _, body = self.req("PUT", base + f"grafiki&name={name}", b"x", H)
+            self.assertEqual(status, 400, name)
+            self.assertIn("Nieobsługiwany", json.loads(body)["error"])
+        self.assertEqual(self.req("PUT", base + "video&name=plan.json", b"{}", H)[0], 400)  # JSON nie jest nagraniem
+        self.assertEqual(self.req("PUT", base + "grafiki&name=..%2F..%2Fplan.json", b"{}", H)[0], 200)
+        job = self.state.get(jid)
+        self.assertEqual(job.graphics.parent, job.dir / "grafiki")
+        self.assertFalse((job.dir.parent / "plan.json").exists())
+
+    def test_oversized_graphics_files_are_refused(self):
+        old = server.MAX_PLAN_BYTES, server.MAX_IMAGE_BYTES
+        server.MAX_PLAN_BYTES, server.MAX_IMAGE_BYTES = 20, 30
+        try:
+            jid = self.new_job()
+            base = f"/api/job/{jid}/upload?role=grafiki&name="
+            self.assertEqual(self.req("PUT", base + "duzy.json", b"x" * 21, H)[0], 413)
+            self.assertEqual(self.req("PUT", base + "duzy.jpg", b"x" * 31, H)[0], 413)
+            self.assertEqual(self.req("PUT", base + "maly.jpg", b"x" * 30, H)[0], 200)
+        finally:
+            server.MAX_PLAN_BYTES, server.MAX_IMAGE_BYTES = old
+
+    def test_start_options_carry_the_graphics_plan(self):
+        job = server.Job("a" * 12, self.tmp)
+        self.assertIsNone(server.parse_options({"template": "rolka_Dez4fPJCR74"}, job).graphics)
+        job.graphics = self.tmp / "plan.json"
+        opts = server.parse_options({"template": "rolka_Dez4fPJCR74"}, job)
+        self.assertEqual((opts.graphics, opts.template), (job.graphics, "rolka_Dez4fPJCR74"))
+
     def test_start_without_video_is_refused(self):
         jid = self.new_job()
         self.assertEqual(self.req("POST", f"/api/job/{jid}/start", {}, H)[0], 409)

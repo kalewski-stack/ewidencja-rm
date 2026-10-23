@@ -6,11 +6,12 @@ import re
 import shutil
 import subprocess
 import sys
+import threading
 from array import array
 from collections import deque
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable, Sequence
+from typing import Callable, Iterable, Sequence
 
 HOP_S = 0.02  # krok obwiedni głośności
 
@@ -92,14 +93,39 @@ ProgressCb = Callable[[float], None]
 
 
 def run_ffmpeg(args: Sequence[str], *, total_s: float | None = None, on_progress: ProgressCb | None = None,
-               cwd: str | Path | None = None) -> None:
-    """Uruchamia ffmpeg. Postęp 0-1 trafia do on_progress; przy błędzie rzuca MediaError z końcówką logu."""
-    cmd = [find_binary("ffmpeg"), "-hide_banner", "-nostdin", "-y", "-loglevel", "error",
-           "-progress", "pipe:1", "-nostats", *args]
+               cwd: str | Path | None = None, stdin_frames: Iterable[bytes] | None = None) -> None:
+    """Uruchamia ffmpeg. Postęp 0-1 trafia do on_progress; przy błędzie rzuca MediaError z końcówką logu.
+    stdin_frames: kolejne porcje bajtów podawane na wejście `pipe:0` (np. surowe klatki RGBA warstwy grafik)."""
+    cmd = [find_binary("ffmpeg"), "-hide_banner", "-y", "-loglevel", "error", "-progress", "pipe:1", "-nostats", *args]
+    if stdin_frames is None:
+        cmd.insert(2, "-nostdin")
     tail: deque[str] = deque(maxlen=30)
+    feed_error: list[BaseException] = []
     with subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
+                          stdin=subprocess.PIPE if stdin_frames is not None else None,
                           encoding="utf-8", errors="replace", cwd=str(cwd) if cwd else None) as proc:
         assert proc.stdout is not None
+        feeder = None
+        if stdin_frames is not None:
+            assert proc.stdin is not None
+
+            def feed() -> None:
+                try:
+                    for chunk in stdin_frames:
+                        proc.stdin.buffer.write(chunk)  # type: ignore[union-attr]
+                except BrokenPipeError:
+                    pass  # ffmpeg skończył wcześniej (np. błąd): jego komunikat złapiemy poniżej
+                except BaseException as exc:  # błąd w generatorze klatek: przerywamy i zgłaszamy
+                    feed_error.append(exc)
+                    proc.kill()
+                finally:
+                    try:
+                        proc.stdin.close()  # type: ignore[union-attr]
+                    except (BrokenPipeError, OSError, ValueError):
+                        pass
+
+            feeder = threading.Thread(target=feed, daemon=True)
+            feeder.start()
         for line in proc.stdout:
             line = line.strip()
             m = re.match(r"out_time_(?:us|ms)=(-?\d+)", line)
@@ -109,6 +135,11 @@ def run_ffmpeg(args: Sequence[str], *, total_s: float | None = None, on_progress
             elif line and not re.match(r"^[a-z_0-9:]+=", line):
                 tail.append(line)
         returncode = proc.wait()
+        if feeder is not None:
+            feeder.join(timeout=10)
+    if feed_error:
+        exc = feed_error[0]
+        raise MediaError(f"Nie udało się narysować grafik: {exc}") from exc
     if returncode != 0:
         raise MediaError("ffmpeg zakończył się błędem:\n" + "\n".join(tail))
     if on_progress:

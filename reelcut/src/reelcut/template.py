@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 DATA_DIR = Path(__file__).resolve().parent / "data"
@@ -64,6 +64,8 @@ class Template:
     look: dict
     dynamics: dict
     raw: dict
+    mode: str = "cuts"  # cuts = rytm cięć z szablonu | single = jedno ujęcie bez cięć (grafiki robią dynamikę)
+    graphics: dict = field(default_factory=dict)  # domyślne ustawienia warstwy grafik (napisy biegnące, marka)
 
     @property
     def total_frames(self) -> int:
@@ -107,14 +109,20 @@ def parse_template(raw: dict) -> Template:
             _require(0.02 < face.h < 0.95 and 0 <= face.cx <= 1 and 0 <= face.cy <= 1,
                      f"Ujęcie {i}: face musi mieć h w (0.02, 0.95) oraz cx, cy w [0, 1].")
         segments.append(Segment(frames, role, zoom, int(s.get("alt", 0)), fx, str(s.get("note", "")), face))
-    _require(len(segments) >= 3, "Szablon musi mieć co najmniej 3 ujęcia.")
-
+    mode = raw.get("mode", "cuts")
+    _require(mode in ("cuts", "single"), "Pole mode: cuts albo single.")
     st = raw.get("structure", {})
-    hook, outro = int(st.get("hook", 1)), int(st.get("outro", 1))
-    elastic = int(st.get("elastic", len(segments) - 1))
-    _require(hook >= 0 and outro >= 1 and hook + outro < len(segments) + 1, "structure: błędne hook/outro.")
-    _require(len(segments) - outro <= elastic < len(segments), "structure.elastic musi wskazywać ujęcie z sekcji outro.")
-    _require(segments[elastic].role == "A", "Ujęcie elastyczne musi mieć rolę A.")
+    if mode == "single":
+        _require(len(segments) == 1 and segments[0].role == "A",
+                 "Szablon jednoujęciowy (mode=single) ma dokładnie jedno ujęcie z rolą A.")
+        hook, outro, elastic = 0, 1, 0
+    else:
+        _require(len(segments) >= 3, "Szablon musi mieć co najmniej 3 ujęcia.")
+        hook, outro = int(st.get("hook", 1)), int(st.get("outro", 1))
+        elastic = int(st.get("elastic", len(segments) - 1))
+        _require(hook >= 0 and outro >= 1 and hook + outro < len(segments) + 1, "structure: błędne hook/outro.")
+        _require(len(segments) - outro <= elastic < len(segments), "structure.elastic musi wskazywać ujęcie z sekcji outro.")
+        _require(segments[elastic].role == "A", "Ujęcie elastyczne musi mieć rolę A.")
 
     pauses, audio = raw.get("pauses", {}), raw.get("audio", {})
     return Template(
@@ -140,6 +148,8 @@ def parse_template(raw: dict) -> Template:
         look=dict(raw.get("look", {})),
         dynamics=dict(raw.get("dynamics", {})),
         raw=raw,
+        mode=mode,
+        graphics=dict(raw.get("graphics", {})),
     )
 
 

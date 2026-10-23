@@ -79,6 +79,12 @@ def build_plan(
     body = list(range(tpl.hook, n - tpl.outro))
     min_f = max(1, round(tpl.min_cut_s * fps))
 
+    if tpl.mode == "single":  # jedno ujęcie bez cięć: dynamikę robią grafiki, kadr ustawia się po twarzy
+        slot = _make_slot(0, 0, 0, master_frames, tpl, True, has_broll, 1.0, focus, max_zoom, fps)
+        if track is not None:
+            framing.apply_framing([slot], tpl, track, fps, max_zoom)
+        return Plan(fps, master_frames, [slot], "jedno ujęcie", warnings)
+
     if master_frames < 2 * min_f:
         warnings.append("Materiał jest bardzo krótki: zostawiam jedno ujęcie bez cięć.")
         slot = _make_slot(0, 0, 0, master_frames, tpl, False, has_broll, 1.0, focus, 1.0, fps)

@@ -1,4 +1,4 @@
-"""Wiersz poleceń: rolka.py cut | serve | analyze | style."""
+"""Wiersz poleceń: rolka.py cut | serve | analyze | style | grafiki."""
 from __future__ import annotations
 
 import argparse
@@ -6,17 +6,27 @@ import sys
 from pathlib import Path
 
 from . import __version__
+from .captions import CaptionsUnavailable, load_words
+from .graphics.core import GraphicsUnavailable, PlanError
 from .media import MediaError
 from .pipeline import Options, run
 from .template import USER_DIR, TemplateError, list_templates
 
-COMMANDS = {"cut", "serve", "analyze", "style"}
+COMMANDS = {"cut", "serve", "analyze", "style", "grafiki"}
 
 DESCRIPTION = """\
 reelcut: tnie Twoje wideo dokładnie wg schematu montażu rolki wzorcowej
 (rytm cięć, ujęcia z mową i wstawki, kadry po twarzy, kolory, napisy słowo po słowie, dźwięk -14 LUFS).
 Styl rolki (kolory, kadry, cięcia, scenariusz) opisuje STYL.md, a karta każdego szablonu: python rolka.py style.
 """
+
+
+def _face_arg(text: str) -> tuple[float, float, float]:
+    try:
+        h, x, y = (float(v) for v in text.split(","))
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("podaj trzy liczby: wysokość, x, y, np. 0.17,0.55,0.45") from exc
+    return h, x, y
 
 
 def _focus(text: str) -> tuple[float, float]:
@@ -61,7 +71,11 @@ def build_parser() -> argparse.ArgumentParser:
                    help="tnij dokładnie w sekundach szablonu, bez dosuwania do granic zdań")
     c.add_argument("--look", type=float, default=1.0, metavar="0-1",
                    help="siła dopasowania kolorów do wzorca: jasność, nasycenie, ton, winieta (1 = jak we wzorcu, 0 = obraz bez zmian)")
-    c.add_argument("--fps", type=int, help="klatki na sekundę wyniku (domyślnie jak w szablonie: 25)")
+    c.add_argument("--graphics", type=Path, metavar="SCENARIUSZ.txt|PLAN.json",
+                   help="grafiki na filmie (tytuły, karty, listy, liczniki): scenariusz ze znacznikami {…} albo plan JSON, patrz GRAFIKI.md")
+    c.add_argument("--brand", metavar="NAZWA|PLIK.json",
+                   help="marka grafik: kolory i kroje (domyślnie „Linia Kalewski”)")
+    c.add_argument("--fps", type=int, help="klatki na sekundę wyniku (domyślnie jak w szablonie)")
     c.add_argument("--seed", type=int, default=7, help="ziarno losowania B-rolla (to samo ziarno = ten sam wynik)")
     c.add_argument("--crf", type=int, default=18, help="jakość H.264 (niżej = lepiej, 18 to bardzo dobra)")
     c.add_argument("--preset", default="medium",
@@ -87,6 +101,20 @@ def build_parser() -> argparse.ArgumentParser:
                    help="zmierz też tempo mowy (słowa na sekundę, pauzy; potrzebny faster-whisper, pierwszy raz pobierze model)")
     a.add_argument("--model", default="small", help="model rozpoznawania mowy dla --speech (tiny, base, small, medium)")
     a.add_argument("--lang", default="pl", help="język mowy w rolce dla --speech (pl, en, auto...)")
+
+    g = sub.add_parser("grafiki", help="podgląd grafik (scenariusz ze znacznikami albo plan JSON) na jednolitym tle albo na Twoim nagraniu, bez montażu")
+    g.add_argument("plan", type=Path, help="scenariusz ze znacznikami (.txt, .md) albo plan grafik (.json)")
+    g.add_argument("-o", "--out", type=Path, default=Path("podglad_grafik.mp4"), help="plik podglądu")
+    g.add_argument("--tlo", type=Path, metavar="WIDEO|OBRAZ", help="tło: Twoje nagranie albo zdjęcie (domyślnie ciemne, jednolite)")
+    g.add_argument("--od", type=float, default=0.0, help="początek wycinka tła (s)")
+    g.add_argument("--czas", type=float, help="długość podglądu (s; domyślnie do końca planu)")
+    g.add_argument("--klatka", type=float, metavar="S", help="zamiast filmu zapisz jedną klatkę (PNG) z sekundy S")
+    g.add_argument("--brand", metavar="NAZWA|PLIK.json", help="marka grafik (domyślnie „Linia Kalewski”)")
+    g.add_argument("--words", type=Path, metavar="PLIK.json",
+                   help="transkrypcja (plik .slowa.json): potrzebna, gdy plan podaje czasy jako frazy z mowy albo to scenariusz ze znacznikami")
+    g.add_argument("--fps", type=int, default=30)
+    g.add_argument("--twarz", type=_face_arg, metavar="H,X,Y", default=None,
+                   help="gdzie jest twarz w kadrze: wysokość, środek x, środek y (ułamki), np. 0.17,0.55,0.45")
 
     y = sub.add_parser("style", help="opisz styl szablonu: cięcia, tempo, kadry, kolory, napisy (karta w Markdown)")
     y.add_argument("template", nargs="?", default=None, help="nazwa szablonu albo plik .json (domyślnie wbudowany)")
@@ -115,6 +143,7 @@ def cmd_cut(args: argparse.Namespace) -> int:
     opts = Options(template=args.template, broll=tuple(args.broll), captions=args.captions, lang=args.lang,
                    model=args.model, words_file=args.words, emphasis=args.emphasis, max_zoom=args.max_zoom, framing=args.framing,
                    focus=args.focus, tighten=args.tighten, snap=args.snap, look=args.look, fps=args.fps,
+                   graphics=args.graphics, brand=args.brand,
                    seed=args.seed, crf=args.crf, preset=args.preset, normalize=args.normalize, dry_run=args.dry_run,
                    keep_temp=args.keep_temp)
     if not args.video.exists():
@@ -154,6 +183,43 @@ def cmd_analyze(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_grafiki(args: argparse.Namespace) -> int:
+    from . import graphics
+
+    size = (1080, 1920)
+    if not args.plan.exists():
+        print(f"Nie ma pliku: {args.plan}", file=sys.stderr)
+        return 2
+    face = None
+    if args.twarz:
+        h, x, y = args.twarz
+        face = (x, y, h)
+    words = load_words(args.words) if args.words else None
+    plan = graphics.load_plan(args.plan, size=size, fps=args.fps, brand=args.brand, face=face, words=words)
+    print("Harmonogram grafik (sekundy na osi filmu):")
+    print(plan.describe())
+    for w in plan.warnings:
+        print(f"UWAGA: {w}")
+    bg = args.tlo
+    if args.klatka is not None:
+        base = graphics.background_frame(bg, args.od + args.klatka, size) if bg else None
+        out = args.out if args.out.suffix.lower() == ".png" else args.out.with_suffix(".png")
+        graphics.render_png(plan, args.klatka, size, base).convert("RGB").save(out)
+        print(f"Zapisano klatkę: {out}")
+        return 0
+
+    def cb(frac: float) -> None:
+        if sys.stdout.isatty():
+            sys.stdout.write(f"\r  Rysuję grafiki {frac * 100:3.0f}%")
+            sys.stdout.flush()
+
+    path = graphics.preview(plan, args.out, size=size, fps=args.fps, duration=args.czas, background=bg, start=args.od, progress=cb)
+    if sys.stdout.isatty():
+        sys.stdout.write("\n")
+    print(f"Zapisano podgląd: {path}")
+    return 0
+
+
 def cmd_style(args: argparse.Namespace) -> int:
     from .style import describe
     from .template import load_template
@@ -180,8 +246,8 @@ def main(argv: list[str] | None = None) -> int:
         print(f"\nWbudowane szablony: {names}")
         return 0
     try:
-        return {"cut": cmd_cut, "serve": cmd_serve, "analyze": cmd_analyze, "style": cmd_style}[args.command](args)
-    except (MediaError, TemplateError) as exc:
+        return {"cut": cmd_cut, "serve": cmd_serve, "analyze": cmd_analyze, "style": cmd_style, "grafiki": cmd_grafiki}[args.command](args)
+    except (MediaError, TemplateError, PlanError, GraphicsUnavailable, CaptionsUnavailable) as exc:
         print(f"\nBŁĄD: {exc}", file=sys.stderr)
         return 1
     except KeyboardInterrupt:

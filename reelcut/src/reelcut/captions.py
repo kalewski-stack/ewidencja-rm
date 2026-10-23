@@ -131,11 +131,20 @@ def save_words(words: Sequence[Word], path: str | Path) -> None:
                                       for w in words], ensure_ascii=False, indent=1), encoding="utf-8")
 
 
+class WordsFileError(CaptionsUnavailable):
+    """Plik z transkrypcją jest nieczytelny albo ma zły format."""
+
+
 def load_words(path: str | Path) -> list[Word]:
-    data = json.loads(Path(path).read_text(encoding="utf-8"))
-    if isinstance(data, dict):
-        data = data.get("words", [])
-    return clean_words([Word(str(d["w"]), float(d["start"]), float(d["end"])) for d in data])
+    try:
+        data = json.loads(Path(path).read_text(encoding="utf-8-sig"))
+        if isinstance(data, dict):
+            data = data.get("words", [])
+        return clean_words([Word(str(d["w"]), float(d["start"]), float(d["end"])) for d in data])
+    except (OSError, ValueError, KeyError, TypeError) as exc:
+        raise WordsFileError(f"Nie da się wczytać transkrypcji {Path(path).name}: {type(exc).__name__}: {exc}. "
+                             'Oczekuję listy słów w formacie [{"w": "tekst", "start": 1.0, "end": 1.4}, ...] '
+                             "(plik .slowa.json obok gotowego filmu).") from exc
 
 
 def word_breaks(words: Sequence[Word], fps: int) -> list[tuple[int, float]]:
