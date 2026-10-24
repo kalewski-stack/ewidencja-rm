@@ -188,7 +188,6 @@ def cmd_analyze(args: argparse.Namespace) -> int:
 def cmd_grafiki(args: argparse.Namespace) -> int:
     from . import graphics
 
-    size = (1080, 1920)
     if not args.plan.exists():
         print(f"Nie ma pliku: {args.plan}", file=sys.stderr)
         return 2
@@ -198,6 +197,7 @@ def cmd_grafiki(args: argparse.Namespace) -> int:
         face = (x, y, h)
     words = load_words(args.words) if args.words else None
     tpl = load_template(args.template) if args.template else None
+    size = tpl.canvas if tpl is not None else (1080, 1920)  # podgląd ma kanwę szablonu (pion albo poziom)
     if face is None and tpl is not None:  # bez --twarz: kadr twarzy z pierwszego ujęcia z mową w szablonie
         seg = next((s for s in tpl.segments if s.role == "A" and s.face), None)
         face = (seg.face.cx, seg.face.cy, seg.face.h) if seg else None

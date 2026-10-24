@@ -9,6 +9,10 @@ na czas swojego trwania (robi to szablon: słowa hasła znikają z napisów).
 Liczby ze wzorca (ułamki wysokości kadru H i szerokości W): duże słowo 0,101 H (wielkość kroju), małe wiersze 0,44 jego wielkości,
 blok zaczyna się na 48,6% wysokości (tuż nad miejscem zwykłych napisów), szerokość bloku = szerokość dużego słowa (0,57 W dla „biggest”),
 najwyżej 0,78 W, a przy dłuższym haśle duże słowo się zmniejsza.
+
+Ten sam element rysuje frazy Formatu 4 („kinetyczna typografia”, kinetic.py): gruba groteska, pojedyncze małe słowo stoi przy lewej krawędzi bloku
+nad dużym słowem albo przy prawej pod nim (`small_align: edges`), a `small_ratio`, `big_track`, `cx` i `cy` (środek bloku) dostrajają układ.
+Pole `circle` dorysowuje odręczną elipsę wokół bloku.
 """
 from __future__ import annotations
 
@@ -45,13 +49,19 @@ class _Word:
     x: float
     y: float
     t: float
+    tier: str = "big"
+    box: tuple = (0.0, 0.0, 0.0, 0.0)  # ramka samych liter (bez cienia): x0, y0, x1, y1 w kadrze
 
 
 @register("lockup")
 class Lockup(Element):
-    """Hasło z wierszy [{words: [{w, t}], tier: small|big}]: `t` to sekundy od początku elementu, w których słowo wskakuje. Pola: color (rola
-    koloru dużych słów, domyślnie highlight), small_color (domyślnie text), y (górna krawędź, ułamek H), size (wielkość dużego słowa, ułamek H),
-    max_width (ułamek W), big_font (krój dużych słów, domyślnie serif_italic; display daje grubą groteskę) i small_font (domyślnie text)."""
+    """Hasło z wierszy [{words: [{w, t}], tier: small|big, color}]: `t` to sekundy od początku elementu, w których słowo wskakuje. Pola: color (rola
+    koloru dużych słów, domyślnie highlight; wiersz może mieć własny), small_color (domyślnie text), y (górna krawędź, ułamek H) albo cy (środek
+    bloku, ułamek H), cx (środek bloku w poziomie, ułamek W, domyślnie 0,5), size (wielkość dużego słowa, ułamek H), max_width (ułamek W),
+    big_font (krój dużych słów, domyślnie serif_italic; display daje grubą groteskę), small_font (domyślnie text), small_ratio (małe względem dużego,
+    domyślnie 0,44), big_track (odstęp liter dużego słowa, ułamek wielkości kroju, domyślnie -0,02), small_align (justify | edges), row_gap
+    (odstęp między wierszami od krawędzi liter, ułamek H; bez niego układ jak w Formacie 3), shadow oraz
+    circle (odręczna elipsa wokół bloku; circle_at: sekundy od startu, circle_dur, circle_color)."""
     default_dur = 2.0
     default_z = 12
     d_in = 0.0
@@ -68,10 +78,10 @@ class Lockup(Element):
         super().__init__(spec, ctx)
 
     @staticmethod
-    def _parse(lines) -> list[tuple[str, list[tuple[str, float]]]]:
+    def _parse(lines) -> list[tuple[str, list[tuple[str, float]], str | None]]:
         if not isinstance(lines, list) or not lines:
             raise PlanError("Hasło (lockup) wymaga listy lines: [{words: [{w, t}], tier: small albo big}].")
-        parsed: list[tuple[str, list[tuple[str, float]]]] = []
+        parsed: list[tuple[str, list[tuple[str, float]], str | None]] = []
         for i, ln in enumerate(lines, 1):
             if not isinstance(ln, dict) or not ln.get("words"):
                 raise PlanError(f"Wiersz {i} hasła: wymagane words [{{w, t}}].")
@@ -83,7 +93,7 @@ class Lockup(Element):
                 if not isinstance(w, dict) or not str(w.get("w", "")).strip():
                     raise PlanError(f"Wiersz {i} hasła: każde słowo to {{w, t}}.")
                 words.append((str(w["w"]).strip(), float(w.get("t", 0.0))))
-            parsed.append((tier, words))
+            parsed.append((tier, words, str(ln["color"]) if ln.get("color") else None))
         return parsed
 
     def build(self) -> None:
@@ -93,61 +103,81 @@ class Lockup(Element):
         big_role, small_role = s.get("big_font", "serif_italic"), s.get("small_font", "text")
         base_em = float(s.get("size", BIG_EM)) * H
         big_em = base_em * (SERIF_BOOST if "serif" in str(b.fonts.get(big_role, "")).lower() else 1.0)
+        big_track = float(s.get("big_track", -0.02))
+        small_ratio = float(s.get("small_ratio", SMALL_RATIO))
+        edges = s.get("small_align", "justify") == "edges"
+        row_gap = float(s["row_gap"]) if s.get("row_gap") is not None else None  # odstęp między wierszami liczony od krawędzi liter (ogonki, ascendery); brak = jak w Formacie 3
         max_w = float(s.get("max_width", MAX_W)) * W
-        widest_big = max((text_size(" ".join(w for w, _ in words), b.font(big_role, big_em), -0.02 * big_em)[0]
-                          for tier, words in parsed if tier == "big"), default=0.0)
+        cx = float(s.get("cx", 0.5)) * W
+        has_big = any(tier == "big" for tier, _, _ in parsed)
+        widest_big = max((text_size(" ".join(w for w, _ in words), b.font(big_role, big_em), big_track * big_em)[0]
+                          for tier, words, _ in parsed if tier == "big"), default=0.0)
         if widest_big > max_w:  # za długie hasło: duże słowo się zmniejsza, a małe razem z nim
             k = max_w / widest_big
             big_em, base_em, widest_big = big_em * k, base_em * k, max_w
-        small_em = SMALL_RATIO * base_em
+        small_em = small_ratio * base_em
         small_font = b.font(small_role, small_em)
         small_nat = 0.0  # najdłuższy mały wiersz z naturalnymi odstępami: blok nie jest od niego węższy
-        for tier, words in parsed:
+        for tier, words, _ in parsed:
             if tier == "small":
                 ws = [text_size(w, small_font)[0] for w, _ in words]
                 small_nat = max(small_nat, sum(ws) + (len(ws) - 1) * SPACE * small_em)
         block_w = min(max_w, max(widest_big, small_nat) if widest_big > 0 else max(0.45 * W, small_nat))
-        left = W / 2 - block_w / 2
+        left = cx - block_w / 2
         big_rgb, small_rgb = b.rgb(s.get("color", "highlight")), b.rgb(s.get("small_color", "text"))
         self.words: list[_Word] = []
-        y_cap = float(s.get("y", TOP)) * H
-        prev_base, prev_drop = None, 0.0
-        for tier, words in parsed:
+        centered = "cy" in s  # blok wyśrodkowany w pionie: układamy od zera i na końcu przesuwamy
+        y_cap = 0.0 if centered else float(s.get("y", TOP)) * H
+        prev_base, prev_drop, prev_ink = None, 0.0, 0.0
+        seen_big = False
+        for tier, words, line_color in parsed:
             em = big_em if tier == "big" else small_em
             role = big_role if tier == "big" else small_role
             font = b.font(role, em)
             texts = [w for w, _ in words]
             n = len(words)
-            track = -0.02 * em if tier == "big" else 0.0
+            track = big_track * em if tier == "big" else 0.0
             widths = [text_size(w, font, track)[0] for w in texts]
             if tier == "small":
                 scale = 1.0
+                min_gap = SPACE if (edges and has_big) else MIN_GAP  # w trybie edges małe słowa stoją w naturalnych odstępach
                 for _ in range(4):  # nie mieści się nawet z wąskimi odstępami: kurczymy krój (rozmiary liter nie rosną liniowo, więc kilka podejść)
-                    if sum(widths) + (n - 1) * MIN_GAP * font.size <= block_w or scale <= MIN_SMALL_SCALE:
+                    if sum(widths) + (n - 1) * min_gap * font.size <= block_w or scale <= MIN_SMALL_SCALE:
                         break
-                    scale = max(MIN_SMALL_SCALE, scale * (block_w - (n - 1) * MIN_GAP * font.size) / max(1.0, sum(widths)))
+                    scale = max(MIN_SMALL_SCALE, scale * (block_w - (n - 1) * min_gap * font.size) / max(1.0, sum(widths)))
                     font = b.font(role, em * scale)
                     widths = [text_size(w, font, track)[0] for w in texts]
             asc = font.getmetrics()[0]
             cap_off = font.getbbox("H")[1]  # od góry linii do górnej krawędzi wersalików
-            if prev_base is not None:  # następny wiersz zaczyna się pod ogonkami poprzedniego plus mały odstęp
-                y_cap = prev_base + prev_drop + 0.005 * H
-            baseline = y_cap + (asc - cap_off)
-            fill = tuple(big_rgb if tier == "big" else small_rgb) + (255,)
+            ink_top = min(font.getbbox(w, anchor="ls")[1] for w in texts)  # górna krawędź liter nad linią pisma (ujemna), z ascenderami
+            if prev_base is not None and row_gap is not None:  # odstęp od spodu liter poprzedniego wiersza do góry liter tego
+                baseline = prev_base + prev_ink + row_gap * H - ink_top
+            else:
+                if prev_base is not None:  # następny wiersz zaczyna się pod ogonkami poprzedniego plus mały odstęp
+                    y_cap = prev_base + prev_drop + 0.005 * H
+                baseline = y_cap + (asc - cap_off)
+            rgb = b.rgb(line_color) if (line_color and tier == "big") else (big_rgb if tier == "big" else small_rgb)
+            fill = tuple(rgb) + (255,)
             tracks = [track] * n
             xs: list[float] = []
             if tier == "big":
                 total = sum(widths) + (n - 1) * 0.26 * em
-                x = W / 2 - total / 2
+                x = cx - total / 2
                 for w in widths:
                     xs.append(x)
                     x += w + 0.26 * em
+            elif edges and has_big:  # małe słowa w naturalnych odstępach: nad dużym słowem od lewej krawędzi bloku, pod nim do prawej
+                total = sum(widths) + (n - 1) * SPACE * font.size
+                x = left + block_w - total if seen_big else left
+                for w in widths:
+                    xs.append(x)
+                    x += w + SPACE * font.size
             elif n > 1:  # wyjustowanie: cała nadwyżka idzie w odstępy między słowami
                 gap = (block_w - sum(widths)) / (n - 1)
                 if gap < 0.8 * MIN_GAP * font.size:  # (drobna tolerancja: szerokość liter nie skaluje się dokładnie z rozmiarem)
                     self.notes.append(f"wiersz „{' '.join(texts)}” nie mieści się w bloku: skróć go albo rozdziel hasło na dwa.")
                 gap = max(gap, MIN_GAP * font.size)
-                x = left if gap > MIN_GAP * font.size + 1e-6 else W / 2 - (sum(widths) + (n - 1) * gap) / 2
+                x = left if gap > MIN_GAP * font.size + 1e-6 else cx - (sum(widths) + (n - 1) * gap) / 2
                 for w in widths:
                     xs.append(x)
                     x += w + gap
@@ -157,19 +187,39 @@ class Lockup(Element):
                     tk = min(MAX_TRACK * font.size, (block_w - wd) / (len(texts[0]) - 1))
                     tracks = [tk]
                     widths = [text_size(texts[0], font, tk)[0]]
-                xs = [W / 2 - widths[0] / 2]
-            for (text, t0), x, tk in zip(words, xs, tracks):
+                xs = [cx - widths[0] / 2]
+            for (text, t0), x, tk, wd in zip(words, xs, tracks, widths):
                 spr, base = text_sprite(text, font, fill, tracking=tk, pad=4)
                 spr, (ox, oy) = shadowed(spr, font.size * 0.05, float(s.get("shadow", 0.45)), dy=font.size * 0.02)
-                self.words.append(_Word(spr, x - 4 - ox, baseline - (base + oy), t0))
+                l, t, r, bt = font.getbbox(text, anchor="ls")
+                self.words.append(_Word(spr, x - 4 - ox, baseline - (base + oy), t0, tier, (x, baseline + t, x + wd, baseline + bt)))
             prev_base = baseline
-            prev_drop = max(DROP * font.size, max(font.getbbox(w, anchor="ls")[3] for w in texts) + 0.01 * font.size)
+            prev_ink = max(font.getbbox(w, anchor="ls")[3] for w in texts)
+            prev_drop = max(DROP * font.size, prev_ink + 0.01 * font.size)
+            seen_big = seen_big or tier == "big"
+        if centered and self.words:  # blok wyśrodkowany w pionie wokół cy
+            top, bottom = min(w.box[1] for w in self.words), max(w.box[3] for w in self.words)
+            dy = float(s["cy"]) * H - (top + bottom) / 2
+            for w in self.words:
+                w.y += dy
+                w.box = (w.box[0], w.box[1] + dy, w.box[2], w.box[3] + dy)
+        boxes = [w.box for w in self.words]
+        self.box = (min(b_[0] for b_ in boxes), min(b_[1] for b_ in boxes), max(b_[2] for b_ in boxes), max(b_[3] for b_ in boxes))
+        self.circle = bool(s.get("circle", False))
+        if self.circle:
+            self.circle_at = float(s.get("circle_at", sorted({w.t for w in self.words})[1] if len({w.t for w in self.words}) > 1 else 0.0))
+            self.circle_dur = float(s.get("circle_dur", 0.4))
+            self.circle_rgb = b.rgb(s.get("circle_color", s.get("small_color", "text")))
 
     def draw(self, layer: Layer, t: float) -> None:
         u = t - self.start
         for w in self.words:
             if u >= w.t - 1e-6:
                 layer.paste(w.sprite, w.x, w.y)
+        if self.circle:
+            from .kinetic import draw_ellipse
+
+            draw_ellipse(layer, self.box, self.ctx, u - self.circle_at, self.circle_dur, self.circle_rgb, seed=len(self.words))
 
 
 def _ends(word, marks: Sequence[str]) -> bool:
@@ -187,7 +237,8 @@ def from_emphasis(words: Sequence, ranges: Sequence[Sequence[float]], cfg: dict 
     pre_max, post_max = int(cfg.get("pre", PRE_WORDS)), int(cfg.get("post", POST_WORDS))
     big_max, gap = max(1, int(cfg.get("big_max", BIG_WORDS))), float(cfg.get("max_gap_s", MAX_GAP_S))
     hold, lead, min_vis = float(cfg.get("hold", HOLD)), float(cfg.get("lead", LEAD_S)), float(cfg.get("min_visible", MIN_VISIBLE_S))
-    style = {k: cfg[k] for k in ("color", "small_color", "y", "size", "max_width", "big_font", "small_font", "shadow") if k in cfg}
+    style = {k: cfg[k] for k in ("color", "small_color", "y", "cy", "cx", "size", "max_width", "big_font", "small_font", "shadow", "small_ratio",
+                                 "big_track", "small_align", "row_gap", "circle") if k in cfg}
     mids = [(float(w.start) + float(w.end)) / 2 for w in words]
     notes: list[str] = []
     spans: list[list[int]] = []  # [pierwsze duże słowo, ostatnie duże słowo]

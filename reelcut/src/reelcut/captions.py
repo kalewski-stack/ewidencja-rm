@@ -378,13 +378,36 @@ def _add_emphasis(a: _Ass, em: Emphasis, cfg: dict, canvas: tuple[int, int]) -> 
         caps = [float(st["accent_cap"]) if i == acc else float(st["cap"]) for i in range(len(texts))]
     else:
         caps = [float(st["cap"])] * len(texts)
-    max_w = 940.0 if st["align"] == "center" else 900.0
+    max_w = (940.0 if st["align"] == "center" else 900.0) * canvas[0] / REF_CANVAS[0]
     caps = [_fit_cap(t, c, max_w, sx) for t, c in zip(texts, caps)]
     top = float(st["top"])
     for i, (t, c, s0) in enumerate(zip(texts, caps, starts)):
         a.add(s0, em.end, t, c, x, top + c / 2, anchor=6 if st["align"] == "right" else 5,
               accent=(em.style == "center_build" and c > float(st["cap"]) * 1.2))
         top += c + (float(st["gap"]) if em.style == "center_build" else float(st["pitch"]) - float(st["cap"]))
+
+
+REF_CANVAS = (1080, 1920)  # w tej kanwie podane są piksele w DEFAULTS i w szablonach z `analyze`
+
+
+def scale_cfg(cfg: dict, canvas: tuple[int, int]) -> dict:
+    """Przelicza piksele ustawień napisów (rozmiary, pozycje) z kanwy 1080x1920 na inną, np. poziomą 1920x1080: poziomo (x, szerokości) wg szerokości kanwy,
+    pionowo (y, wysokości liter, odstępy) wg jej wysokości. Dla kanwy 1080x1920 nic się nie zmienia."""
+    kx, ky = canvas[0] / REF_CANVAS[0], canvas[1] / REF_CANVAS[1]
+    if abs(kx - 1) < 1e-9 and abs(ky - 1) < 1e-9:
+        return cfg
+    out = copy.deepcopy(cfg)
+    run = out["running"]
+    for k in ("cap_px", "cap_top_px"):
+        run[k] = run[k] * ky
+    for st in out["styles"].values():
+        for k in ("top", "center_y", "cap", "accent_cap", "gap", "pitch"):
+            if k in st:
+                st[k] = st[k] * ky
+        for k in ("x", "max_width"):
+            if k in st:
+                st[k] = st[k] * kx
+    return out
 
 
 def merge_cfg(over: dict | None) -> dict:
@@ -404,7 +427,7 @@ def merge_cfg(over: dict | None) -> dict:
 def build_ass(words: Sequence[Word], cfg_override: dict | None, canvas: tuple[int, int], duration: float,
               emphasis: str = "auto") -> tuple[str, dict]:
     """Zwraca (tekst pliku ASS, statystyki)."""
-    cfg = merge_cfg(cfg_override)
+    cfg = scale_cfg(merge_cfg(cfg_override), canvas)
     run, a = cfg["running"], _Ass(cfg, canvas)
     picks = pick_emphasis(words, duration, cfg) if emphasis != "off" else []
     used = {id(w) for p in picks for w in p.words}

@@ -8,7 +8,7 @@ from pathlib import Path
 from . import script
 from .anchors import has_phrases, resolve as resolve_anchors
 from .core import Brand, Layer, Layout, PlanError, load_brand
-from . import (cards as _cards, diagrams as _diagrams, extras as _extras, format2 as _format2, lockup as _lockup,  # noqa: F401  (rejestrują typy)
+from . import (cards as _cards, diagrams as _diagrams, extras as _extras, format2 as _format2, kinetic as _kinetic, lockup as _lockup,  # noqa: F401  (rejestrują typy)
                motion as _motion, profile as _profile)
 from .elements import REGISTRY, VARIANTS, Context, Element
 from .transitions import Transition
@@ -157,25 +157,33 @@ def plan_needs_words(path: str | Path) -> bool:
         return False
 
 
-def with_template(raw: dict, tpl, words: list, duration_s: float, *, layer_captions: bool) -> dict:
+def with_template(raw: dict, tpl, words: list, duration_s: float, *, layer_captions: bool, spans: list[dict] | None = None) -> dict:
     """Dokłada do planu to, co daje szablon: napisy warstwy grafik (ustawienia szablonu i to, co do nich dopisał scenariusz, np. wyróżnione
-    frazy), hasła Formatu 3 ze słów w gwiazdkach (słowa hasła znikają z napisów i napisy się na ten czas chowają) oraz tło trybu motion,
-    bo tam cały obraz rysują grafiki. Gdy szablon ma napisy, a użytkownik je wyłączył (`layer_captions` fałsz), element napisów ze scenariusza
-    odpada, a hasła zostają."""
+    frazy), hasła Formatu 3 ze słów w gwiazdkach (słowa hasła znikają z napisów i napisy się na ten czas chowają), frazy i karty Formatu 4 (z mowy;
+    `spans` to ujęcia filmu: gdzie jest karta, a gdzie wstawka) oraz tło trybu motion, bo tam cały obraz rysują grafiki. Gdy szablon ma napisy,
+    a użytkownik je wyłączył (`layer_captions` fałsz), element napisów ze scenariusza odpada, a hasła zostają."""
     raw.setdefault("elements", [])
     user = next((e for e in raw["elements"] if e.get("type") == "captions"), {})
     made: list[dict] = []
     skip: list[list[float]] = []
+    hide: list[list[float]] = []
     if tpl.graphics.get("lockup") is not None and user.get("emphasis") and words:  # Format 3: wyróżnione frazy (*tak*) to hasła z dużym słowem
         made, skip, notes = _lockup.from_emphasis(words, user["emphasis"], tpl.graphics["lockup"])
         raw["elements"] = [e for e in raw["elements"] if not (e.get("type") == "lockup" and e.get("auto"))] + made
+        hide = [[e["at"], round(e["at"] + e["dur"], 3)] for e in made]
         if notes:
             raw["_notes"] = list(raw.get("_notes", [])) + [f"hasło: {n}" for n in notes]
+    if tpl.graphics.get("phrases") is not None and layer_captions and words:  # Format 4: cała mowa to frazy z dużym słowem, a w kartach wiersze
+        made, skip, card_hide, notes = _kinetic.from_phrases(words, user.get("emphasis") or [], tpl.graphics["phrases"], spans)
+        raw["elements"] = [e for e in raw["elements"] if not e.get("auto")] + made
+        hide = card_hide + [[e["at"], round(e["at"] + e["dur"], 3)] for e in made if e["type"] in ("lockup", "typeline")]
+        if notes:
+            raw["_notes"] = list(raw.get("_notes", [])) + [f"fraza: {n}" for n in notes]
     if layer_captions and words:
         cap = {"type": "captions", **tpl.graphics.get("captions", {}), **{k: v for k, v in user.items() if k not in ("type", "at", "dur")}}
         if skip:
             cap["skip"] = list(cap.get("skip", [])) + skip
-            cap["hide"] = list(cap.get("hide", [])) + [[e["at"], round(e["at"] + e["dur"], 3)] for e in made]
+            cap["hide"] = list(cap.get("hide", [])) + hide
         raw["elements"] = [e for e in raw["elements"] if e.get("type") != "captions"] + [cap]
     elif tpl.graphics.get("captions") is not None:  # szablon z napisami warstwy grafik, ale napisy wyłączone (--no-captions): nie rysujemy ich
         raw["elements"] = [e for e in raw["elements"] if e.get("type") != "captions"]
@@ -193,7 +201,8 @@ def load_plan(path: str | Path, ctx: Context | None = None, *, size: tuple[int, 
     path = Path(path)
     try:
         text = path.read_text(encoding="utf-8-sig")
-        raw = script.to_plan(text, list(words or [])) if script.is_script(path) else json.loads(text)
+        plain = template is not None and template.graphics.get("phrases") is not None  # Format 4: sam tekst bez znaczników wystarcza
+        raw = script.to_plan(text, list(words or []), allow_plain=plain) if script.is_script(path) else json.loads(text)
     except (OSError, json.JSONDecodeError) as exc:
         raise PlanError(f"Nie da się wczytać planu grafik {path}: {exc}") from exc
     spoken, duration = list(words or []), 0.0

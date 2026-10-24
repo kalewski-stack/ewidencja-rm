@@ -27,7 +27,7 @@ class Slot:
     start: int
     frames: int
     role: str  # rola w szablonie: A (mówiąca głowa) albo B (wstawka)
-    source: str  # skąd bierzemy obraz: "A" = główne wideo, "B" = materiał B-roll
+    source: str  # skąd bierzemy obraz: "A" = główne wideo, "B" = materiał B-roll, "S" = karta w jednolitym kolorze (bez nagrania)
     zoom: float = 1.0
     fx: float = 0.5  # środek kadrowania w poziomie (0-1)
     fy: float = 0.4  # środek kadrowania w pionie (0-1)
@@ -36,6 +36,8 @@ class Slot:
     elastic: bool = False
     shifted: int = 0  # o ile klatek przesunięto początek ujęcia względem czystego szablonu
     face_h: float | None = None  # spodziewana wysokość Twojej twarzy w kadrze wynikowym (gdy kadrujemy po twarzy)
+    slide: str = ""  # klucz koloru karty z szablonu (source "S"); grafiki piszą na niej to, co słychać
+    slide_rgb: str = "#F7F4EC"  # kolor tła karty w obrazie (grafiki kładą na nim ten sam kolor, więc to tylko podkład)
 
     @property
     def end(self) -> int:
@@ -87,7 +89,8 @@ def build_plan(
 
     if master_frames < 2 * min_f:
         warnings.append("Materiał jest bardzo krótki: zostawiam jedno ujęcie bez cięć.")
-        slot = _make_slot(0, 0, 0, master_frames, tpl, False, has_broll, 1.0, focus, 1.0, fps)
+        first_a = next((i for i, sg in enumerate(segs) if sg.role == "A"), 0)  # (hak niektórych szablonów to wstawka albo karta)
+        slot = _make_slot(0, first_a, 0, master_frames, tpl, False, has_broll, 1.0, focus, 1.0, fps)
         return Plan(fps, master_frames, [slot], "skrócony", warnings)
 
     def body_seq(n: int) -> list[int]:
@@ -168,6 +171,10 @@ def build_plan(
 
 def _make_slot(idx, ti, start, frames, tpl, elastic, has_broll, zk, focus, max_zoom, fps) -> Slot:
     seg = tpl.segments[ti]
+    if seg.slide:  # karta: jednolity kolor, bez nagrania i bez B-rolla
+        rgb = tpl.slide_colors.get(seg.slide, "#F7F4EC")
+        return Slot(idx, ti, start, frames, "B", "S", 1.0, focus[0], focus[1], seg.fx, seg.alt, elastic,
+                    slide=seg.slide, slide_rgb=rgb if rgb.startswith("#") else "#F7F4EC")
     zoom, fx, fy = seg.zoom ** zk, focus[0], focus[1]
     source = "A"
     if seg.role == "B":
@@ -246,11 +253,15 @@ def describe_plan(plan: Plan) -> str:
              "  nr    od      do     dł.   obraz  zoom   uwagi"]
     for s in plan.slots:
         what = "A-roll" if s.source == "A" and s.role == "A" else ("kadr-detal" if s.source == "A" else "B-roll")
+        if s.source == "S":
+            what = "karta"
         if plan.mode == "motion":  # w trybie motion obraz powstaje z grafik, z nagrania liczy się tylko głos
             what = "grafiki"
         notes = []
         if s.face_h:
             notes.append(f"twarz {s.face_h * 100:.0f}% kadru")
+        if s.slide:
+            notes.append(f"kolor karty: {s.slide}")
         if s.effects:
             notes.append("+".join(f.type + (" na wyjściu" if f.edge == "end" else "") for f in s.effects))
         if s.elastic:

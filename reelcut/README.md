@@ -15,6 +15,9 @@ Wszystko liczy się na Twoim komputerze. Żaden plik nie jest nigdzie wysyłany.
 - **Format 3: gadająca głowa v3** (cięcia i wstawki jak w Formacie 1, ale napisy, hasła z dużym słowem kluczowym i biały błysk przy
   wstawce rysuje warstwa grafik w kolorach i kroju marki; hasła powstają ze słów w `*gwiazdkach*` w scenariuszu): zasady i liczby
   ze wzorca w [FORMAT3.md](FORMAT3.md), składnia znaczników w [GRAFIKI.md](GRAFIKI.md). Szablon `format3`.
+- **Format 4: kinetyczna typografia** (pion 9:16 albo poziom 16:9; cięcie co ok. 1,6 s, cała mowa jako napisy z jednym dużym słowem i małymi wokół,
+  białe i żółte karty z tekstem i odręczną elipsą, czarno-biały hak; wszystko rysuje warstwa grafik w kolorach i kroju marki): zasady i liczby
+  ze wzorca w [FORMAT4.md](FORMAT4.md), składnia i elementy w [GRAFIKI.md](GRAFIKI.md). Szablony `format4` (pion) i `format4h` (poziom).
 - **Motion** (bez mówiącej głowy: wrzucasz samo nagranie lektora, a narzędzie rysuje cały obraz, czyli schemat z tarczą
   i kamerą, czarne plansze i napisy kinetyczne, w kolorach i kroju marki; każdy ruch ma czas ze słowa, które pada): zasady
   i liczby ze wzorca w [MOTION.md](MOTION.md), składnia znaczników w [GRAFIKI.md](GRAFIKI.md). Szablon `motion`.
@@ -50,7 +53,7 @@ Wszystko liczy się na Twoim komputerze. Żaden plik nie jest nigdzie wysyłany.
 | **ffmpeg** (z ffprobe) | cały montaż | macOS: `brew install ffmpeg` · Windows: `winget install Gyan.FFmpeg` · Linux: `sudo apt install ffmpeg` |
 | **Python 3.9+** | uruchamia narzędzie | <https://www.python.org/downloads/> |
 | `faster-whisper` *(opcjonalnie)* | napisy (rozpoznawanie mowy) | `pip install faster-whisper` (przy pierwszym użyciu pobiera model, ok. 500 MB dla „small") |
-| `pillow` *(opcjonalnie)* | grafiki na wideo i napisy w kroju marki (szablony `format2`, `format3` i `motion`; w trybie motion cały obraz) | `pip install pillow` |
+| `pillow` *(opcjonalnie)* | grafiki na wideo i napisy w kroju marki (szablony `format2`, `format3`, `format4` i `motion`; w trybie motion cały obraz) | `pip install pillow` |
 | `numpy` + `onnxruntime` *(opcjonalnie)* | kadrowanie po Twojej twarzy, dopasowanie kolorów, role ujęć w `analyze`, grafiki „za postacią” w Formacie 2 | `pip install numpy onnxruntime` (model twarzy YuNet, 230 KB, jest w paczce; model wycinania postaci, 26 MB, pobiera się raz przy pierwszym użyciu) |
 
 Bez `faster-whisper` dostaniesz montaż bez napisów, bez `numpy`/`onnxruntime` kadry zostają stałymi zoomami
@@ -74,6 +77,8 @@ python rolka.py moje_wideo.mp4
 python rolka.py moje_wideo.mp4 --broll folder_z_ujeciami -o wynik.mp4
 python rolka.py moje_wideo.mp4 --dry-run          # tylko plan cięć, bez renderu
 python rolka.py nagranie.mp4 --template format3 --graphics scenariusz.txt --broll wstawki/   # Format 3: hasła ze słów w *gwiazdkach*, błysk przy wstawce
+python rolka.py nagranie.mp4 --template format4 --graphics scenariusz.txt --broll wstawki/   # Format 4: każde słowo jako napis, karty, elipsa (pion)
+python rolka.py nagranie_poziom.mp4 --template format4h --graphics scenariusz.txt          # Format 4 w poziomie 16:9
 python rolka.py glos.m4a --template motion --graphics scenariusz.txt   # Motion: sam głos, obraz robią grafiki
 ```
 
@@ -81,7 +86,8 @@ Wynik: `moje_wideo_rolka.mp4` obok nagrania oraz `moje_wideo_rolka.slowa.json` (
 
 ## Jak nagrać, żeby wyszło jak we wzorcu
 
-- **Pionowo (9:16)**, najlepiej 4K lub 1080p. Poziome nagranie zostanie przycięte do środka kadru.
+- **Pionowo (9:16)**, najlepiej 4K lub 1080p. Poziome nagranie zostanie przycięte do środka kadru. Wyjątek: szablon `format4h` (Format 4 w poziomie 16:9)
+  chce nagrania poziomego, a pionowe przycina do pasa ze środka kadru; w obu przypadkach program ostrzega.
 - **Mów w jednym ciągu** i patrz w obiektyw. Narzędzie samo zrobi zbliżenia i skróci pauzy.
 - **Kamera nieruchoma, twarz w górnej połowie kadru, dół wolny** (tam lądują napisy). We wzorcu kadr zmienia
   się tylko cięciem; nie dodajemy ruchu kamery.
@@ -109,7 +115,7 @@ Wynik: `moje_wideo_rolka.mp4` obok nagrania oraz `moje_wideo_rolka.slowa.json` (
 | `--emphasis off` | bez wyróżnionych fraz w napisach |
 | `--fps 30` | klatkaż wyniku (domyślnie 25 jak we wzorcu) |
 | `--words plik.json` | użyj poprawionej transkrypcji zamiast rozpoznawania mowy |
-| `--template ...` | inny szablon: `format2`, `format3`, `motion`, `user/nazwa` albo plik `.json` (patrz niżej) |
+| `--template ...` | inny szablon: `format2`, `format3`, `format4`, `format4h`, `motion`, `user/nazwa` albo plik `.json` (patrz niżej) |
 
 Pełna lista: `python rolka.py cut --help`.
 
@@ -138,7 +144,8 @@ winieta, paleta, kolor skóry), tempo (cięcia na minutę, udział A/B, ruch w k
 (starsza metoda z `pip install "opencv-python-headless<5"` też działa, ale bez pomiaru kadrów i kolorów).
 **Zawsze sprawdź wypisane role.** Dodatkowo `--speech` mierzy tempo mowy rolki (słowa na sekundę, pauzy, słowa
 w każdym ujęciu; potrzebny `faster-whisper`). Szablon z nazwą (bez ścieżki) trafia do `~/ReelCut/szablony` i pojawia się
-na liście w interfejsie. Szablon zawiera same liczby i kolory, bez obrazu i treści rolki.
+na liście w interfejsie. Szablon zawiera same liczby i kolory, bez obrazu i treści rolki. **Rolka pozioma daje szablon poziomy** (kanwa 1920×1080),
+a napisy są wtedy przeliczane z kanwy 1080×1920 na tę kanwę, żeby nie wypadały poza kadr.
 
 Kartę stylu (cięcia, tempo, kadry, kolory, napisy) każdego szablonu wypisze:
 
@@ -173,9 +180,9 @@ python rolka.py style user/moj_szablon -o karta.md
 python -m unittest discover -s tests
 ```
 
-ok. 400 testów (planista, pauzy, napisy łącznie z pomiarem pikseli, szablony, `analyze` z kadrami, kolorami i dynamiką,
-moduł kolorów z LUT i winietą, wykrywanie twarzy i kadrowanie, karta stylu, silnik grafik Formatów 2 i 3, scenariusz ze znacznikami,
-serwer, end-to-end na syntetycznym wideo i samym głosie). Cały zestaw trwa ok. 7 minut.
+ok. 600 testów (planista, pauzy, napisy łącznie z pomiarem pikseli, szablony, `analyze` z kadrami, kolorami i dynamiką,
+moduł kolorów z LUT i winietą, wykrywanie twarzy i kadrowanie, karta stylu, silnik grafik Formatów 2, 3 i 4, scenariusz ze znacznikami,
+serwer, end-to-end na syntetycznym wideo i samym głosie). Cały zestaw trwa ok. 10 minut.
 Test end-to-end sprawdza, że cięcia w wyniku trafiają dokładnie w klatki szablonu, a test kadrowania, że twarz
 w wyniku ma rozmiar i miejsce z planu. Część testów wymaga `numpy`/`onnxruntime`/Pillow (bez nich są pomijane).
 
@@ -189,12 +196,13 @@ src/reelcut/data/             szablon rolki (JSON), czcionka Anton (SIL OFL, OFL
                               (MIT, YuNet-LICENSE.txt), interfejs
 tests/                        testy (tests/assets: zdjęcie NASA z domeny publicznej do testu twarzy)
 ANALIZA.md                    wyniki analizy rolki wzorcowej (rytm, napisy)
-WORKFLOW.md                   ściąga: nowy film krok po kroku (Formaty 1, 2, 3 i motion)
+WORKFLOW.md                   ściąga: nowy film krok po kroku (Formaty 1, 2, 3, 4 i motion)
 STYL.md                       styl do przeniesienia: kolory, kadry, dynamika, lista ujęć, format scenariusza
 FORMAT2.md                    Format 2: gadająca głowa (zasady, słownik elementów, szkielet scenariusza)
 FORMAT3.md                    Format 3: gadająca głowa v3 (cięcia, hasła, błysk: zasady, liczby ze wzorca, scenariusz, granice)
+FORMAT4.md                    Format 4: kinetyczna typografia (pion i poziom: rytm, frazy, karty, elipsa: zasady, liczby ze wzorca, scenariusz, granice)
 MOTION.md                     Motion (schemat z lektorem: zasady, liczby ze wzorca, scenariusz, granice)
-INTRO.md                      szkic intro „o mnie” w rytmie Formatu 3: scenariusz, rozpiska ujęć, co nagrać, decyzje
+INTRO.md                      intro „o mnie”: scenariusz, rozpiska ujęć, co nagrać, decyzje (wersja w Formacie 4, pion i poziom, oraz szkic w Formacie 3)
 PRZEJSCIA.md                  przejścia między scenami (rodzaje, zmierzone krzywe, składnia, granice)
-GRAFIKI.md                    składnia znaczników scenariusza, plan JSON, elementy i pola (Formaty 2, 3 i motion)
+GRAFIKI.md                    składnia znaczników scenariusza, plan JSON, elementy i pola (Formaty 2, 3, 4 i motion)
 ```

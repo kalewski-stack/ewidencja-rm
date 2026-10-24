@@ -157,6 +157,21 @@ def flash_cuts(video_plan) -> list[float]:
     return sorted(cuts)
 
 
+def slot_spans(tpl, video_plan) -> list[dict]:
+    """Ujęcia filmu dla fraz i kart Formatu 4: [{at, end, kind, style, color}] w sekundach na osi filmu. kind: A (mówiąca głowa), B (wstawka)
+    albo slide (karta w jednolitym kolorze; style: line albo title)."""
+    fps = video_plan.fps
+    styles = (tpl.graphics.get("slides") or {}).get("styles") or {}
+    out = []
+    for s in video_plan.slots:
+        seg = tpl.segments[s.tpl_index]
+        if s.source == "S":
+            out.append({"at": s.start / fps, "end": s.end / fps, "kind": "slide", "style": seg.slide_style or styles.get(seg.slide, "line"), "color": s.slide_rgb})
+        else:
+            out.append({"at": s.start / fps, "end": s.end / fps, "kind": "B" if s.role == "B" else "A"})
+    return out
+
+
 def prepare(graphics_path: str | Path | None, brand_ref: str | Path | None, tpl, video_plan, track: FaceTrack | None,
             master: Path, workdir: Path, words: list, canvas: tuple[int, int], duration_s: float,
             layer_captions: bool, log: Callable[[str], None] = print, caption_words: list | None = None) -> GraphicsJob | None:
@@ -168,13 +183,15 @@ def prepare(graphics_path: str | Path | None, brand_ref: str | Path | None, tpl,
         gp = Path(graphics_path)
         try:
             text = gp.read_text(encoding="utf-8-sig")
-            raw = script.to_plan(text, words) if script.is_script(gp) else json.loads(text)
+            raw = (script.to_plan(text, words, allow_plain=tpl.graphics.get("phrases") is not None) if script.is_script(gp)
+                   else json.loads(text))
         except (OSError, json.JSONDecodeError) as exc:
             raise PlanError(f"Nie da się wczytać planu grafik {gp}: {exc}") from exc
         base_dir = gp.parent
     # ustawienia napisów daje szablon; z planu (scenariusza) bierzemy tylko to, co do nich dopisał (np. wyróżnione frazy);
     # w trybie motion szablon dokłada też tło, bo cały obraz rysują grafiki
-    raw = with_template(raw, tpl, caption_words if caption_words is not None else words, duration_s, layer_captions=layer_captions)
+    raw = with_template(raw, tpl, caption_words if caption_words is not None else words, duration_s, layer_captions=layer_captions,
+                        spans=slot_spans(tpl, video_plan) if tpl.graphics.get("phrases") is not None else None)
     own = [float(t["at"]) for t in raw.get("transitions", []) or [] if isinstance(t, dict) and "at" in t]
     flashes = [at for at in flash_cuts(video_plan) if all(abs(at - o) > FLASH_MATCH_S for o in own)]
     if flashes:  # błyski z wzoru ujęć (Format 3: przy wstawce) to zwykłe przejścia, więc idą tą samą drogą co te ze scenariusza

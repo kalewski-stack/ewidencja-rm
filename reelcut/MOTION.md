@@ -7,6 +7,7 @@ kolorach i kroju marki „Linia Kalewski”, a każdy ruch jest ustawiony na sł
 - **Format 1**: mówiąca głowa z cięciami i B-rollem (rolka DeuOaXKtPBb). Szablon `format1`, opis w [STYL.md](STYL.md).
 - **Format 2**: gadająca głowa, jedno ujęcie z grafikami (cztery rolki jednego konta). Szablon `format2`, opis w [FORMAT2.md](FORMAT2.md).
 - **Format 3**: gadająca głowa v3, cięcia z hasłami i błyskiem przy wstawce (jedna rolka). Szablon `format3`, opis w [FORMAT3.md](FORMAT3.md).
+- **Format 4**: kinetyczna typografia, cięcia z napisami z dużym słowem, kartami i elipsą, pion i poziom (jedna rolka). Szablony `format4` i `format4h`, opis w [FORMAT4.md](FORMAT4.md).
 - **Motion** to ten plik: schemat z lektorem. Szablon `motion`, składnia znaczników
   w [GRAFIKI.md](GRAFIKI.md).
 

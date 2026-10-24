@@ -140,9 +140,12 @@ def run(a_roll: str | Path, out: str | Path | None, opts: Options, log: LogFn = 
     if tpl.motion:
         geom = render.Geometry((canvas[0], canvas[1], 0, 0), (canvas[0], canvas[1]))
     else:
-        if info.width > info.height:
+        if canvas[0] <= canvas[1] and info.width > info.height:
             warnings.append("Nagranie jest poziome. Do rolki 9:16 wycinam środek kadru (ustaw --focus, jeśli mówisz z boku). "
                             "Najlepiej nagrywać w pionie.")
+        elif canvas[0] > canvas[1] and info.width <= info.height:
+            warnings.append("Nagranie jest pionowe, a ten szablon robi film poziomy 16:9: wycinam z niego pas ze środka kadru (traci się góra i dół). "
+                            "Najlepiej nagrywać poziomo.")
         geom = render.master_geometry(info.width, info.height, canvas, opts.focus[0])
     max_zoom = opts.max_zoom or auto_max_zoom(geom.crop[0], canvas[0])
 
@@ -188,8 +191,9 @@ def run(a_roll: str | Path, out: str | Path | None, opts: Options, log: LogFn = 
             else:
                 try:
                     dry_words = captions.load_words(opts.words_file) if opts.words_file else []
+                    dry_caps = bool(tpl.graphics.get("captions")) and opts.captions != "off" and bool(dry_words)  # frazy i karty też trafiają do planu
                     job = graphics.glue.prepare(opts.graphics, opts.brand, tpl, plan, None, Path("."), Path("."), dry_words, canvas,
-                                                master_s, False, lambda m: None)
+                                                master_s, dry_caps, lambda m: None)
                     if job:
                         text += "\n\nGrafiki (czasy na osi gotowego filmu):\n" + job.plan.describe()
                         warnings += job.plan.warnings
@@ -207,7 +211,7 @@ def run(a_roll: str | Path, out: str | Path | None, opts: Options, log: LogFn = 
             log("Buduję materiał roboczy (dźwięk bez długich pauz, obraz z grafik)...")
             render.build_master_audio(a_roll, keep, canvas, master, workdir, fps, prog(0.05, 0.35, "Materiał roboczy"))
         else:
-            log("Buduję materiał roboczy (kadr 9:16, skrócone pauzy)...")
+            log(f"Buduję materiał roboczy (kadr {'16:9' if canvas[0] > canvas[1] else '9:16'}, skrócone pauzy)...")
             render.build_master(a_roll, info, keep, geom, master, workdir, fps, prog(0.05, 0.35, "Materiał roboczy"))
         master_info = media.probe(master)
 

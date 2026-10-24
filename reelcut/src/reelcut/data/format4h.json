@@ -1,0 +1,469 @@
+{
+  "schema": 1,
+  "name": "Format 4: kinetyczna typografia (poziom 16:9)",
+  "source": "https://www.instagram.com/reel/DdZBWMyq4Zx/",
+  "notes": "Zmierzone z jednej rolki wzorcowej (poziomej, 1916x1078, 25 kl./s). Szablon zawiera wyłącznie parametry: rytm ujęć, kadry twarzy, rodzaje i czasy kart, geometrię napisów. Nie zawiera obrazu ani treści z oryginału. Kolory nagrania zostają bez zmian, kolory marki mają grafiki, napisy i karty. Wersja pozioma: liczby kadrów i napisów wprost z pomiaru.",
+  "mode": "cuts",
+  "keep_colors": true,
+  "fps": 25,
+  "canvas": [
+    1920,
+    1080
+  ],
+  "structure": {
+    "hook": 6,
+    "outro": 4,
+    "elastic": 41,
+    "elastic_min_s": 2.0,
+    "elastic_max_s": 12.0,
+    "min_cut_s": 0.5,
+    "snap_tol_s": 0.4
+  },
+  "alts": {
+    "1": {
+      "zoom": 1.7,
+      "fy": 0.34,
+      "anchor": "face",
+      "note": "detal: twarz i oczy (zbliżenie na twarz)"
+    },
+    "2": {
+      "zoom": 1.45,
+      "fy": 0.68,
+      "anchor": "below_face",
+      "note": "detal: dłonie i klatka piersiowa (pod twarzą)"
+    }
+  },
+  "segments": [
+    {
+      "frames": 29,
+      "role": "B",
+      "alt": 1,
+      "fx": [
+        {
+          "type": "bw",
+          "dur": 0.0
+        }
+      ],
+      "note": "Hak: dwa czarno-białe ujęcia z dużymi napisami (wstawki), potem wstawka w kolorze i trzy karty: biała, żółta, biała."
+    },
+    {
+      "frames": 22,
+      "role": "B",
+      "alt": 2,
+      "fx": [
+        {
+          "type": "bw",
+          "dur": 0.0
+        }
+      ]
+    },
+    {
+      "frames": 28,
+      "role": "B",
+      "alt": 1
+    },
+    {
+      "frames": 47,
+      "role": "B",
+      "slide": "white",
+      "slide_style": "line"
+    },
+    {
+      "frames": 22,
+      "role": "B",
+      "slide": "orange",
+      "slide_style": "line"
+    },
+    {
+      "frames": 17,
+      "role": "B",
+      "slide": "white",
+      "slide_style": "line"
+    },
+    {
+      "frames": 55,
+      "role": "A",
+      "zoom": 1.16,
+      "face": {
+        "h": 0.267,
+        "cx": 0.498,
+        "cy": 0.29,
+        "eye_y": 0.268
+      }
+    },
+    {
+      "frames": 41,
+      "role": "B",
+      "alt": 1
+    },
+    {
+      "frames": 27,
+      "role": "B",
+      "alt": 2
+    },
+    {
+      "frames": 78,
+      "role": "A",
+      "zoom": 1.07,
+      "face": {
+        "h": 0.248,
+        "cx": 0.488,
+        "cy": 0.273,
+        "eye_y": 0.251
+      }
+    },
+    {
+      "frames": 28,
+      "role": "B",
+      "alt": 1
+    },
+    {
+      "frames": 27,
+      "role": "B",
+      "alt": 2
+    },
+    {
+      "frames": 17,
+      "role": "B",
+      "alt": 2
+    },
+    {
+      "frames": 20,
+      "role": "B",
+      "alt": 1
+    },
+    {
+      "frames": 27,
+      "role": "A",
+      "zoom": 1.59,
+      "face": {
+        "h": 0.368,
+        "cx": 0.552,
+        "cy": 0.293,
+        "eye_y": 0.271
+      },
+      "note": "Zbliżenie: najazd w obrębie tego samego ujęcia."
+    },
+    {
+      "frames": 117,
+      "role": "A",
+      "zoom": 1.0,
+      "face": {
+        "h": 0.231,
+        "cx": 0.497,
+        "cy": 0.279,
+        "eye_y": 0.257
+      },
+      "note": "Najszerszy kadr."
+    },
+    {
+      "frames": 23,
+      "role": "B",
+      "slide": "white",
+      "slide_style": "line"
+    },
+    {
+      "frames": 14,
+      "role": "B",
+      "slide": "orange",
+      "slide_style": "line"
+    },
+    {
+      "frames": 46,
+      "role": "A",
+      "zoom": 1.03,
+      "face": {
+        "h": 0.238,
+        "cx": 0.49,
+        "cy": 0.283,
+        "eye_y": 0.261
+      }
+    },
+    {
+      "frames": 59,
+      "role": "B",
+      "alt": 1,
+      "note": "Największe zbliżenie twarzy."
+    },
+    {
+      "frames": 33,
+      "role": "A",
+      "zoom": 1.18,
+      "face": {
+        "h": 0.272,
+        "cx": 0.483,
+        "cy": 0.29,
+        "eye_y": 0.268
+      }
+    },
+    {
+      "frames": 27,
+      "role": "B",
+      "alt": 2
+    },
+    {
+      "frames": 22,
+      "role": "B",
+      "slide": "white",
+      "slide_style": "line"
+    },
+    {
+      "frames": 48,
+      "role": "B",
+      "slide": "orange",
+      "slide_style": "title"
+    },
+    {
+      "frames": 52,
+      "role": "B",
+      "alt": 2
+    },
+    {
+      "frames": 25,
+      "role": "B",
+      "alt": 2
+    },
+    {
+      "frames": 32,
+      "role": "B",
+      "alt": 2
+    },
+    {
+      "frames": 41,
+      "role": "A",
+      "zoom": 1.11,
+      "face": {
+        "h": 0.256,
+        "cx": 0.485,
+        "cy": 0.269,
+        "eye_y": 0.247
+      }
+    },
+    {
+      "frames": 35,
+      "role": "B",
+      "slide": "orange",
+      "slide_style": "title"
+    },
+    {
+      "frames": 45,
+      "role": "B",
+      "alt": 1
+    },
+    {
+      "frames": 37,
+      "role": "A",
+      "zoom": 1.1,
+      "face": {
+        "h": 0.255,
+        "cx": 0.492,
+        "cy": 0.277,
+        "eye_y": 0.255
+      }
+    },
+    {
+      "frames": 27,
+      "role": "B",
+      "alt": 2
+    },
+    {
+      "frames": 45,
+      "role": "A",
+      "zoom": 1.15,
+      "face": {
+        "h": 0.266,
+        "cx": 0.492,
+        "cy": 0.278,
+        "eye_y": 0.256
+      }
+    },
+    {
+      "frames": 19,
+      "role": "B",
+      "slide": "white",
+      "slide_style": "line"
+    },
+    {
+      "frames": 78,
+      "role": "B",
+      "slide": "orange",
+      "slide_style": "title"
+    },
+    {
+      "frames": 56,
+      "role": "A",
+      "zoom": 1.13,
+      "face": {
+        "h": 0.262,
+        "cx": 0.506,
+        "cy": 0.285,
+        "eye_y": 0.263
+      }
+    },
+    {
+      "frames": 24,
+      "role": "B",
+      "alt": 2
+    },
+    {
+      "frames": 29,
+      "role": "B",
+      "alt": 1
+    },
+    {
+      "frames": 39,
+      "role": "A",
+      "zoom": 1.13,
+      "face": {
+        "h": 0.26,
+        "cx": 0.511,
+        "cy": 0.277,
+        "eye_y": 0.255
+      }
+    },
+    {
+      "frames": 24,
+      "role": "B",
+      "slide": "white",
+      "slide_style": "line"
+    },
+    {
+      "frames": 44,
+      "role": "B",
+      "slide": "orange",
+      "slide_style": "title"
+    },
+    {
+      "frames": 128,
+      "role": "A",
+      "zoom": 1.06,
+      "face": {
+        "h": 0.244,
+        "cx": 0.499,
+        "cy": 0.271,
+        "eye_y": 0.249
+      },
+      "note": "Ostatnie ujęcie. Elastyczne: przejmuje różnicę długości."
+    }
+  ],
+  "pauses": {
+    "max_pause_s": 0.45,
+    "keep_pause_s": 0.3
+  },
+  "audio": {
+    "lufs": -14.4,
+    "true_peak": -1.0,
+    "lra": 11.0
+  },
+  "graphics": {
+    "captions": {
+      "size": 0.03,
+      "y": 0.57,
+      "max_words": 3,
+      "short_max": 3,
+      "weight": "bold",
+      "from_script": true
+    },
+    "phrases": {
+      "max_gap_s": 0.4,
+      "hold": 0.12,
+      "lead": 0.04,
+      "min_visible": 0.08,
+      "big_max": 2,
+      "big_font": "display",
+      "small_font": "bold",
+      "color": "text",
+      "small_color": "text",
+      "mark_color": "highlight",
+      "big_track": -0.03,
+      "small_align": "edges",
+      "shadow": 0.45,
+      "A": {
+        "pre": 2,
+        "post": 1,
+        "size": 0.087,
+        "y": 0.57,
+        "small_ratio": 0.5,
+        "max_width": 0.5,
+        "row_gap": 0.006
+      },
+      "B": {
+        "pre": 3,
+        "post": 2,
+        "size": 0.17,
+        "y": 0.38,
+        "small_ratio": 0.27,
+        "max_width": 0.78,
+        "row_gap": 0.012
+      },
+      "slide": {
+        "pre": 3,
+        "post": 2,
+        "size": 0.19,
+        "cy": 0.5,
+        "small_ratio": 0.3,
+        "max_width": 0.8,
+        "row_gap": 0.012,
+        "color": "panel",
+        "small_color": "panel",
+        "shadow": 0,
+        "mark_color": null,
+        "mark_circle": true,
+        "z": 14
+      },
+      "line": {
+        "size": 0.087,
+        "max_width": 0.8,
+        "cy": 0.5,
+        "color": "panel",
+        "mark_color": "panel",
+        "shadow": 0,
+        "track": -0.03,
+        "break_words": 6
+      }
+    },
+    "slides": {
+      "colors": {
+        "white": "#F7F4EC",
+        "orange": "#FFD346"
+      },
+      "styles": {
+        "white": "line",
+        "orange": "title"
+      }
+    }
+  },
+  "dynamics": {
+    "note": "Zmierzone z cięć, różnicy klatek i głośności rolki wzorcowej. Opisuje tempo (komenda style); montażem steruje reszta szablonu.",
+    "duration_s": 66.16,
+    "cuts": 41,
+    "cuts_per_min": 37.2,
+    "shot_s": {
+      "mean": 1.58,
+      "median": 1.22,
+      "min": 0.56,
+      "max": 5.12
+    },
+    "sections_s": {
+      "hook": 6.6,
+      "body": 50.16,
+      "outro": 9.4
+    },
+    "share": {
+      "A": 0.424,
+      "B": 0.338,
+      "S": 0.238
+    },
+    "pattern": "BBBSSSABBABBBBAASSABABSSBBBASBABASSABBASSA",
+    "speech": {
+      "words": 248,
+      "words_per_s": 3.77,
+      "language": "en"
+    },
+    "loudness": {
+      "lufs": -14.4,
+      "true_peak": 0.6,
+      "lra": 4.2
+    }
+  }
+}

@@ -408,10 +408,13 @@ def _find_phrase(words: list[str], phrase: str, after: int) -> tuple[int, int] |
     return None
 
 
-def to_plan(text: str, spoken: Sequence) -> dict:
-    """Plan grafik (słownik jak w JSON) wyliczony ze scenariusza i transkrypcji."""
+def to_plan(text: str, spoken: Sequence, *, allow_plain: bool = False) -> dict:
+    """Plan grafik (słownik jak w JSON) wyliczony ze scenariusza i transkrypcji. `allow_plain`: scenariusz bez znaczników jest dozwolony
+    (Format 4 sam dobiera duże słowa, więc sam tekst wystarczy: służy do poprawnej pisowni napisów)."""
     script = parse(text)
     if not script.cues and not any(script.emph):
+        if allow_plain:
+            return {"schema": 1, "elements": [], "effects": []}
         raise PlanError("W scenariuszu nie ma ani jednego znacznika {typ: ...} ani wyróżnienia *tak*.")
     if not spoken:
         raise PlanError("Scenariusz ze znacznikami potrzebuje transkrypcji: uruchom montaż z napisami (rozpoznawanie mowy) "

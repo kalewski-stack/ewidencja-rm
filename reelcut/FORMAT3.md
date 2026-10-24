@@ -10,6 +10,7 @@ Nazwa: użytkownik powiedział „gadająca głowa wersja 3”, w narzędziu to 
 - **Format 2** to jeden take bez cięć z animowanymi grafikami: szablon `format2`, opis w [FORMAT2.md](FORMAT2.md).
 - **Format 3** to ten plik: cięcia jak w Formacie 1, ale napisy, hasła i błysk rysuje warstwa grafik (kolory i krój marki),
   a składnia scenariusza jest ta z Formatu 2 ([GRAFIKI.md](GRAFIKI.md)).
+- **Format 4** to kinetyczna typografia (każde słowo jako napis, karty, elipsa; pion i poziom): [FORMAT4.md](FORMAT4.md).
 - **Motion** to obraz bez mówiącej głowy: [MOTION.md](MOTION.md).
 
 Wzorzec: jedna rolka (DcS25CKkmFM). W repozytorium są tylko liczby, kolory i opis konstrukcji, bez obrazu, mowy i tekstów z rolki.

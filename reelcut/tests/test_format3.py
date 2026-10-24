@@ -455,9 +455,9 @@ class TemplateTests(unittest.TestCase):
         for ref in ("format3", "Format 3", "FORMAT-3", "format_3", "  format 3 "):
             self.assertEqual(load_template(ref).name, self.tpl.name, ref)
 
-    def test_it_is_listed_after_format_2_and_before_motion(self):
+    def test_it_is_listed_after_format_2_and_before_format_4_and_motion(self):
         ids = [i for i, _ in list_templates()]
-        self.assertEqual(ids[:4], ["rolka_DeuOaXKtPBb", "format2", "format3", "motion"])
+        self.assertEqual(ids[:6], ["rolka_DeuOaXKtPBb", "format2", "format3", "format4", "format4h", "motion"])
         self.assertIn("Format 3", dict(list_templates())["format3"])
 
     def test_captions_and_lockup_settings_are_in_the_template(self):

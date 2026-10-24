@@ -44,6 +44,15 @@ FORMAT3_ELEMENTS = {
               "słowa wskakują w chwili, gdy padają; powstaje samo ze słów wyróżnionych w scenariuszu (`*tak*`)",
 }
 
+# Elementy Formatu 4 (kinetyczna typografia): frazy rysuje `lockup` z innymi ustawieniami niż w Formacie 3, karty i wiersze to nowe typy.
+FORMAT4_ELEMENTS = {
+    "lockup": "fraza: jedno duże słowo (gruba groteska) z małymi słowami nad nim, przy lewej krawędzi bloku, i pod nim, przy prawej; "
+              "słowa wskakują w chwili, gdy padają; powstaje z całej mowy, a słowa wyróżnione w scenariuszu (`*tak*`) są duże zawsze",
+    "slide": "karta: jednolity kolor na całym kadrze (biały albo żółty), pod tekstem kart",
+    "typeline": "wiersz pisany słowami: słowa dochodzą po jednym w chwili, gdy padają, a wiersz za każdym razem się wyśrodkowuje; "
+                "wyróżnione słowo dostaje odręczną elipsę",
+}
+
 BRAND_ROLES = {
     "text": "napisy i tekst na grafikach",
     "title": "tytuły",
@@ -85,6 +94,11 @@ def _timeline(tpl: Template):
     return rows
 
 
+def _kind(s) -> str:
+    """Rodzaj ujęcia do opisów: A (mówiąca głowa), B (wstawka) albo S (karta w jednolitym kolorze)."""
+    return "S" if s.slide else s.role
+
+
 def _cuts_section(tpl: Template) -> list[str]:
     total = tpl.duration_s
     lens = [s.frames / tpl.fps for s in tpl.segments]
@@ -92,15 +106,19 @@ def _cuts_section(tpl: Template) -> list[str]:
     hook = sum(lens[:tpl.hook])
     outro = sum(lens[len(lens) - tpl.outro:])
     a_share = sum(s.frames for s in tpl.segments if s.role == "A") / tpl.total_frames
+    s_share = sum(s.frames for s in tpl.segments if s.slide) / tpl.total_frames
+    shares = (f"- Mówiąca głowa (A) to {a_share * 100:.0f}% czasu, wstawki (B) {100 - a_share * 100 - s_share * 100:.0f}%, "
+              f"karty w jednolitym kolorze (S) {s_share * 100:.0f}%." if s_share
+              else f"- Mówiąca głowa (A) to {a_share * 100:.0f}% czasu, wstawki (B) {100 - a_share * 100:.0f}%.")
     out = ["## Cięcia i tempo", "",
            f"- {n_cuts} cięć w {_n(total)} s, czyli {_n(n_cuts / total * 60)} cięć na minutę.",
            f"- Ujęcie trwa średnio {_n(statistics.fmean(lens), 2)} s (mediana {_n(statistics.median(lens), 2)}, "
            f"od {_n(min(lens), 2)} do {_n(max(lens), 2)} s).",
            f"- Hak {_n(hook)} s, rozwinięcie {_n(total - hook - outro)} s, zakończenie {_n(outro)} s.",
-           f"- Mówiąca głowa (A) to {a_share * 100:.0f}% czasu, wstawki (B) {100 - a_share * 100:.0f}%.",
-           f"- Wzór ujęć: `{''.join(s.role for s in tpl.segments)}`. Ujęcie elastyczne (przejmuje różnicę długości): "
+           shares,
+           f"- Wzór ujęć: `{''.join(_kind(s) for s in tpl.segments)}`. Ujęcie elastyczne (przejmuje różnicę długości): "
            f"nr {tpl.elastic + 1}, {_n(lens[tpl.elastic], 2)} s.",
-           "- Rytm (s): " + ", ".join(f"{_n(d, 2)}{s.role}" for d, s in zip(lens, tpl.segments)) + ".",
+           "- Rytm (s): " + ", ".join(f"{_n(d, 2)}{_kind(s)}" for d, s in zip(lens, tpl.segments)) + ".",
            f"- Pauzy w mowie: powyżej {_n(tpl.max_pause_s, 2)} s skracane do {_n(tpl.keep_pause_s, 2)} s."]
     dyn = tpl.dynamics
     if dyn.get("motion"):
@@ -382,15 +400,73 @@ def _cuts_graphics_section(tpl: Template) -> list[str]:
     return out + [""]
 
 
+def _kinetic_section(tpl: Template) -> list[str]:
+    """Format 4: frazy z dużym i małymi słowami, karty (wiersz albo duże słowo), elipsa i czarno-biały hak."""
+    from .graphics import kinetic
+
+    g = tpl.graphics or {}
+    ph, sl = g.get("phrases") or {}, g.get("slides") or {}
+    H = tpl.canvas[1]
+    px = lambda v: round(v * H)  # noqa: E731
+    out = ["## Napisy, karty i elipsa", ""]
+    c = g.get("captions")
+    if c:
+        out.append(f"- Napisy zwykłe (tylko tam, gdzie fraza nic nie obejmuje): do {c.get('max_words', 3)} słów naraz, wysokość wersalików "
+                   f"{_n(c.get('size', 0) * 100)}% wysokości kadru (ok. {px(c.get('size', 0))} px z {H}), górna krawędź na {_n(c.get('y', 0) * 100)}% wysokości.")
+    out.append("- Fraza: mowa rozpada się na krótkie frazy (zdanie, przecinek i pauza dłuższa niż "
+               f"{_n(ph.get('max_gap_s', 0), 2)} s kończą frazę), w każdej jedno duże słowo (rzeczownik, czasownik, liczba; słowa wyróżnione w scenariuszu "
+               "`*tak*` są duże zawsze) i małe słowa wokół niego: te przed nim stoją nad nim przy lewej krawędzi bloku, te po nim pod nim przy prawej. "
+               f"Duże słowa mają krój {ph.get('big_font', '?')}, odstęp liter {_n(ph.get('big_track', 0) * 100, 0)}% wielkości kroju. "
+               "Każde słowo wskakuje od razu w chwili, gdy pada (jedna klatka, bez animacji), a fraza schodzi "
+               f"{_n(ph.get('hold', 0), 2)} s po ostatnim słowie albo gdy zaczyna się następna.")
+    for key, title in (("A", "Na ujęciach z twarzą (A)"), ("B", "Na wstawkach (B)")):
+        k = ph.get(key)
+        if k:
+            out.append(f"  - {title}: duże słowo {_n(k['size'] * 100)}% wysokości kadru (ok. {px(k['size'])} px z {H}), małe słowa {_n(k['small_ratio'] * 100, 0)}% "
+                       f"jego wielkości, do {k['pre']} przed nim i {k['post']} po nim, blok od {_n(k['y'] * 100, 0)}% wysokości, najwyżej "
+                       f"{_n(k['max_width'] * 100, 0)}% szerokości kadru.")
+    if ph.get("mark_color"):
+        out.append(f"- Słowa wyróżnione w scenariuszu (`*tak*`) mają na ujęciach A i B kolor `{ph['mark_color']}` (jedyny jasny akcent naraz).")
+    colors = sl.get("colors") or {}
+    if colors:
+        names = {"white": "biała", "orange": "żółta"}
+        out.append("- Karty (ujęcia w jednolitym kolorze, bez nagrania): " + ", ".join(f"{names.get(k, k)} `{v}`" for k, v in colors.items())
+                   + "; tekst tuszem marki. Na karcie jest to, co w tym czasie słychać.")
+        styles = sl.get("styles") or {}
+        line, title = ph.get("line") or {}, ph.get("slide") or {}
+        out.append(f"  - Wiersz (domyślnie karta biała): słowa dochodzą po jednym i za każdym razem wyśrodkowują wiersz, wysokość kroju "
+                   f"{_n(line.get('size', 0) * 100)}% wysokości kadru (ok. {px(line.get('size', 0))} px z {H}), najwyżej {_n(line.get('max_width', 0) * 100, 0)}% "
+                   f"szerokości; nowy wiersz zaczyna się po zdaniu, przecinku, pauzie albo po {line.get('break_words', kinetic.LINE_BREAK_WORDS)} słowach.")
+        out.append(f"  - Duże słowo (domyślnie karta żółta): jak fraza, ale większa, {_n(title.get('size', 0) * 100)}% wysokości kadru "
+                   f"(ok. {px(title.get('size', 0))} px z {H}), blok wyśrodkowany w pionie.")
+        out.append("  - Które karty są które: " + ", ".join(f"{i + 1}. {names.get(s.slide, s.slide)} ({s.slide_style or styles.get(s.slide, 'line')})"
+                                                           for i, s in enumerate(tpl.segments) if s.slide) + ".")
+    out.append(f"- Elipsa: cienka kreska ({_n(kinetic.ELLIPSE_W * 100, 2)}% wysokości kadru), rysowana na żywo zgodnie z ruchem wskazówek zegara od lewej "
+               f"górnej strony w ciągu {_n(kinetic.ELLIPSE_DUR, 1)} s, z końcem zachodzącym na początek; obejmuje cały tekst (szerokość 1,12 tekstu, "
+               "wysokość 2,7 jego wysokości przy jednym wierszu). Na kartach dostaje ją wyróżnione słowo (`*tak*`) i zaczyna się rysować, gdy to słowo pada; w wierszu rośnie "
+               "razem z kolejnymi słowami.")
+    hooks = [i + 1 for i, s in enumerate(tpl.segments) if any(f.type == "bw" for f in s.fx)]
+    if hooks:
+        out.append("- Hak: ujęcia " + " i ".join(str(i) for i in hooks) + " są czarno-białe (reszta ma kolory nagrania).")
+    out += ["- Plan grafik to scenariusz (`--graphics`): do Formatu 4 wystarczy sam tekst, wyróżnienia `*tak*` i znaczniki `{...}` jak w innych formatach.",
+            "- Elementy planu:"]
+    out += [f"  - `{name}`: {text}" for name, text in {**GRAPHICS_ELEMENTS, **FORMAT4_ELEMENTS}.items()]
+    out += ["- „Za postacią” (`za: tak`) działa tylko w Formacie 2, w jednym ujęciu.",
+            "- Miejsce w kadrze wynika z położenia Twojej twarzy: grafiki trafiają nad głowę, na boki albo pod napisy, nigdy na twarz."]
+    return out + [""]
+
+
 def describe(tpl: Template) -> str:
     """Karta stylu w Markdown."""
     head = [f"# Karta stylu: {tpl.name}", "",
             f"Źródło: {tpl.source or 'brak'}. Format {tpl.canvas[0]}x{tpl.canvas[1]}, {tpl.fps} kl./s, {_n(tpl.duration_s)} s.", ""]
-    notes = [f"{i + 1}. ({s.role}) {s.note}" for i, s in enumerate(tpl.segments) if s.note]
+    notes = [f"{i + 1}. ({_kind(s)}) {s.note}" for i, s in enumerate(tpl.segments) if s.note]
     if tpl.motion:
         body = _motion_section(tpl) + _motion_colors_section(tpl) + _motion_graphics_section(tpl)
     elif tpl.mode == "single":
         body = _single_section(tpl) + _framing_section(tpl) + _brand_section(tpl) + _graphics_section(tpl)
+    elif (tpl.graphics or {}).get("phrases") is not None:  # Format 4: cięcia, frazy z dużym słowem, karty i elipsa z warstwy grafik
+        body = _cuts_section(tpl) + _framing_section(tpl) + _brand_section(tpl) + _kinetic_section(tpl)
     elif tpl.keep_colors and (tpl.graphics or {}).get("captions"):  # Format 3: cięcia z napisami, hasłami i błyskami z warstwy grafik
         body = _cuts_section(tpl) + _framing_section(tpl) + _brand_section(tpl) + _cuts_graphics_section(tpl)
     else:

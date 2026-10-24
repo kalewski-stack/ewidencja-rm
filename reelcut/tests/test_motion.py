@@ -119,8 +119,8 @@ class TemplateTests(unittest.TestCase):
         names = {load_template(ref).name for ref in ("motion", "Motion", " MOTION ", "mo-tion")}
         self.assertEqual(len(names), 1)
         self.assertIn("Motion", names.pop())
-        listed = dict(list_templates())  # interfejs i API pokazują szablony z tej listy: motion jest trzeci
-        self.assertEqual(list(listed)[:4], ["rolka_DeuOaXKtPBb", "format2", "format3", "motion"])
+        listed = dict(list_templates())  # interfejs i API pokazują szablony z tej listy: motion jest po Formatach 1-4
+        self.assertEqual(list(listed)[:6], ["rolka_DeuOaXKtPBb", "format2", "format3", "format4", "format4h", "motion"])
         self.assertTrue(listed["motion"].startswith("Motion"))
 
     def test_motion_mode_keeps_the_single_segment_rule(self):

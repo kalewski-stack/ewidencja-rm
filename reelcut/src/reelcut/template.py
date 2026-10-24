@@ -40,6 +40,8 @@ class Segment:
     fx: tuple[Fx, ...] = ()
     note: str = ""
     face: FaceTarget | None = None
+    slide: str = ""  # niepusty: ujęcie to karta w jednolitym kolorze (klucz koloru z graphics.slides.colors), na której grafiki piszą mowę; bez nagrania
+    slide_style: str = ""  # jak karta pisze mowę: line (wiersz słowo po słowie) albo title (duże słowo z małymi); pusty = z graphics.slides.styles
 
 
 @dataclass(frozen=True)
@@ -77,8 +79,19 @@ class Template:
 
     @property
     def preview_layer(self) -> bool:
-        """Czy podgląd grafik (`grafiki --template`) ma dołożyć to, co szablon rysuje sam: tło i napisy w motion, napisy i hasła w Formacie 3."""
-        return self.motion or self.graphics.get("lockup") is not None
+        """Czy podgląd grafik (`grafiki --template`) ma dołożyć to, co szablon rysuje sam: tło i napisy w motion, napisy i hasła w Formacie 3,
+        frazy z małymi i dużymi słowami w Formacie 4."""
+        return self.motion or self.graphics.get("lockup") is not None or self.graphics.get("phrases") is not None
+
+    @property
+    def horizontal(self) -> bool:
+        """Film poziomy 16:9 (szablony `format4h`): kanwa szersza niż wysoka."""
+        return self.canvas[0] > self.canvas[1]
+
+    @property
+    def slide_colors(self) -> dict[str, str]:
+        """Kolory kart: klucz z szablonu -> #RRGGBB (podkład w obrazie; ten sam kolor kładą na nim grafiki)."""
+        return dict((self.graphics.get("slides") or {}).get("colors") or {})
 
     @property
     def single_take(self) -> bool:
@@ -126,7 +139,11 @@ def parse_template(raw: dict) -> Template:
             face = FaceTarget(float(fc["h"]), float(fc["cx"]), float(fc["cy"]), float(fc.get("eye_y", 0.0)))
             _require(0.02 < face.h < 0.95 and 0 <= face.cx <= 1 and 0 <= face.cy <= 1,
                      f"Ujęcie {i}: face musi mieć h w (0.02, 0.95) oraz cx, cy w [0, 1].")
-        segments.append(Segment(frames, role, zoom, int(s.get("alt", 0)), fx, str(s.get("note", "")), face))
+        slide = str(s.get("slide", "") or "")
+        _require(not slide or role == "B", f"Ujęcie {i}: karta (slide) to ujęcie z rolą B.")
+        slide_style = str(s.get("slide_style", "") or "")
+        _require(slide_style in ("", "line", "title"), f"Ujęcie {i}: slide_style to line albo title.")
+        segments.append(Segment(frames, role, zoom, int(s.get("alt", 0)), fx, str(s.get("note", "")), face, slide, slide_style))
     mode = raw.get("mode", "cuts")
     _require(mode in ("cuts", "single", "motion"), "Pole mode: cuts, single albo motion.")
     st = raw.get("structure", {})
@@ -173,7 +190,8 @@ def parse_template(raw: dict) -> Template:
 
 
 # Nazwy, którymi mówimy o formatach: format1 / format-1 / Format 2 itd. (wielkość liter, spacje, myślniki i podkreślenia bez znaczenia).
-ALIASES = {"format1": "rolka_DeuOaXKtPBb", "format2": "format2", "format3": "format3", "motion": "motion", "rolkadez4fpjcr74": "format2"}
+ALIASES = {"format1": "rolka_DeuOaXKtPBb", "format2": "format2", "format3": "format3", "format4": "format4", "format4h": "format4h",
+           "format4poziom": "format4h", "format4poziomy": "format4h", "motion": "motion", "rolkadez4fpjcr74": "format2"}
 
 
 def resolve_alias(ref: str) -> str:
@@ -181,7 +199,7 @@ def resolve_alias(ref: str) -> str:
 
 
 def load_template(ref: str | Path | None = None) -> Template:
-    """Wczytuje szablon: z pliku, z katalogu data/ (po nazwie lub aliasie format1, format2, format3, motion) albo z ~/ReelCut/szablony (user/nazwa)."""
+    """Wczytuje szablon: z pliku, z katalogu data/ (po nazwie lub aliasie format1, format2, format3, format4, format4h, motion) albo z ~/ReelCut/szablony (user/nazwa)."""
     if ref is None:
         path = DEFAULT_TEMPLATE
     else:
@@ -203,8 +221,8 @@ def list_templates() -> list[tuple[str, str]]:
     """Lista (id, nazwa czytelna): wbudowane szablony, a po nich użytkownika (id zaczyna się od "user/")."""
     out = []
     for prefix, folder in (("", DATA_DIR), ("user/", USER_DIR)):
-        order = {"rolka_DeuOaXKtPBb": 0, "format2": 1, "format3": 2, "motion": 3}  # Formaty 1-3 i motion na początku listy, dalej alfabetycznie
-        for p in sorted(folder.glob("*.json"), key=lambda q: (order.get(q.stem, 4), q.stem)) if folder.exists() else []:
+        order = {"rolka_DeuOaXKtPBb": 0, "format2": 1, "format3": 2, "format4": 3, "format4h": 4, "motion": 5}  # Formaty 1-4 i motion na początku listy, dalej alfabetycznie
+        for p in sorted(folder.glob("*.json"), key=lambda q: (order.get(q.stem, 6), q.stem)) if folder.exists() else []:
             try:
                 out.append((prefix + p.stem, parse_template(json.loads(p.read_text(encoding="utf-8"))).name))
             except (TemplateError, json.JSONDecodeError):

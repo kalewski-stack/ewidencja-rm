@@ -68,6 +68,23 @@ a przy wstawce jest biały błysk: szablon `format3` (w interfejsie „Format 3:
 Program ostrzega, gdy wyróżnienie jest dłuższe niż dwa słowa, gdy wiersz hasła nie mieści się w bloku i gdy mowa zgadza się ze scenariuszem
 w mniej niż 80% (wtedy napisy i hasła biorą słowa z rozpoznanej mowy). Błysk przy wstawce dokłada szablon; własny: `{przejście: błysk}`.
 
+## Format 4: kinetyczna typografia (pion albo poziom)
+
+Dla rolki, w której **cała mowa jest napisem**: duże słowo z małymi wokół, białe i żółte karty z tekstem, odręczna elipsa na wyróżnieniu, czarno-biały hak
+i cięcie średnio co 1,6 s. Szablon `format4` (pion 9:16) albo `format4h` (poziom 16:9); w interfejsie „Format 4” i „Format 4 (poziom 16:9)”.
+Zasady i liczby ze wzorca: [FORMAT4.md](FORMAT4.md), składnia: [GRAFIKI.md](GRAFIKI.md). Potrzebny jest `pip install pillow`.
+
+| Krok | Co robisz |
+|---|---|
+| 1. Scenariusz | Sam tekst, który powiesz, wystarczy. Kilka słów kluczowych (3–8 na film) w `*gwiazdkach*`: `Co ma się *zmienić* po tym evencie?`. Na 45–60 s ok. 170–230 słów. |
+| 2. Nagranie | **W orientacji szablonu** (pion do `format4`, poziom do `format4h`), statyw, szeroko: twarz ok. 15–20% wysokości kadru, najlepiej 4K. Co najmniej 13 s, najlepiej 25–70 s. Wstawki: osobne klipy (`--broll`). |
+| 3. Film | `python rolka.py nagranie.mp4 --template format4 --graphics scenariusz.txt --broll wstawki/ -o film.mp4` (poziom: `--template format4h`). W interfejsie: krok 2 wstawki, krok 3 scenariusz. Obok filmu powstaje `film.slowa.json`. |
+| 4. Kontrola | Plan bez renderu: `--dry-run --words film.slowa.json`. Jedna klatka z frazami na zdjęciu klatki: `python rolka.py grafiki scenariusz.txt --template format4 --words film.slowa.json --tlo klatka.jpg --klatka 12`. |
+| 5. Poprawki | Zmiana gwiazdek albo literówka w scenariuszu: ta sama komenda z `--words film.slowa.json` (bez ponownego rozpoznawania mowy). Duże słowo, którego byś nie wybrał: dodaj je w gwiazdkach. |
+
+Program ostrzega, gdy nagranie ma inną orientację niż szablon (wycina wtedy pas ze środka kadru), gdy wyróżnienie jest dłuższe niż dwa słowa i gdy mowa zgadza się
+ze scenariuszem w mniej niż 80%. Karty (12 w pełnym rytmie) biorą tekst z tego, co w tym czasie mówisz; bez napisów (`--no-captions`) są puste.
+
 ## Motion, czyli schemat z samego głosu
 
 Dla filmu bez mówiącej głowy: lektor i animowany schemat z kamerą, planszami i napisami w Twoich kolorach. Szablon `motion`

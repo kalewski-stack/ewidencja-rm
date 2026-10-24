@@ -183,8 +183,9 @@ class PlanTests(unittest.TestCase):
         return graphics.build_plan({"schema": 1, "elements": list(elements), "effects": list(effects)}, make_ctx())
 
     def test_every_registered_type_has_a_sample(self):
-        # elementy trybu motion i Formatu 3 mają własne próbki w test_motion.py i test_format3.py
-        self.assertEqual(set(SAMPLES) | {"captions"} | set(style.MOTION_ELEMENTS) | set(style.FORMAT3_ELEMENTS), set(graphics.REGISTRY))
+        # elementy trybu motion i Formatów 3 i 4 mają własne próbki w test_motion.py, test_format3.py i test_format4.py
+        self.assertEqual(set(SAMPLES) | {"captions"} | set(style.MOTION_ELEMENTS) | set(style.FORMAT3_ELEMENTS) | set(style.FORMAT4_ELEMENTS),
+                         set(graphics.REGISTRY))
 
     def test_errors_are_readable_and_say_which_element(self):
         cases = [
@@ -529,7 +530,8 @@ class StyleCardTests(unittest.TestCase):
                          "karta w GRAFIKI.md jest nieaktualna: python rolka.py style format2 i wklej między znaczniki")
 
     def test_card_lists_exactly_the_registered_elements(self):
-        self.assertEqual(set(style.GRAPHICS_ELEMENTS) | set(style.MOTION_ELEMENTS) | set(style.FORMAT3_ELEMENTS), set(graphics.REGISTRY) - {"captions"})
+        self.assertEqual(set(style.GRAPHICS_ELEMENTS) | set(style.MOTION_ELEMENTS) | set(style.FORMAT3_ELEMENTS) | set(style.FORMAT4_ELEMENTS),
+                         set(graphics.REGISTRY) - {"captions"})
         self.assertFalse(set(style.GRAPHICS_ELEMENTS) & set(style.MOTION_ELEMENTS))
         self.assertFalse(set(style.GRAPHICS_ELEMENTS) & set(style.FORMAT3_ELEMENTS))
         text = style.describe(load_template(TEMPLATE))

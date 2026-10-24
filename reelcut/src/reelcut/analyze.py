@@ -351,7 +351,7 @@ def analyze_reference(video: str | Path, out: str | Path, *, threshold: float = 
         "notes": "Wygenerowane przez rolka.py analyze. Zawiera wyłącznie parametry montażu i statystyki koloru, bez obrazu "
                  "i treści z oryginału. Sprawdź role (A/B), zoomy i strukturę, jeśli coś wygląda nie tak.",
         "fps": fps,
-        "canvas": [1080, 1920],
+        "canvas": [1920, 1080] if info.width > info.height else [1080, 1920],  # rolka pozioma daje szablon poziomy (16:9)
         "structure": {"hook": hook, "outro": outro, "elastic": elastic, "elastic_min_s": 2.0, "elastic_max_s": 12.0,
                       "min_cut_s": 0.6, "snap_tol_s": 0.5},
         "alts": {"1": {"zoom": 1.6, "fy": 0.32, "anchor": "face", "note": "detal: twarz i oczy"},

@@ -31,9 +31,11 @@ class Geometry:
 
 
 def master_geometry(src_w: int, src_h: int, canvas: tuple[int, int], focus_x: float = 0.5,
-                    cap: tuple[int, int] = (1620, 2880)) -> Geometry:
-    """Wycina ze źródła kadr w proporcji kanwy (np. 9:16) i ogranicza rozmiar mastera."""
+                    cap: tuple[int, int] | None = None) -> Geometry:
+    """Wycina ze źródła kadr w proporcji kanwy (9:16 albo 16:9) i ogranicza rozmiar mastera (domyślnie 1620x2880, a przy kanwie poziomej 2880x1620)."""
     ar = canvas[0] / canvas[1]
+    if cap is None:
+        cap = (1620, 2880) if ar <= 1.0 else (2880, 1620)
     if src_w / src_h >= ar:
         ch = src_h
         cw = int(round(ch * ar))
@@ -206,8 +208,13 @@ def build_final_graph(plan: Plan, master_size: tuple[int, int], canvas: tuple[in
     labels = []
     for s in plan.slots:
         fx = next((f for f in s.effects if f.type == "blur_in"), None)
-        final, raw = f"[s{s.index}]", (f"[b{s.index}]" if fx else f"[s{s.index}]")
-        if s.source == "A":
+        bw = any(f.type == "bw" for f in s.effects)  # czarno-biały hak: nagranie bez koloru (grafiki kładą się na nim w kolorach marki)
+        final = f"[s{s.index}]"
+        raw = f"[b{s.index}]" if (fx or bw) else final  # wyjście ze źródła; dalej ewentualne odbarwienie i wejście z rozmycia
+        if s.source == "S":  # karta: jednolity kolor, a tekst i obwódkę rysuje warstwa grafik
+            parts.append(f"color=c=0x{s.slide_rgb.lstrip('#')}:s={W}x{H}:r={fps},format=yuv420p,setsar=1,"
+                         f"trim=end_frame={s.frames},setpts=PTS-STARTPTS{raw}")
+        elif s.source == "A":
             parts.append(f"[m{s.index}]{_slot_chain(s, master_size, canvas, fps)}{raw}")
         else:
             j = input_index[s.index]
@@ -215,6 +222,10 @@ def build_final_graph(plan: Plan, master_size: tuple[int, int], canvas: tuple[in
                 f"[{j}:v]fps={fps},scale={W}:{H}:force_original_aspect_ratio=increase:flags=lanczos,"
                 f"crop={W}:{H},setsar=1,format=yuv420p,tpad=stop_mode=clone:stop_duration=3,"
                 f"trim=end_frame={s.frames},setpts=PTS-STARTPTS{raw}")
+        if bw:  # rozmycie (jeśli jest) liczy się na obrazie już bez koloru
+            nxt = f"[w{s.index}]" if fx else final
+            parts.append(f"{raw}hue=s=0,format=yuv420p{nxt}")
+            raw = nxt
         if fx:  # wejście z rozmycia (focus-pull): rozmyta kopia znika w czasie fx.dur
             d = min(fx.dur, 0.4 * s.frames / fps)
             i = s.index

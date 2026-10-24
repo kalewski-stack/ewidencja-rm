@@ -1,11 +1,12 @@
-# GRAFIKI: Format 2 (gadająca głowa), Format 3 i motion z animowanymi elementami w Twoich kolorach
+# GRAFIKI: Format 2 (gadająca głowa), Formaty 3 i 4 oraz motion z animowanymi elementami w Twoich kolorach
 
-To opis techniczny **Formatu 2** (gadająca głowa), **Formatu 3** (gadająca głowa v3: cięcia, hasła, błysk) i **motion** (schemat
-z lektorem): składnia scenariusza, plan JSON, elementy i ich pola. Zasady samych formatów (konstrukcja filmu, słownik elementów,
-parametry z rolek wzorcowych): [FORMAT2.md](FORMAT2.md), [FORMAT3.md](FORMAT3.md), [MOTION.md](MOTION.md); przejścia między scenami:
-[PRZEJSCIA.md](PRZEJSCIA.md). Opisy i przykłady dotyczą Formatu 2, o ile nie zaznaczono inaczej; znaczniki motion (`tarcza`, `krok`,
-`finał`, `plansza`, `błysk`) są w tabeli znaczników i w rozdziale „Motion: znaczniki”, hasła Formatu 3 (`lockup`) w rozdziale
-„Format 3: hasła”, a znacznik `przejście` w rozdziale „Przejścia”.
+To opis techniczny **Formatu 2** (gadająca głowa), **Formatu 3** (gadająca głowa v3: cięcia, hasła, błysk), **Formatu 4** (kinetyczna typografia:
+frazy, karty, elipsa; pion i poziom) i **motion** (schemat z lektorem): składnia scenariusza, plan JSON, elementy i ich pola. Zasady samych
+formatów (konstrukcja filmu, słownik elementów, parametry z rolek wzorcowych): [FORMAT2.md](FORMAT2.md), [FORMAT3.md](FORMAT3.md),
+[FORMAT4.md](FORMAT4.md), [MOTION.md](MOTION.md); przejścia między scenami: [PRZEJSCIA.md](PRZEJSCIA.md). Opisy i przykłady dotyczą Formatu 2,
+o ile nie zaznaczono inaczej; znaczniki motion (`tarcza`, `krok`, `finał`, `plansza`, `błysk`) są w tabeli znaczników i w rozdziale „Motion:
+znaczniki”, hasła Formatu 3 (`lockup`) w rozdziale „Format 3: hasła”, frazy i karty Formatu 4 (`lockup`, `slide`, `typeline`) w rozdziale
+„Format 4: frazy i karty”, a znacznik `przejście` w rozdziale „Przejścia”.
 
 Wzorce: cztery rolki jednego konta (Dez4fPJCR74, DeGQ3NAC2f9, Dd2i55aj43S, DdxAwodlOGG): jeden ciągły take 42-72 s,
 zero cięć, kamera nieruchoma. Cała dynamika tych rolek to **animowane grafiki nałożone na mówiącą głowę** i małe napisy
@@ -252,6 +253,63 @@ Własne hasło, niezależne od gwiazdek, wpisujesz w planie JSON jako element `l
 Błysk przy wstawkach jest w szablonie: `fx: [{"type": "flash", "edge": "start"}]` na ujęciu daje błysk na jego początku, `"edge": "end"` na końcu.
 Szczegóły i krzywa błysku: [PRZEJSCIA.md](PRZEJSCIA.md).
 
+## Format 4: frazy i karty
+
+Szablony `format4` (pion) i `format4h` (poziom) (opis formatu: [FORMAT4.md](FORMAT4.md)) robią cięcia jak Format 1, a **całą mowę** zamieniają na elementy grafik:
+**frazy** (`lockup` z dużym słowem i małymi wokół), **karty** (`slide`, jednolity kolor na cały kadr) z tekstem (`typeline`, wiersz pisany słowami, albo
+`lockup`) i odręczną elipsą. Powstają same z mowy i z ujęć planu; Twoje `*wyróżnienia*` wygrywają przy wyborze dużych słów. Scenariusz może być **samym
+tekstem bez znaczników** (służy wtedy do poprawnej pisowni). Elementy możesz też wpisać ręcznie:
+
+<!-- plan-f4:start -->
+```json
+{
+  "schema": 1,
+  "elements": [
+    {"type": "slide", "at": 1.0, "dur": 2.4, "color": "paper"},
+    {"type": "typeline", "at": 1.1, "dur": 2.3, "circle": true, "marks": [2], "words": [
+      {"w": "festyn", "t": 0.0}, {"w": "bez", "t": 0.5}, {"w": "efektu", "t": 0.9}]},
+    {"type": "slide", "at": 3.4, "dur": 2.0, "color": "yellow"},
+    {"type": "lockup", "at": 3.5, "dur": 1.8, "z": 14, "big_font": "display", "color": "panel", "small_color": "panel", "shadow": 0,
+     "size": 0.19, "cy": 0.5, "small_ratio": 0.3, "small_align": "edges", "row_gap": 0.012, "circle": true, "lines": [
+      {"tier": "small", "words": [{"w": "naprawdę", "t": 0.0}]},
+      {"tier": "big", "words": [{"w": "zmienia", "t": 0.4}]},
+      {"tier": "small", "words": [{"w": "wszystko", "t": 0.9}]}]}
+  ]
+}
+```
+<!-- plan-f4:end -->
+
+**Karta (`slide`).** Pole `color`: rola marki (`paper`, `yellow`, `ink`...), nazwa koloru albo `#RRGGBB`. Zakrywa cały kadr bez wejścia i wyjścia (twarde cięcie),
+leży pod tekstem (`z` 4); w szablonie karta jest też ujęciem bez nagrania, więc nic pod nią nie jest liczone.
+
+**Wiersz pisany słowami (`typeline`).** Słowa dochodzą po jednym w chwili, gdy padają, a wiersz za każdym razem się wyśrodkowuje. Układ wierszy jest liczony z całego
+tekstu, więc słowa nie skaczą między wierszami.
+
+| Pole | Znaczenie |
+|---|---|
+| `words` | `[{w, t}]`: słowa i sekundy od początku elementu, w których wchodzą |
+| `size`, `font`, `track` | wielkość kroju (ułamek wysokości kadru, 0,087), krój (`display`) i odstęp liter (−0,03 wielkości) |
+| `color`, `mark_color`, `marks` | kolor tekstu (domyślnie `panel`, czyli tusz), kolor słów wyróżnionych i ich numery (od 0) |
+| `max_width`, `cy` albo `y`, `cx` | najszerszy wiersz (ułamek szerokości, 0,8), środek bloku w pionie (0,5) albo jego górna krawędź, środek w poziomie |
+| `shadow` | siła cienia (domyślnie 0) |
+| `circle`, `circle_at`, `circle_dur`, `circle_color` | odręczna elipsa wokół tekstu widocznego w tej chwili: od drugiego słowa (albo `circle_at` sekund od startu; elementy ze scenariusza zaczynają, gdy pada słowo wyróżnione), rysowana 0,4 s |
+
+**Nowe pola `lockup`** (fraza Formatu 4; Format 3 ich nie używa, jego układ się nie zmienia):
+
+| Pole | Znaczenie |
+|---|---|
+| `small_align` | `justify` (domyślnie, Format 3: małe słowa wyjustowane do szerokości dużego) albo `edges` (Format 4: małe słowa w naturalnych odstępach, nad dużym od jego lewej krawędzi, pod nim do prawej) |
+| `small_ratio`, `big_track` | wielkość małych słów względem dużego (0,44; we frazach 0,27–0,5) i odstęp liter dużego (−0,02; we frazach −0,03) |
+| `row_gap` | odstęp między wierszami liczony od krawędzi liter (ułamek wysokości kadru); bez niego układ jak w Formacie 3 |
+| `cy`, `cx` | środek bloku w pionie i w poziomie (ułamki kadru); `cy` zamiast `y` |
+| `lines[].color` | kolor jednego wiersza dużego (np. słowo wyróżnione w żółtym) |
+| `circle`, `circle_at`, `circle_dur`, `circle_color` | elipsa wokół całego bloku, jak w `typeline` |
+
+**Ustawienia szablonu** (`graphics.phrases`): `max_gap_s` (pauza kończąca frazę, 0,4 s), `hold` (0,12 s), `lead` (0,04 s), `min_visible` (0,08 s), `big_max` (2),
+krój i kolory wspólne, `mark_color` (kolor słowa wyróżnionego, `highlight`) i osobne ustawienia dla ujęcia z twarzą (`A`), wstawki (`B`), karty z dużym słowem (`slide`)
+i wiersza na karcie (`line`: `break_words` 6, `mark_circle`). `graphics.slides` mówi, jaki kolor ma karta `white` i `orange` oraz jak pisze (`styles`: `line` albo `title`).
+Liczby: [FORMAT4.md](FORMAT4.md).
+
 ## Przejścia
 
 `{przejście: rodzaj | kierunek: ... | moc: ...}` w scenariuszu albo lista `transitions` w planie JSON (`{"kind": "blur", "at": 4.0}`): stara scena
@@ -405,6 +463,8 @@ a słowa biorą się ze scenariusza, jeśli mowa zgadza się z nim w co najmniej
   zastrzeżenia: [MOTION.md](MOTION.md).
 - **Format 3:** brak cyfrowych najazdów w trakcie ujęcia, kursywa zamiast grubego szeryfu w hasłach, grafiki „za postacią” nie działają
   przy cięciach; granice: [FORMAT3.md](FORMAT3.md). Przejścia obrabiają grafiki, nie nagranie (poza błyskiem): [PRZEJSCIA.md](PRZEJSCIA.md).
+- **Format 4:** duże słowo wybiera heurystyka (wyróżnij gwiazdkami to, co ma być duże), biały tekst na jasnym B-rollu słabo się czyta, a wersja pionowa
+  to przeliczenie wzorca poziomego, nie pomiar; granice: [FORMAT4.md](FORMAT4.md).
 - **Wymaga Pillow:** `pip install pillow`. Bez niego montaż działa jak dawniej, a z planem grafik zatrzymuje się z komunikatem.
 - **Sprawdzone na materiale syntetycznym i na klatkach wzorca**, nie na Twoich nagraniach. Pierwszy film obejrzyj uważnie
   (kadr twarzy, strefy, czytelność), a rozmieszczenie dostrój polami `strefa`, `x`, `y`.
@@ -433,6 +493,9 @@ a słowa biorą się ze scenariusza, jeśli mowa zgadza się z nim w co najmniej
 | „hasło: wyróżnienie „…” ma 4 słów: duże są pierwsze 2…” | w Formacie 3 gwiazdkami oznacz jedno albo dwa słowa; dłuższe wyróżnienie program tnie |
 | „lockup … wiersz „…” nie mieści się w bloku: skróć go albo rozdziel hasło na dwa” | w planie JSON rozbij małe słowa na dwa hasła; ze scenariusza: mniej słów między gwiazdkami a końcem zdania nie zmieni układu, ale pomoże krótsze zdanie |
 | „przejście potrzebuje rodzaju, np. {przejście: rozmycie}” | po dwukropku podaj `rozmycie`, `najazd`, `przesunięcie`, `kurtyna` albo `błysk` |
+| „Nagranie jest pionowe, a ten szablon robi film poziomy 16:9…” albo „Nagranie jest poziome. Do rolki 9:16…” | nagraj w orientacji szablonu (`format4h` poziomo, `format4` pionowo); program wycina pas ze środka, więc ustaw `--focus` |
+| „fraza: wyróżnienie „…” ma … słów…” | w Formacie 4 gwiazdkami oznacz jedno albo dwa słowa z rzędu |
+| „Wiersz (typeline) wymaga listy words: [{w, t}]” | wiersz pisany słowami potrzebuje słów z czasami |
 
 ## Ściąga komend
 
@@ -455,6 +518,12 @@ python rolka.py style motion                                                  # 
 python rolka.py nagranie.mp4 --template format3 --graphics scenariusz.txt --broll wstawki/ -o film.mp4
 python rolka.py grafiki scenariusz.txt --template format3 --words film.slowa.json --tlo klatka.jpg --klatka 12   # hasła i napisy na zdjęciu klatki
 python rolka.py style format3                                                 # karta stylu Formatu 3
+
+# Format 4: kinetyczna typografia (pion 9:16 albo poziom 16:9), samo wyróżnienie *tak* w tekście wystarczy
+python rolka.py nagranie.mp4 --template format4 --graphics scenariusz.txt --broll wstawki/ -o film.mp4
+python rolka.py nagranie_poziom.mp4 --template format4h --graphics scenariusz.txt -o film_poziom.mp4
+python rolka.py grafiki scenariusz.txt --template format4h --words film.slowa.json --tlo klatka.jpg --klatka 12  # frazy na zdjęciu klatki (kanwa z szablonu)
+python rolka.py style format4h                                                # karta stylu Formatu 4 (poziom)
 ```
 
 ## Dodatek: karta stylu szablonu (wygenerowana)
