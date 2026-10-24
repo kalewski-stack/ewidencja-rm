@@ -25,6 +25,12 @@ Narzędzie lokalne do montażu pionowych rolek według rolek wzorcowych. Urucham
   `graphics/glue.py` (`slot_spans`), `graphics/plan.py` (`with_template` ze `spans`), `planner.py` (karty to ujęcia ze źródłem `S`), `render.py` (karta to źródło
   `color`, `bw` na haku). Numer 4 to **przyjęte założenie** (potwierdź przy okazji). Siatka kropek (licznik), karta ze zrzutem profilu, strzałka z podmianą słowa
   i szara cyfra ze wzorca **celowo nie są w szablonie** (ozdobniki konkretnej opowieści; strzałka, licznik, karty i profil są w Formacie 2).
+- **Benchmark podcastu** (użytkownik wrzucił rolkę DezP_8mNORW: „Tak ma wyglądać format nagrań podcastów które będziemy realizowali”, prosił o benchmark ramy):
+  zmierzona rama nagrania i klipu (ciemne studio, cztery kadry z kilku kamer: zbliżenie gościa, plan średni gościa, reakcja prowadzącego, totalny; napisy mowy,
+  hasła, pasek z imieniem, karta w totalnym), pasma i lista kontrolna odcinka, przełożenie na kolory i kroje marki. Opis: PODCAST.md, liczby:
+  `src/reelcut/data/podcast_benchmark.json`, schemat: `docs/podcast_rama.png`; testy: `tests/test_podcast.py`. **To specyfikacja, nie szablon montażu**: Rolka tnie jedno
+  nagranie, a podcast wymaga trybu wielokamerowego (zsynchronizowane pliki, wybór kadru według mówcy). Numeru formatu nie nadano; jeśli powstanie szablon, proponowany
+  jest „Format 5” jako założenie do potwierdzenia. Kolory i kroje w PODCAST.md to propozycja do akceptacji (żółty na słowa, fiolet na słupek paska, krój mono do decyzji).
 - **Przejścia między scenami** (rozmycie, najazd, przesunięcie, kurtyna, błysk): `graphics/transitions.py`, znacznik `{przejście: ...}`, opis
   PRZEJSCIA.md. Obrabiają grafiki; pełnym obrazem działa tylko błysk.
 - **Intro „o mnie”**: użytkownik chce show reel o sobie („W takiej dynamice zrobimy intro show rel o mnie”), najpierw w rytmie Formatu 3, potem przepisane
@@ -68,6 +74,9 @@ i myślniki bez znaczenia).
   szablon, zmieniaj oba pliki i odświeżaj kartę w FORMAT4.md. Stałe `graphics/kinetic.py` (`ELLIPSE_*`, `LINE_*`, `BIG_COST`) muszą zgadzać się z FORMAT4.md i GRAFIKI.md.
   Karta to ujęcie z polem `slide` (rola B, źródło `S` w planie, jednolity kolor w filtrze `color`), a tekst i elipsę rysuje warstwa grafik; planista, kadrowanie
   po twarzy i przydział B-rolla omijają karty. Orientację kanwy (pion albo poziom) daje szablon (`canvas`), a `analyze` bierze ją z rolki wzorcowej.
+- Benchmark podcastu: liczby w `data/podcast_benchmark.json` pochodzą z pomiaru jednej rolki pionowej (DezP_8mNORW); PODCAST.md i `docs/podcast_rama.png` muszą się z nimi
+  zgadzać (pilnuje `tests/test_podcast.py`: spójność ujęć, pasma, liczby w dokumencie, porównanie z szablonami Formatów 1, 3 i 4). Pasma to wzorzec ±15 do 25%, nie rozrzut
+  z wielu odcinków. Rysunek powstaje z liczb jednorazowym skryptem roboczym (nie ma go w repozytorium); zmieniając JSON, zmień dokument i narysuj arkusz od nowa.
 - Motion: liczby ruchu w `graphics/motion.py` (`measured()`) muszą zgadzać się z `dynamics.motion` w `data/motion.json` (pilnuje test).
   Głos lektora to plik audio (`AUDIO_EXT` w `pipeline.py`); serwer i interfejs przyjmują go jako główny plik, nie jako B-roll.
 - Odpowiedzi dla użytkownika po polsku, zwięźle, rzeczowo.

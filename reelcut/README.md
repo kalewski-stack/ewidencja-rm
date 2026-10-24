@@ -21,6 +21,9 @@ Wszystko liczy się na Twoim komputerze. Żaden plik nie jest nigdzie wysyłany.
 - **Motion** (bez mówiącej głowy: wrzucasz samo nagranie lektora, a narzędzie rysuje cały obraz, czyli schemat z tarczą
   i kamerą, czarne plansze i napisy kinetyczne, w kolorach i kroju marki; każdy ruch ma czas ze słowa, które pada): zasady
   i liczby ze wzorca w [MOTION.md](MOTION.md), składnia znaczników w [GRAFIKI.md](GRAFIKI.md). Szablon `motion`.
+- **Benchmark podcastu** (ciemne studio, dwoje rozmówców przy stole, cztery kadry z kilku kamer, napisy z czerwonymi akcentami, pasek z imieniem,
+  pływająca karta): zmierzona rama nagrania i klipu z jednej rolki, lista kontrolna odcinka i przełożenie na kolory marki w [PODCAST.md](PODCAST.md),
+  liczby w `src/reelcut/data/podcast_benchmark.json`, schemat kadrów w `docs/podcast_rama.png`. To specyfikacja, jeszcze nie szablon montażu.
 - **Przejścia między scenami** (rozmycie, najazd, przesunięcie, kurtyna, błysk; znacznik `{przejście: ...}`): zmierzone krzywe, składnia
   i granice w [PRZEJSCIA.md](PRZEJSCIA.md).
 - **Styl do przeniesienia na inne tematy** (kolory, dynamika, kadry, cięcia, lista ujęć do nagrania, format
@@ -202,6 +205,7 @@ FORMAT2.md                    Format 2: gadająca głowa (zasady, słownik eleme
 FORMAT3.md                    Format 3: gadająca głowa v3 (cięcia, hasła, błysk: zasady, liczby ze wzorca, scenariusz, granice)
 FORMAT4.md                    Format 4: kinetyczna typografia (pion i poziom: rytm, frazy, karty, elipsa: zasady, liczby ze wzorca, scenariusz, granice)
 MOTION.md                     Motion (schemat z lektorem: zasady, liczby ze wzorca, scenariusz, granice)
+PODCAST.md                    benchmark podcastu (rama nagrania i klipu: kadry, światło, cięcia, napisy, dźwięk, marka, lista kontrolna; docs/podcast_rama.png)
 INTRO.md                      intro „o mnie”: scenariusz, rozpiska ujęć, co nagrać, decyzje (wersja w Formacie 4, pion i poziom, oraz szkic w Formacie 3)
 PRZEJSCIA.md                  przejścia między scenami (rodzaje, zmierzone krzywe, składnia, granice)
 GRAFIKI.md                    składnia znaczników scenariusza, plan JSON, elementy i pola (Formaty 2, 3, 4 i motion)

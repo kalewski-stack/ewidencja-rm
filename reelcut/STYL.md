@@ -1,7 +1,7 @@
 # STYL: styl rolki wzorcowej do przeniesienia na inne tematy
 
 To jest opis **Formatu 1** (mówiąca głowa + B-roll, cięcia w rytmie rolki; szablon `format1`). Format 2 (gadająca głowa,
-jeden take z animowanymi grafikami): [FORMAT2.md](FORMAT2.md). Format 3 (gadająca głowa v3: cięcia, hasła, błysk przy wstawce): [FORMAT3.md](FORMAT3.md). Format 4 (kinetyczna typografia: napisy z dużym słowem, karty, elipsa; pion i poziom): [FORMAT4.md](FORMAT4.md).
+jeden take z animowanymi grafikami): [FORMAT2.md](FORMAT2.md). Format 3 (gadająca głowa v3: cięcia, hasła, błysk przy wstawce): [FORMAT3.md](FORMAT3.md). Format 4 (kinetyczna typografia: napisy z dużym słowem, karty, elipsa; pion i poziom): [FORMAT4.md](FORMAT4.md). Benchmark podcastu (kilka kamer, ciemne studio, rama nagrania i klipu): [PODCAST.md](PODCAST.md).
 
 Ten dokument opisuje to, co **zmierzyłem** w rolce <https://www.instagram.com/reel/DeuOaXKtPBb/>: kolory, kadry, cięcia
 i dynamikę. Z tego da się nagrać nowy materiał w tym samym stylu (rozdziały: kolory, kadry, cięcia), napisać do niego
