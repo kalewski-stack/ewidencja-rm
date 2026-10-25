@@ -146,7 +146,8 @@
   </section>
 
   <p class="muted" style="margin-top:28px">Wszystko dzieje się na Twoim komputerze: pliki nie są nigdzie wysyłane.
-    Gotowe filmy zapisują się w: <code id="outdir"></code></p>
+    Gotowe filmy zapisują się w: <code id="outdir"></code><br>
+    Wersje: Rolka <code id="ver-app"></code>, <code id="ver-ff"></code></p>
 </main>
 
 <script>
@@ -284,6 +285,8 @@ $('#r-again').addEventListener('click', () => { video = null; brolls = []; gfx =
     const info = await api('GET', '/api/info');
     $('#o-template').innerHTML = info.templates.map((t) => `<option value="${esc(t.id)}">${esc(t.name)}</option>`).join('');
     $('#outdir').textContent = info.output_dir;
+    $('#ver-app').textContent = info.version;
+    $('#ver-ff').textContent = info.ffmpeg || 'ffmpeg: brak danych';
     if (!info.whisper) { $('#whisper-hint').hidden = false; $('#o-captions').value = 'off'; $('#opts').open = true; }
   } catch (e) { $('#outdir').textContent = '(brak połączenia z programem)'; }
   renderFiles();

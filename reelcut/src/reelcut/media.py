@@ -79,6 +79,17 @@ def ffmpeg_major() -> int | None:
     return int(m.group(1)) if m else None
 
 
+def ffmpeg_summary() -> str:
+    """Jeden wiersz do logu: wersja i ścieżka używanego ffmpeg. Przy błędach od razu widać, czy to starszy program."""
+    try:
+        path = find_binary("ffmpeg")
+        out = subprocess.run([path, "-version"], capture_output=True, text=True).stdout
+    except (OSError, MediaError):
+        return "ffmpeg: nie znaleziono"
+    m = re.search(r"ffmpeg version (\S+)", out)
+    return f"ffmpeg {m.group(1) if m else '(nieznana wersja)'}: {path}"
+
+
 def filter_script_args(graph: str, workdir: Path, name: str = "graph") -> list[str]:
     """Długi graf filtrów przekazujemy plikiem (limit długości linii poleceń, zwłaszcza w Windows)."""
     script = workdir / f"{name}.txt"
@@ -141,7 +152,8 @@ def run_ffmpeg(args: Sequence[str], *, total_s: float | None = None, on_progress
         exc = feed_error[0]
         raise MediaError(f"Nie udało się narysować grafik: {exc}") from exc
     if returncode != 0:
-        raise MediaError("ffmpeg zakończył się błędem:\n" + "\n".join(tail))
+        # wersja ffmpeg na końcu: po zrzucie ekranu od razu widać, czy pracuje starszy program
+        raise MediaError("ffmpeg zakończył się błędem:\n" + "\n".join(tail) + f"\n({ffmpeg_summary()})")
     if on_progress:
         on_progress(1.0)
 

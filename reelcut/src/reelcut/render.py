@@ -7,7 +7,7 @@ import re
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable, Sequence
+from typing import Callable, Iterable, Sequence
 
 from . import media
 from .media import MediaError, MediaInfo, ProgressCb
@@ -272,13 +272,27 @@ def measure_loudness(path: Path, lufs: float, tp: float, lra: float) -> dict | N
         return None
 
 
+# Koniec łańcucha audio: sztywno 48 kHz i stereo. Samo „aresample” za „loudnorm” wywala ffmpeg 4.4 do 6.0
+# („Cannot select channel layout…”), bo koder AAC nie podaje układu kanałów; jawny „aformat” działa na każdej wersji.
+AUDIO_TAIL = "aformat=sample_rates=48000:channel_layouts=stereo"
+
+
 def audio_filter(master: Path, lufs: float, tp: float, lra: float) -> str:
     m = measure_loudness(master, lufs, tp, lra)
     if not m:
-        return "aresample=48000"
+        return AUDIO_TAIL
     return (f"loudnorm=I={lufs}:TP={tp}:LRA={lra}:measured_I={m['input_i']}:measured_TP={m['input_tp']}"
             f":measured_LRA={m['input_lra']}:measured_thresh={m['input_thresh']}:offset={m['target_offset']}"
-            f":linear=true,aresample=48000")
+            f":linear=true,{AUDIO_TAIL}")
+
+
+def check_audio_chain(master: Path, af: str) -> bool:
+    """Próba na pierwszych sekundach: czy ten łańcuch audio przechodzi w ffmpeg użytkownika. Nietypowa wersja ffmpeg
+    nie może zatrzymać całego montażu przez normalizację głośności, więc przed długim składaniem sprawdzamy to w ułamku sekundy."""
+    cmd = [media.find_binary("ffmpeg"), "-hide_banner", "-nostdin", "-loglevel", "error", "-t", "3", "-i", str(master),
+           "-vn", "-map", "0:a:0", "-af", af, "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-ac", "2", "-f", "null", "-"]
+    res = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
+    return res.returncode == 0
 
 
 def render_final(master: Path, master_info: MediaInfo, master_size: tuple[int, int], plan: Plan,
@@ -286,7 +300,8 @@ def render_final(master: Path, master_info: MediaInfo, master_size: tuple[int, i
                  look_chain: str | None = None, ass_file: str | None = None, fonts_dir: str | None = None,
                  normalize: bool = True, lufs: float = -14.0, tp: float = -1.0, lra: float = 11.0,
                  crf: int = 18, preset: str = "medium", on_progress: ProgressCb | None = None,
-                 graphics_frames: Iterable[bytes] | None = None, effects: Sequence[dict] = ()) -> None:
+                 graphics_frames: Iterable[bytes] | None = None, effects: Sequence[dict] = (),
+                 warn: Callable[[str], None] | None = None) -> None:
     inputs = ["-i", str(master)]
     input_index: dict[int, int] = {}
     for s in plan.slots:
@@ -304,8 +319,13 @@ def render_final(master: Path, master_info: MediaInfo, master_size: tuple[int, i
     has_audio = master_info.has_audio
     args = [*inputs, *media.filter_script_args(graph, workdir, "graph_final"), "-map", "[vout]"]
     if has_audio:
-        af = audio_filter(master, lufs, tp, lra) if normalize else "aresample=48000"
-        args += ["-map", "0:a:0", "-af", af, "-c:a", "aac", "-b:a", "192k", "-ar", "48000"]
+        af = audio_filter(master, lufs, tp, lra) if normalize else AUDIO_TAIL
+        if af != AUDIO_TAIL and not check_audio_chain(master, af):
+            af = AUDIO_TAIL  # lepszy film z głośnością z nagrania niż błąd na końcu długiego składania
+            if warn:
+                warn("Wyrównanie głośności nie działa w Twojej wersji ffmpeg, więc zostawiam głośność z nagrania. "
+                     "Zaktualizuj ffmpeg: Mac `brew upgrade ffmpeg`, Windows `winget upgrade Gyan.FFmpeg`.")
+        args += ["-map", "0:a:0", "-af", af, "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-ac", "2"]
     else:
         args += ["-an"]
     if look_chain or graphics_input is not None:  # po obróbce w RGB kodujemy w BT.709 i tak oznaczamy plik, żeby odtwarzacze pokazały dokładnie te kolory

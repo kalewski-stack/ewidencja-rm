@@ -45,12 +45,24 @@ class GuideTests(unittest.TestCase):
         self.assertIn("dużego żółtego przycisku", GUIDE)
 
     def test_the_guide_covers_every_part_the_user_needs(self):
-        for part in ("Część 1. Instalacja", "Część 2. Test", "Część 3. Pierwszy prawdziwy film", "Część 4. Kolejne filmy", "Część 5. Podcast", "Gdy coś nie działa", "Słowniczek"):
+        for part in ("Część 1. Instalacja", "Część 2. Test", "Część 3. Pierwszy prawdziwy film", "Część 4. Kolejne filmy", "Część 5. Podcast", "Gdy coś nie działa",
+                     "Aktualizacja programu", "Słowniczek"):
             self.assertIn(part, GUIDE, part)
         for system in ("**Windows:**", "**Mac:**"):
             self.assertIn(system, GUIDE, system)
         for step in range(1, 9):
             self.assertIn(f"### Krok {step}.", GUIDE, f"brak kroku {step}")
+
+    def test_the_guide_explains_the_update_and_the_old_ffmpeg_error(self):
+        self.assertIn("rolka-aktualizacja.zip", GUIDE)
+        self.assertIn("Cannot select channel layout", GUIDE)
+        update = GUIDE.split("## Aktualizacja programu", 1)[1].split("## Słowniczek", 1)[0]
+        for system in ("**Mac:**", "**Windows:**"):
+            self.assertIn(system, update, system)
+        self.assertIn("src", update)
+        self.assertIn("Wersje: Rolka", update)  # tak samo nazywa się wiersz w stopce strony (ui.html)
+        ui = (ROOT / "src" / "reelcut" / "data" / "ui.html").read_text(encoding="utf-8")
+        self.assertIn("Wersje: Rolka", ui)
 
     def test_the_guide_stays_free_of_reference_material_and_long_dashes(self):
         self.assertNotIn("—", GUIDE)

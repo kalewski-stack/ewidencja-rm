@@ -82,6 +82,14 @@ i myślniki bez znaczenia).
   albo ffmpeg zgłaszają po polsku. Zalecany Python 3.12.10 (najnowsza wersja z python.org bywa niezgodna z `faster-whisper` i `onnxruntime`). Paczka dla użytkownika to `git archive` folderu
   `reelcut` bez `tests/` plus `Instrukcja_START.pdf` i `Benchmark_podcastu.pdf` (PDF-y powstają z START.md i PODCAST.md jednorazowym skryptem roboczym); po zmianie plików startowych
   sprawdź paczkę na czystej kopii (rozpakuj do pustego katalogu, uruchom `start.command`, zapytaj `/api/info`). Test: `tests/test_start.py`.
+  Poprawki kodu wysyłaj użytkownikowi jako małe `rolka-aktualizacja.zip` (sam folder `src`, bez `__pycache__`): przeciąga go na folder `reelcut`, a dodatki w `.venv` zostają
+  (opis w START.md, sekcja „Aktualizacja programu”). Pełną paczkę buduj obok, na nowe instalacje.
+- Dźwięk w końcowym montażu: za `loudnorm` nigdy goły `aresample`. Przy nagraniu z wyraźnymi szczytami głośności `loudnorm` nie może pracować liniowo, przechodzi w tryb dynamiczny
+  (192 kHz) i ffmpeg 4.4 do 6.0 kończy się błędem „Cannot select channel layout…” (koder AAC nie podaje układów kanałów). Łańcuch kończy więc `render.AUDIO_TAIL`
+  (`aformat` z 48 kHz i stereo), a koder dostaje `-ac 2 -ar 48000`. Test: `tests/test_audio_chain.py`; starsze wersje ffmpeg sprawdzisz zmienną `REELCUT_TEST_FFMPEGS`
+  (ścieżki rozdzielone dwukropkiem, w Windows średnikiem). Próbki do testów montażu rób ze szczytami głośności (równy głos syntezatora nigdy nie wywoła tego błędu).
+- Błędy ffmpeg u użytkownika: komunikat kończy się wierszem „(ffmpeg wersja: ścieżka)”, a stopka strony pokazuje „Wersje: Rolka …, ffmpeg …”. Na jego komputerze może pracować
+  starszy ffmpeg niż w piaskownicy, więc zielone testy lokalne niczego nie dowodzą, dopóki nie sprawdzisz tej wersji.
 - Motion: liczby ruchu w `graphics/motion.py` (`measured()`) muszą zgadzać się z `dynamics.motion` w `data/motion.json` (pilnuje test).
   Głos lektora to plik audio (`AUDIO_EXT` w `pipeline.py`); serwer i interfejs przyjmują go jako główny plik, nie jako B-roll.
 - Odpowiedzi dla użytkownika po polsku, zwięźle, rzeczowo.

@@ -156,7 +156,28 @@ To jest dokument, nie program. Nic nie instalujesz i niczego nie uruchamiasz.
 | Skóra na filmie jest za ciemna | W „Ustawienia” przesuń suwak „Kolory jak we wzorcu” na 60% i kliknij „Potnij” jeszcze raz. |
 | Napisy mają literówki | Napisz w rozmowie z Claude, co poprawić. |
 | Mac: błąd „CERTIFICATE_VERIFY_FAILED” | W Finderze otwórz Programy, folder „Python 3.12” i kliknij dwa razy „Install Certificates.command”. |
+| Czerwony komunikat „ffmpeg zakończył się błędem” z napisem „Cannot select channel layout” | To znany błąd starszych wersji ffmpeg (do 6.0), wychodzi przy nagraniach z wyraźnymi szczytami głośności. Zainstaluj aktualizację programu (sekcja niżej). Wersja ffmpeg jest w nawiasie na końcu komunikatu. |
 | Cokolwiek innego | Zrób zdjęcie ekranu (albo skopiuj komunikat z czarnego okna) i wyślij w rozmowie z Claude, razem z informacją: Windows czy Mac. |
+
+## Aktualizacja programu
+
+Czasem dostaniesz ode mnie plik `rolka-aktualizacja.zip` z poprawkami programu. Instalujesz go w kilka minut, bez ponownego ściągania dodatków.
+
+**Mac:**
+
+1. Zamknij czarne okno z napisami (Terminal): kliknij czerwoną kropkę w lewym górnym rogu okna. Jeśli zapyta, czy zakończyć proces, kliknij „Zakończ”.
+2. Kliknij dwa razy `rolka-aktualizacja.zip` w folderze „Pobrane”. Obok pojawi się folder `src`.
+3. Przeciągnij folder `src` na folder `reelcut` na Pulpicie. Mac zapyta, czy zastąpić istniejący element: kliknij „Zastąp”.
+4. Kliknij dwa razy `start.command`, jak zawsze. Tym razem nic się nie doinstaluje, a strona Rolki otworzy się po kilku sekundach.
+
+**Windows:**
+
+1. Zamknij czarne okno z napisami (kliknij X w rogu).
+2. Kliknij `rolka-aktualizacja.zip` prawym przyciskiem, wybierz „Wyodrębnij wszystko”, potem „Wyodrębnij”. Obok pojawi się folder `src`.
+3. Przeciągnij folder `src` na folder `reelcut` na Pulpicie. Windows zapyta, czy scalić foldery albo zastąpić pliki: potwierdź („Tak” albo „Zamień pliki w miejscu docelowym”).
+4. Kliknij dwa razy `start.bat`, jak zawsze.
+
+**Jak sprawdzić, że aktualizacja weszła:** na samym dole strony Rolki jest wiersz „Wersje: Rolka …, ffmpeg …”. Poprzednia wersja programu nie miała tam informacji o ffmpeg, więc jeśli ją widzisz, aktualizacja weszła.
 
 ## Słowniczek
 

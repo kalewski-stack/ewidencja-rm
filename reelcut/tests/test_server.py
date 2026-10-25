@@ -60,10 +60,12 @@ class ServerTests(unittest.TestCase):
         self.assertEqual(status, 200)
         info = json.loads(body)
         self.assertIn("rolka_DeuOaXKtPBb", [t["id"] for t in info["templates"]])
+        self.assertTrue(info["ffmpeg"].startswith("ffmpeg"), info["ffmpeg"])  # wersja ffmpeg w stopce: przy błędach widać, jaki program pracuje
         status, hdr, body = self.req("GET", "/")
         self.assertEqual(status, 200)
         self.assertIn("text/html", hdr["Content-Type"])
         self.assertIn(b"Potnij", body)
+        self.assertIn(b'id="ver-ff"', body)
 
     def test_foreign_host_header_is_rejected(self):
         self.assertEqual(self.req("GET", "/api/info", host="evil.example.com")[0], 403)

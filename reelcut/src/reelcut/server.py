@@ -222,7 +222,7 @@ class Handler(BaseHTTPRequestHandler):
                 has_whisper = True
             except ImportError:
                 has_whisper = False
-            return self._json({"version": __version__, "whisper": has_whisper,
+            return self._json({"version": __version__, "whisper": has_whisper, "ffmpeg": media.ffmpeg_summary(),
                                "templates": [{"id": i, "name": n} for i, n in list_templates()],
                                "output_dir": str(self.state.out_dir)})
         m = re.fullmatch(rf"/api/job/({JOB_ID})", path)
@@ -387,6 +387,7 @@ def serve(port: int = 8765, open_browser: bool = True, workdir: Path | None = No
     url = f"http://127.0.0.1:{httpd.server_address[1]}/"
     print(f"reelcut {__version__}: interfejs działa pod adresem {url}")
     print(f"Wyniki zapisują się w: {state.out_dir}")
+    print(media.ffmpeg_summary())
     print("Zatrzymanie: Ctrl+C")
     if open_browser:
         threading.Timer(0.6, lambda: webbrowser.open(url)).start()

@@ -137,6 +137,7 @@ def run(a_roll: str | Path, out: str | Path | None, opts: Options, log: LogFn = 
     log(f"{'Nagranie' if tpl.motion else 'Wideo'}: {a_roll.name}, "
         f"{f'{info.width}x{info.height}, ' if info.has_video else ''}{info.duration:.1f} s, "
         f"{'z dźwiękiem' if info.has_audio else 'BEZ dźwięku'}")
+    log(media.ffmpeg_summary())
     if tpl.motion:
         geom = render.Geometry((canvas[0], canvas[1], 0, 0), (canvas[0], canvas[1]))
     else:
@@ -360,7 +361,7 @@ def run(a_roll: str | Path, out: str | Path | None, opts: Options, log: LogFn = 
                                 look_chain=look_chain, ass_file=ass_name, fonts_dir=fonts_dir, normalize=opts.normalize,
                                 lufs=tpl.lufs, tp=tpl.true_peak, lra=tpl.lra, crf=opts.crf, preset=opts.preset,
                                 on_progress=prog(0.57 if job else (0.55 if want_caps else 0.4), 1.0, "Montaż"),
-                                graphics_frames=job.frames() if job else None, effects=job.effects if job else ())
+                                graphics_frames=job.frames() if job else None, effects=job.effects if job else (), warn=warnings.append)
         except Exception:
             out_path.unlink(missing_ok=True)
             raise
