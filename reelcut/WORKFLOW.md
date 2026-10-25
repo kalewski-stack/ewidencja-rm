@@ -5,6 +5,8 @@ kolory, napisy, głośność) dzieje się sama. Szczegóły stylu: [STYL.md](STY
 
 ## Jednorazowo (ok. 10 minut)
 
+Nie jesteś informatykiem? [START.md](START.md) robi to samo bez żargonu, osobno dla Windows i Maca.
+
 1. Zainstaluj ffmpeg i Python 3.9+ (macOS: `brew install ffmpeg`, Windows: `winget install Gyan.FFmpeg`).
 2. `pip install faster-whisper numpy onnxruntime` (napisy, kadrowanie po twarzy, kolory; bez tych pakietów dostaniesz
    sam montaż, a narzędzie zgłosi, czego brakuje).

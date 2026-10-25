@@ -1,5 +1,7 @@
 # Rolka: tnie Twoje wideo jak rolka wzorcowa
 
+**Pierwszy raz i nie jesteś informatykiem? Zacznij od [START.md](START.md)**: instalacja i pierwszy film krok po kroku, osobno dla Windows i Maca.
+
 **Format 1** (domyślny, ten opis): wrzucasz swoje nagranie, dostajesz pionowy film (1080×1920) zmontowany według schematu rolki
 <https://www.instagram.com/reel/DeuOaXKtPBb/>: ten sam rytm cięć, ten sam układ „mówiąca głowa + wstawki",
 te same proporcje kadrów (rozmiar i miejsce twarzy), te same kolory (ciemny, stonowany look z winietą),
@@ -70,7 +72,7 @@ z szablonu, a kolory bez zmian. Narzędzie samo to zgłosi w ostrzeżeniach.
 python rolka.py serve
 ```
 
-(Windows: dwuklik `start.bat`, macOS: dwuklik `start.command`; jeśli macOS go nie odpali, raz wpisz `chmod +x start.command`.) Otworzy się strona: przeciągasz nagranie,
+(Windows: dwuklik `start.bat`, macOS: dwuklik `start.command`; jeśli macOS go nie odpali, raz wpisz `chmod +x start.command`.) Pierwsze uruchomienie samo instaluje dodatki do folderu `.venv` obok programu (potrzebny internet, 5–15 minut); brakujący ffmpeg próbuje doinstalować przez `winget` (Windows) albo `brew` (macOS). Otworzy się strona: przeciągasz nagranie,
 opcjonalnie B-roll, klikasz **Potnij**. Gotowe filmy lądują w `~/ReelCut/wyniki`.
 
 **Terminal:**
@@ -199,7 +201,9 @@ src/reelcut/data/             szablon rolki (JSON), czcionka Anton (SIL OFL, OFL
                               (MIT, YuNet-LICENSE.txt), interfejs
 tests/                        testy (tests/assets: zdjęcie NASA z domeny publicznej do testu twarzy)
 ANALIZA.md                    wyniki analizy rolki wzorcowej (rytm, napisy)
+START.md                      instrukcja od zera dla laika: instalacja, pierwszy film (intro „o mnie”), kolejne formaty, podcast, gdy coś nie działa
 WORKFLOW.md                   ściąga: nowy film krok po kroku (Formaty 1, 2, 3, 4 i motion)
+gotowe_teksty/                gotowy do wgrania tekst intro „o mnie” (z INTRO.md)
 STYL.md                       styl do przeniesienia: kolory, kadry, dynamika, lista ujęć, format scenariusza
 FORMAT2.md                    Format 2: gadająca głowa (zasady, słownik elementów, szkielet scenariusza)
 FORMAT3.md                    Format 3: gadająca głowa v3 (cięcia, hasła, błysk: zasady, liczby ze wzorca, scenariusz, granice)

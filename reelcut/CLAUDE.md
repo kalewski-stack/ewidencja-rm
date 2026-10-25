@@ -77,6 +77,11 @@ i myślniki bez znaczenia).
 - Benchmark podcastu: liczby w `data/podcast_benchmark.json` pochodzą z pomiaru jednej rolki pionowej (DezP_8mNORW); PODCAST.md i `docs/podcast_rama.png` muszą się z nimi
   zgadzać (pilnuje `tests/test_podcast.py`: spójność ujęć, pasma, liczby w dokumencie, porównanie z szablonami Formatów 1, 3 i 4). Pasma to wzorzec ±15 do 25%, nie rozrzut
   z wielu odcinków. Rysunek powstaje z liczb jednorazowym skryptem roboczym (nie ma go w repozytorium); zmieniając JSON, zmień dokument i narysuj arkusz od nowa.
+- Instrukcja dla laika: użytkownik jest laikiem technicznym („totalny laik”), więc START.md pisz bez żargonu, kliknięcie po kliknięciu, osobno dla Windows i Maca, i odsyłaj do niej zamiast do README.
+  `start.bat` (CRLF, tylko ASCII, bez nawiasów w blokach, które rozwijają `%PATH%`) i `start.command` same tworzą `.venv`, instalują `requirements.txt` i uruchamiają `serve`; brak Pythona
+  albo ffmpeg zgłaszają po polsku. Zalecany Python 3.12.10 (najnowsza wersja z python.org bywa niezgodna z `faster-whisper` i `onnxruntime`). Paczka dla użytkownika to `git archive` folderu
+  `reelcut` bez `tests/` plus `Instrukcja_START.pdf` i `Benchmark_podcastu.pdf` (PDF-y powstają z START.md i PODCAST.md jednorazowym skryptem roboczym); po zmianie plików startowych
+  sprawdź paczkę na czystej kopii (rozpakuj do pustego katalogu, uruchom `start.command`, zapytaj `/api/info`). Test: `tests/test_start.py`.
 - Motion: liczby ruchu w `graphics/motion.py` (`measured()`) muszą zgadzać się z `dynamics.motion` w `data/motion.json` (pilnuje test).
   Głos lektora to plik audio (`AUDIO_EXT` w `pipeline.py`); serwer i interfejs przyjmują go jako główny plik, nie jako B-roll.
 - Odpowiedzi dla użytkownika po polsku, zwięźle, rzeczowo.
