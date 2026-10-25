@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pojazdy RM</title>
+<meta name="description" content="Ewidencja pojazdów służbowych — Fundacja Pomocy Humanitarnej Redemptoris Missio">
+<meta name="theme-color" content="#383838">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Pojazdy RM">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="ikony/favicon-64.png">
+<link rel="apple-touch-icon" href="ikony/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600&display=swap">
+<style>
+  /* Paleta i typografia: Klucz komunikacji Fundacji Redemptoris Missio, wersja 1.0 (09.2026) */
+  :root{
+    --grafit:#383838; --szary:#6A6A6A; --piasek:#E3DDD1; --bez:#F3F1EA; --jasna:#F8F8F8; --biel:#FFFFFF;
+    --pom:#FFA142; --pom2:#E87229; --pom-grad:linear-gradient(180deg,#FFA545 0%,#F38D36 100%);
+    --r-duze:40px; --r-karta:20px; --r-pole:12px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--bez);color:var(--grafit);font:16px/1.5 Roboto,-apple-system,"Segoe UI",Arial,sans-serif;-webkit-font-smoothing:antialiased;padding-bottom:48px;font-variant-numeric:tabular-nums}
+  header{background:var(--grafit);color:var(--biel);padding:12px 18px calc(12px + env(safe-area-inset-top))}
+  header .top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  header img{height:34px;width:auto;display:block}
+  header .kto{font-size:15px;font-weight:600;text-align:right;line-height:1.25}
+  header .kto small{display:block;font-weight:300;font-size:12px;color:#C9C9C9}
+  nav{display:flex;gap:8px;margin-top:12px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  nav::-webkit-scrollbar{display:none}
+  nav button{flex:1 0 auto;padding:10px 14px;border:1px solid #6A6A6A;background:transparent;color:#E6E6E6;border-radius:999px;font:inherit;font-size:13px;font-weight:600;cursor:pointer;letter-spacing:.02em;white-space:nowrap}
+  nav button[aria-selected=true]{background:var(--pom);color:var(--grafit);border-color:var(--pom)}
+  main{max-width:520px;margin:0 auto;padding:16px}
+  .ekran{display:none}
+  .ekran.on{display:block}
+  .card{background:var(--biel);border-radius:var(--r-karta);padding:16px;margin-bottom:14px}
+  .card.piasek{background:var(--piasek)}
+  .card h3{margin:0 0 10px;font-size:15px;font-weight:600}
+  label{display:block;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--szary);margin:0 0 6px}
+  .field{margin-bottom:14px}
+  .field:last-child{margin-bottom:0}
+  select,input[type=text],input[type=date],input[type=time],input[type=number]{width:100%;padding:12px;border:1px solid var(--piasek);border-radius:var(--r-pole);background:var(--biel);color:var(--grafit);font:inherit;font-size:17px}
+  select:focus,input:focus,button:focus-visible{outline:2px solid var(--pom2);outline-offset:1px}
+  .chips{display:flex;gap:8px;flex-wrap:wrap}
+  .chip{flex:1 1 auto;min-width:64px;padding:10px 14px;border:1px solid var(--piasek);background:var(--biel);border-radius:999px;font:inherit;font-size:15px;color:var(--grafit);cursor:pointer}
+  .chip[aria-pressed=true]{background:var(--grafit);color:var(--biel);border-color:var(--grafit)}
+  .chip.zajety{opacity:.5;border-style:dashed}
+  .chips.miejsca{display:grid;grid-template-columns:repeat(6,1fr)}
+  .chips.miejsca .chip{grid-column:span 2;min-width:0;padding-left:6px;padding-right:6px}
+  .chips.miejsca .chip:nth-child(n+4){grid-column:span 3}
+  .chips.trzy{display:grid;grid-template-columns:repeat(3,1fr)}
+  .chips.trzy .chip{min-width:0;padding-left:6px;padding-right:6px}
+  .chip small{display:block;font-size:11px;font-weight:300;opacity:.8;line-height:1.2}
+  .row{display:flex;gap:10px}
+  .row>div{flex:1}
+  .big{width:100%;padding:18px;border:0;border-radius:999px;font:inherit;font-size:18px;font-weight:600;cursor:pointer;letter-spacing:.04em;text-transform:uppercase}
+  .big.start{background:var(--pom);color:var(--grafit)}
+  .big.stop{background:var(--grafit);color:var(--biel)}
+  .big:disabled{opacity:.35;cursor:default}
+  .btn:disabled{opacity:.5}
+  .powitanie{background:var(--biel);border-radius:var(--r-karta);padding:20px 18px;margin-bottom:14px;font-size:18px;line-height:1.45}
+  .powitanie b{display:block;font-size:22px;font-weight:600;margin-bottom:6px}
+  .powitanie.koniec{background:var(--pom-grad);color:var(--grafit)}
+  .powitanie .mini{display:block;margin-top:8px}
+  .btn{width:100%;padding:13px 18px;border:1px solid var(--piasek);border-radius:999px;background:var(--biel);color:var(--grafit);font:inherit;font-size:15px;font-weight:600;cursor:pointer}
+  .btn.primary{background:var(--pom);border-color:var(--pom);color:var(--grafit);text-transform:uppercase;letter-spacing:.04em}
+  .btn.dark{background:var(--grafit);border-color:var(--grafit);color:var(--biel)}
+  .btn.danger{color:var(--pom2);border-color:var(--piasek)}
+  .btn.mala{width:auto;padding:8px 14px;font-size:13px}
+  .btn.ghost{border:0;background:transparent;color:var(--pom2);text-align:left;padding:8px 0;width:auto;font-size:14px}
+  .stack>*{margin-bottom:10px}
+  .stack>*:last-child{margin-bottom:0}
+  .status{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;background:var(--grafit);color:var(--biel);border-radius:var(--r-karta);padding:16px 18px;margin-bottom:14px}
+  .status span{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#C9C9C9;display:block}
+  .status strong{font-size:40px;font-weight:600;letter-spacing:-.02em;line-height:1.1}
+  .status .sub{font-size:14px;font-weight:300;color:#E6E6E6;margin-top:4px}
+  .status.go{background:var(--pom-grad);color:var(--grafit)} .status.go span{color:#5a3a1a} .status.go .sub{color:var(--grafit);font-weight:400}
+  .msg{margin-top:12px;padding:12px 16px;border-radius:var(--r-pole);font-size:15px;display:none}
+  .msg.ok{display:block;background:var(--piasek);color:var(--grafit)}
+  .msg.err{display:block;background:var(--biel);border-left:4px solid var(--pom2);color:var(--grafit)}
+  .msg.info{display:block;background:var(--biel);border-left:4px solid var(--pom);color:var(--grafit)}
+  details{margin-top:4px}
+  summary{font-size:15px;color:var(--grafit);cursor:pointer;padding:8px 0;font-weight:600;list-style:none;display:flex;align-items:center;gap:8px}
+  summary::before{content:"";width:8px;height:8px;border-right:2px solid var(--pom2);border-bottom:2px solid var(--pom2);transform:rotate(-45deg);transition:transform .15s;margin-left:2px}
+  details[open] summary::before{transform:rotate(45deg)}
+  .hint{font-size:14px;color:var(--szary);margin:8px 0 0;font-weight:300}
+  .hint b{font-weight:600;color:var(--grafit)}
+  .hidden{display:none !important}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  td,th{padding:9px 6px;border-bottom:1px solid var(--piasek);text-align:left;vertical-align:top}
+  th{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--szary);font-weight:600}
+  td.n,th.n{text-align:right;white-space:nowrap}
+  td small{display:block;color:var(--szary);font-weight:300;font-size:12px}
+  tr.klik{cursor:pointer}
+  tr.klik:active{background:var(--jasna)}
+  tr.wybrany td{background:var(--bez)}
+  .pill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap;border:1px solid transparent}
+  .pill.ok{background:var(--piasek);color:var(--grafit)}
+  .pill.toku{background:var(--pom);color:var(--grafit)}
+  .pill.uwaga{background:var(--biel);color:var(--pom2);border-color:var(--pom2)}
+  .pill.ciemny{background:var(--grafit);color:var(--biel)}
+  .pill.cichy{background:var(--jasna);color:var(--szary)}
+  .pods{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  @media(min-width:640px){.pods{grid-template-columns:1.25fr 1fr 1fr}.pod.glowny{grid-column:1;grid-row:1 / span 2;display:flex;flex-direction:column;justify-content:center}}
+  .pod{background:var(--piasek);border-radius:14px;padding:12px 14px 10px}
+  .pod.glowny{grid-column:1 / -1;background:var(--grafit);color:var(--biel)}
+  .pod span{display:block;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--szary);font-weight:600}
+  .pod.glowny span{color:#C9C9C9}
+  .pod b{display:block;font-size:20px;font-weight:600;margin-top:2px;line-height:1.2}
+  .pod.glowny b{font-size:30px}
+  .pod small{display:block;font-size:12px;color:var(--szary);font-weight:300;margin-top:2px}
+  .pod.glowny small{color:#E6E6E6}
+  .dzien{border-left:4px solid var(--piasek);padding-left:8px}
+  .dzien.toku{border-left-color:var(--pom)}
+  .dzien.uwaga{border-left-color:var(--pom2);background:#FFF8F2}
+  .mnav{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .mnav button{border:1px solid var(--piasek);background:var(--biel);border-radius:999px;width:44px;height:44px;font:inherit;font-size:20px;cursor:pointer;color:var(--grafit)}
+  .mnav strong{font-size:18px;font-weight:600}
+  .modal-bg{position:fixed;inset:0;background:rgba(56,56,56,.6);display:none;align-items:flex-end;justify-content:center;z-index:9}
+  .modal-bg.on{display:flex}
+  .modal{background:var(--biel);border-radius:var(--r-duze) var(--r-duze) 0 0;padding:24px 20px calc(24px + env(safe-area-inset-bottom));width:100%;max-width:520px}
+  .modal p{margin:0 0 18px;font-size:17px}
+  .modal .row button{flex:1}
+  .mini{font-size:13px;color:var(--szary);font-weight:300}
+  .ladowanie{opacity:.55;pointer-events:none}
+  .kontrola{text-transform:none;letter-spacing:0;font-weight:400;color:var(--grafit);font-size:15px;margin:0;display:flex;gap:12px;align-items:flex-start;background:var(--bez);border-radius:var(--r-pole);padding:12px 14px;cursor:pointer}
+  .kontrola input{width:24px;height:24px;margin:2px 0 0;accent-color:var(--pom2);flex:none}
+  .kontrola span{font-size:15px;line-height:1.4}
+  .kontrola small{display:block;color:var(--szary);font-weight:300;font-size:13px;margin-top:2px}
+  .alert{font-size:14px;padding:8px 12px;border-radius:var(--r-pole);margin-top:8px;background:var(--bez)}
+  .alert.blad{background:#FFF1E6;border-left:4px solid var(--pom2)}
+  .wynik{background:var(--piasek);border-radius:var(--r-pole);padding:12px 14px;font-size:15px}
+  .wynik b{font-size:20px;font-weight:600}
+  .lista>div{padding:10px 0;border-bottom:1px solid var(--piasek);display:flex;gap:10px;align-items:flex-start;justify-content:space-between}
+  .lista>div:last-child{border-bottom:0}
+  .lista .tresc{flex:1;font-size:14px}
+  .lista .tresc small{display:block;color:var(--szary);font-weight:300;font-size:12px}
+  .lista .kw{font-weight:600;white-space:nowrap}
+  .x{border:1px solid var(--piasek);background:var(--biel);border-radius:999px;width:32px;height:32px;font:inherit;cursor:pointer;color:var(--pom2);flex:none}
+  .kroki{margin:8px 0 0;padding-left:20px;font-size:14px}
+  .kroki li{margin-bottom:4px}
+  /* ekran klucza */
+  #ekran-klucz{display:none;min-height:100vh;padding:32px 20px}
+  #ekran-klucz.on{display:block}
+  #ekran-klucz .logo{width:min(320px,80%);margin:8px auto 28px;display:block}
+  #ekran-klucz h1{font-size:28px;font-weight:600;line-height:1.3;margin:0 0 6px;letter-spacing:-.01em}
+  #ekran-klucz h1 em{font-style:normal;color:var(--pom2)}
+  #ekran-klucz p{margin:0 0 18px;color:var(--szary);font-weight:300}
+  .instal{background:var(--biel);border-radius:var(--r-karta);padding:14px 16px;margin-bottom:14px;font-size:14px;display:none}
+  .instal.on{display:block}
+  .instal b{font-weight:600}
+  .instal button{float:right;border:0;background:transparent;color:var(--pom2);font:inherit;font-weight:600;cursor:pointer;padding:0 0 0 12px}
+  .offline{background:var(--grafit);color:var(--biel);text-align:center;font-size:13px;padding:6px;display:none}
+  .offline.on{display:block}
+</style>
+</head>
+<body>
+
+<div class="offline" id="offline">Brak sieci. Zapis zadziała, gdy telefon wróci do zasięgu.</div>
+
+<!-- ===================== EKRAN KLUCZA ===================== -->
+<section id="ekran-klucz">
+  <img class="logo" src="../logo-jasne-tlo.png" alt="Redemptoris Missio — Fundacja Pomocy Humanitarnej">
+  <h1>Ewidencja <em>pojazdów</em></h1>
+  <p>Otwórz link, który dostałeś od administratora, albo wklej poniżej swój klucz. Aplikacja zapamięta go na tym telefonie.</p>
+  <div class="card">
+    <div class="field"><label for="kluczPole">Klucz</label><input type="text" id="kluczPole" placeholder="64 znaki z zakładki Linki" autocomplete="off" autocapitalize="off" spellcheck="false"></div>
+    <button class="btn primary" id="btnKlucz" style="padding:16px">Wejdź</button>
+    <div class="msg" id="msgKlucz"></div>
+  </div>
+  <p class="hint">Masz kod QR? Zeskanuj go aparatem telefonu, otworzy się właściwy link.</p>
+</section>
+
+<div id="app" class="hidden">
+<header>
+  <div class="top">
+    <img src="../logo-ciemne-tlo.png" alt="Redemptoris Missio">
+    <div class="kto" id="kto"></div>
+  </div>
+  <nav id="nav"></nav>
+</header>
+
+<main>
+
+  <!-- ===================== JAZDA ===================== -->
+  <section class="ekran" id="ekran-jazda">
+    <div class="status" id="status">
+      <div><span id="statusEtykieta">Dziś</span><strong id="statusCzas">—</strong><div class="sub" id="statusSub"></div></div>
+      <div style="text-align:right"><span>Data</span><div id="statusData" style="font-weight:600"></div></div>
+    </div>
+
+    <div class="powitanie hidden" id="powitanie"></div>
+
+    <!-- start -->
+    <div id="blokStart">
+      <div class="card">
+        <div class="field">
+          <label>Pojazd</label>
+          <div class="chips miejsca" id="jPojazdy"></div>
+          <div id="jPojazdInfo" class="hint"></div>
+        </div>
+        <div class="field"><label for="jLicznik">Licznik przed jazdą (km)</label><input type="number" id="jLicznik" inputmode="numeric" min="0" step="1" placeholder="odczyt z licznika"></div>
+        <div class="field">
+          <label>Skąd wyruszasz</label>
+          <div class="chips miejsca" id="jMiejsca"></div>
+          <input type="text" id="jSkad" placeholder="lub wpisz miejscowość i adres" style="margin-top:8px">
+        </div>
+        <div class="field"><label for="jCel">Cel przejazdu</label><input type="text" id="jCel" placeholder="np. odbiór darów od firmy Kowalski" autocomplete="off"><p class="hint">Napisz konkretnie, po co jedziesz. Nie wystarczy „spotkanie” ani „sprawy Fundacji”.</p></div>
+        <details>
+          <summary>Trasa i uwagi (opcjonalnie)</summary>
+          <div class="field" style="margin-top:8px"><label for="jTrasa">Ważniejsze punkty trasy</label><input type="text" id="jTrasa" placeholder="np. Poznań – Kalisz – Ostrów"></div>
+          <div class="field"><label for="jUwagi">Uwagi</label><input type="text" id="jUwagi" placeholder="np. przewóz palet z darami"></div>
+        </details>
+      </div>
+      <label class="kontrola" for="jKontrola">
+        <input type="checkbox" id="jKontrola">
+        <span>Sprawdziłem/am pojazd przed jazdą<small>Licznik i paliwo, widoczne uszkodzenia, opony i światła, dokumenty i wyposażenie. Usterki zgłoś przed wyjazdem.</small></span>
+      </label>
+      <div style="margin-top:14px"><button class="big start" id="btnStart">▶ Start jazdy</button></div>
+    </div>
+
+    <!-- koniec -->
+    <div id="blokKoniec" class="hidden">
+      <div class="card">
+        <div class="field"><label for="kLicznik">Licznik po jeździe (km)</label><input type="number" id="kLicznik" inputmode="numeric" min="0" step="1" placeholder="odczyt z licznika"></div>
+        <div class="wynik" id="kWynik">Wpisz stan licznika, a policzę kilometry.</div>
+        <div class="field" style="margin-top:14px">
+          <label>Gdzie skończyłeś/aś</label>
+          <div class="chips miejsca" id="kMiejsca"></div>
+          <input type="text" id="kDokad" placeholder="lub wpisz miejscowość i adres" style="margin-top:8px">
+        </div>
+        <details>
+          <summary>Trasa i uwagi (opcjonalnie)</summary>
+          <div class="field" style="margin-top:8px"><label for="kTrasa">Ważniejsze punkty trasy</label><input type="text" id="kTrasa"></div>
+          <div class="field"><label for="kUwagi">Uwagi</label><input type="text" id="kUwagi" placeholder="np. zatankowano, zgłoszono usterkę"></div>
+        </details>
+      </div>
+      <button class="big stop" id="btnKoniec">■ Koniec jazdy</button>
+    </div>
+
+    <div class="msg" id="msgJazda"></div>
+
+    <div class="card hidden" id="kartaDzis" style="margin-top:14px">
+      <h3>Dzisiejsze przejazdy</h3>
+      <div class="lista" id="listaDzis"></div>
+    </div>
+
+    <details class="card" id="reczny" style="padding:12px 16px;margin-top:14px">
+      <summary>Dopisz zapomniany przejazd</summary>
+      <p class="hint" style="margin-top:6px">Przejazd dopisujesz najpóźniej następnego dnia roboczego. Starsze wpisy dodaje administrator.</p>
+      <div class="field" style="margin-top:12px"><label for="rData">Dzień</label><input type="date" id="rData"></div>
+      <div class="field"><label for="rPojazd">Pojazd</label><select id="rPojazd"></select></div>
+      <div class="row field">
+        <div><label for="rPrzed">Licznik przed</label><input type="number" id="rPrzed" inputmode="numeric"></div>
+        <div><label for="rPo">Licznik po</label><input type="number" id="rPo" inputmode="numeric"></div>
+      </div>
+      <div class="row field">
+        <div><label for="rSkad">Skąd</label><input type="text" id="rSkad"></div>
+        <div><label for="rDokad">Dokąd</label><input type="text" id="rDokad"></div>
+      </div>
+      <div class="field"><label for="rCel">Cel przejazdu</label><input type="text" id="rCel" placeholder="np. transport materiałów do magazynu"></div>
+      <div class="field"><label for="rTrasa">Trasa (opcjonalnie)</label><input type="text" id="rTrasa"></div>
+      <button class="btn dark" id="btnReczny">Zapisz przejazd</button>
+      <div class="msg" id="msgReczny"></div>
+    </details>
+  </section>
+
+  <!-- ===================== MIESIĄC ===================== -->
+  <section class="ekran" id="ekran-miesiac">
+    <div class="card hidden" id="mOsobaBox"><label for="mOsoba">Kierowca</label><select id="mOsoba"></select></div>
+    <div class="mnav">
+      <button id="mPrev" aria-label="Poprzedni miesiąc">‹</button>
+      <strong id="mNazwa">—</strong>
+      <button id="mNext" aria-label="Następny miesiąc">›</button>
+    </div>
+    <div class="card" id="mPods">
+      <div class="pods">
+        <div class="pod glowny"><span>Przejechałeś/aś w tym miesiącu</span><b id="mKm">—</b><small id="mKmOpis"></small></div>
+        <div class="pod"><span>Przejazdy</span><b id="mPrzejazdy">—</b><small id="mPrzejazdyOpis"></small></div>
+        <div class="pod"><span>Najczęściej</span><b id="mPojazd">—</b><small id="mPojazdOpis"></small></div>
+        <div class="pod"><span>Koszty</span><b id="mKoszty">—</b><small id="mKosztyOpis"></small></div>
+        <div class="pod"><span>Kilometrówka</span><b id="mPryw">—</b><small id="mPrywOpis"></small></div>
+      </div>
+    </div>
+    <div class="card" style="padding:8px 12px">
+      <table><thead><tr><th>Dzień</th><th>Trasa i cel</th><th class="n">Km</th></tr></thead><tbody id="mTabela"></tbody></table>
+    </div>
+    <div class="card hidden" id="mKosztyKarta"><h3>Koszty</h3><div class="lista" id="mKosztyLista"></div></div>
+    <div class="card hidden" id="mPrywKarta"><h3>Przejazdy prywatnym pojazdem</h3><div class="lista" id="mPrywLista"></div></div>
+    <div class="card hidden" id="mZdarzKarta"><h3>Zgłoszenia</h3><div class="lista" id="mZdarzLista"></div></div>
+    <div class="msg" id="msgMiesiac"></div>
+  </section>
+
+  <!-- ===================== PRYWATNY ===================== -->
+  <section class="ekran" id="ekran-prywatny">
+    <p class="hint" style="margin:0 0 12px">Rozliczenie kilometrówki za przejazd własnym pojazdem do celów Fundacji. Zgoda musi być udzielona przed wyjazdem.</p>
+    <div class="card">
+      <div class="field"><label>Rodzaj pojazdu</label><div class="chips miejsca" id="pRodzaje"></div></div>
+      <div class="field" id="pPojemnoscBox"><label for="pPojemnosc">Pojemność silnika (cm³)</label><input type="number" id="pPojemnosc" inputmode="numeric" placeholder="np. 1400"></div>
+      <div class="row field">
+        <div><label for="pMarka">Marka i model</label><input type="text" id="pMarka" placeholder="np. VW Golf"></div>
+        <div><label for="pRej">Nr rejestracyjny</label><input type="text" id="pRej" autocapitalize="characters" placeholder="PO 12345"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="field"><label for="pData">Data przejazdu</label><input type="date" id="pData"></div>
+      <div class="row field">
+        <div><label for="pSkad">Skąd</label><input type="text" id="pSkad"></div>
+        <div><label for="pDokad">Dokąd</label><input type="text" id="pDokad"></div>
+      </div>
+      <div class="field"><label for="pCel">Cel przejazdu</label><input type="text" id="pCel" placeholder="np. spotkanie z partnerem projektu Nadzieja"></div>
+      <div class="field"><label for="pKm">Przejechane kilometry (łącznie tam i z powrotem)</label><input type="number" id="pKm" inputmode="decimal" step="0.1" min="0"></div>
+      <div class="field"><label>Rodzaj rozliczenia</label><div class="chips" id="pTryb"></div></div>
+      <div class="field"><label for="pOplaty">Parking / autostrada (zł, opcjonalnie)</label><input type="number" id="pOplaty" inputmode="decimal" step="0.01" min="0"><p class="hint">Zwrot wymaga zatwierdzenia i dokumentu. Paliwa nie rozliczasz osobno, jest w stawce za kilometr.</p></div>
+      <div class="wynik" id="pWynik">Podaj rodzaj pojazdu i kilometry.</div>
+    </div>
+    <div class="card">
+      <div class="field"><label>Kto wyraził zgodę</label><div class="chips trzy" id="pZgodaKto"></div></div>
+      <div class="field"><label>W jakiej formie</label><div class="chips trzy" id="pZgodaForma"></div></div>
+      <label class="kontrola" for="pOswiadczenie" style="margin-top:6px">
+        <input type="checkbox" id="pOswiadczenie">
+        <span>Oświadczam, że pojazd jest sprawny<small>Mam ważne prawo jazdy, pojazd ma ważne badanie techniczne i OC, a jeśli nie jestem właścicielem, mam jego zgodę.</small></span>
+      </label>
+    </div>
+    <button class="btn primary" id="btnPryw" style="padding:16px;font-size:16px">Złóż rozliczenie</button>
+    <p class="hint">Rozliczenie zatwierdza administrator. Nie możesz zatwierdzić własnego. Termin: pojedyncza podróż do 14 dni od jej zakończenia, regularne przejazdy lokalne do 5. dnia roboczego kolejnego miesiąca.</p>
+    <div class="msg" id="msgPryw"></div>
+  </section>
+
+  <!-- ===================== KOSZTY ===================== -->
+  <section class="ekran" id="ekran-koszty">
+    <div class="card">
+      <div class="field"><label>Rodzaj kosztu</label><div class="chips trzy" id="cTypy"></div></div>
+      <div class="field"><label>Pojazd</label><div class="chips miejsca" id="cPojazdy"></div></div>
+      <div class="row field">
+        <div><label for="cKwota">Kwota brutto (zł)</label><input type="number" id="cKwota" inputmode="decimal" step="0.01" min="0"></div>
+        <div><label for="cData">Data</label><input type="date" id="cData"></div>
+      </div>
+      <div class="row field" id="cPaliwoBox">
+        <div><label for="cIlosc" id="cIloscEt">Litry</label><input type="number" id="cIlosc" inputmode="decimal" step="0.01" min="0"></div>
+        <div><label for="cLicznik">Licznik (km)</label><input type="number" id="cLicznik" inputmode="numeric"></div>
+      </div>
+      <div class="field" id="cZgodaBox"><label>Zgoda Koordynatora Biura</label><div class="chips" id="cZgoda"></div><p class="hint">Mycie, płyny i serwis wymagają zgody, poza sytuacją awaryjną.</p></div>
+      <div class="field"><label>Dokument</label><div class="chips trzy" id="cDokumenty"></div><p class="hint">Faktura ma być wystawiona na Fundację, z numerem rejestracyjnym pojazdu.</p></div>
+      <div class="field"><label for="cUwagi">Uwagi (opcjonalnie)</label><input type="text" id="cUwagi" placeholder="np. stacja Orlen, Kalisz"></div>
+    </div>
+    <button class="btn primary" id="btnKoszt" style="padding:16px;font-size:16px">Zapisz koszt</button>
+    <p class="hint">Karta paliwowa działa tylko w pojeździe, do którego jest przypisana. Zakupów prywatnych nie robisz kartą.</p>
+    <div class="msg" id="msgKoszt"></div>
+  </section>
+
+  <!-- ===================== ZGŁOŚ ===================== -->
+  <section class="ekran" id="ekran-zglos">
+    <div class="card hidden piasek" id="zKroki">
+      <h3>Najpierw bezpieczeństwo</h3>
+      <ol class="kroki">
+        <li>Zabezpiecz miejsce zdarzenia, udziel pomocy poszkodowanym.</li>
+        <li>W razie potrzeby wezwij służby: <b>112</b>.</li>
+        <li>Zrób zdjęcia miejsca i uszkodzeń, spisz dane uczestników i świadków oraz numery polis.</li>
+        <li>Nie podpisuj oświadczenia o uznaniu odpowiedzialności w imieniu Fundacji.</li>
+        <li>Powiadom Koordynatora Biura (a przy poważnym zdarzeniu członka Zarządu) oraz assistance z polisy.</li>
+      </ol>
+    </div>
+    <div class="card">
+      <div class="field"><label>Co się stało</label><div class="chips miejsca" id="zTypy"></div></div>
+      <div class="field"><label>Pojazd</label><div class="chips miejsca" id="zPojazdy"></div></div>
+      <div class="field"><label for="zOpis">Opis</label><input type="text" id="zOpis" placeholder="co, gdzie, kiedy w kilku słowach"></div>
+    </div>
+    <button class="btn primary" id="btnZglos" style="padding:16px;font-size:16px">Wyślij zgłoszenie</button>
+    <p class="hint">Zgłoszenie trafia do Koordynatora Biura. Pilne sprawy zawsze zgłaszaj też telefonicznie.</p>
+    <div class="msg" id="msgZglos"></div>
+  </section>
+
+  <!-- ===================== FLOTA (admin) ===================== -->
+  <section class="ekran" id="ekran-flota">
+    <div class="mnav">
+      <button id="fPrev" aria-label="Poprzedni miesiąc">‹</button>
+      <strong id="fNazwa">—</strong>
+      <button id="fNext" aria-label="Następny miesiąc">›</button>
+    </div>
+    <div id="fAlerty"></div>
+    <div class="card" style="padding:8px 12px">
+      <table>
+        <thead><tr><th>Pojazd</th><th class="n">Km</th><th class="n">l/100</th><th>Stan</th></tr></thead>
+        <tbody id="fTabela"></tbody>
+      </table>
+      <p class="hint">Kliknij pojazd, żeby zobaczyć przejazdy i zatwierdzić miesiąc. Zużycie liczone z tankowań z podaną ilością litrów.</p>
+    </div>
+    <div class="card hidden" id="fSzczegoly">
+      <h3 id="fSzczTytul"></h3>
+      <table><thead><tr><th>Dzień</th><th>Kierowca i trasa</th><th class="n">Km</th></tr></thead><tbody id="fSzczTabela"></tbody></table>
+      <div class="stack" style="margin-top:12px">
+        <button class="btn dark" id="btnZatwierdz">Zatwierdź ewidencję tego miesiąca</button>
+      </div>
+    </div>
+    <div class="card hidden" id="fPrywKarta"><h3>Kilometrówki do decyzji</h3><div class="lista" id="fPrywLista"></div></div>
+    <div class="card hidden" id="fZdarzKarta"><h3>Zgłoszenia otwarte</h3><div class="lista" id="fZdarzLista"></div></div>
+    <details class="card" id="fWpis" style="padding:12px 16px">
+      <summary>Wpis ręczny za kierowcę (dowolna data)</summary>
+      <div class="field" style="margin-top:10px"><label for="aOsoba">Kierowca</label><select id="aOsoba"></select></div>
+      <div class="field"><label for="aData">Dzień</label><input type="date" id="aData"></div>
+      <div class="field"><label for="aPojazd">Pojazd</label><select id="aPojazd"></select></div>
+      <div class="row field">
+        <div><label for="aPrzed">Licznik przed</label><input type="number" id="aPrzed" inputmode="numeric"></div>
+        <div><label for="aPo">Licznik po</label><input type="number" id="aPo" inputmode="numeric"></div>
+      </div>
+      <div class="row field">
+        <div><label for="aSkad">Skąd</label><input type="text" id="aSkad"></div>
+        <div><label for="aDokad">Dokąd</label><input type="text" id="aDokad"></div>
+      </div>
+      <div class="field"><label for="aCel">Cel</label><input type="text" id="aCel"></div>
+      <button class="btn dark" id="btnAdminZapisz">Zapisz wpis</button>
+      <div class="msg" id="msgAdmin"></div>
+    </details>
+    <a class="btn" id="linkArkusz" href="#" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none">Otwórz arkusz (raporty miesięczne)</a>
+    <p class="hint">Linki, klucze i kody QR kierowców: w arkuszu, menu <b>Pojazdy → Odśwież zakładkę Linki</b>. Raport do księgowości: <b>Pojazdy → Raport miesiąca</b>.</p>
+    <div class="msg" id="msgFlota"></div>
+  </section>
+
+  <div class="instal" id="instal" style="margin-top:20px">
+    <button id="instalZamknij" aria-label="zamknij">✕</button>
+    <b>Dodaj do ekranu głównego</b>, żeby mieć ikonę jak aplikację.<br>
+    <span id="instalJak"></span>
+  </div>
+  <p class="hint" style="text-align:center;margin-top:24px"><button class="btn ghost" id="btnWyloguj" style="text-align:center;width:100%">Wyloguj z tego telefonu</button></p>
+</main>
+</div>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <p id="modalTekst"></p>
+    <div class="row">
+      <button class="btn" id="modalNie">Nie</button>
+      <button class="btn primary" id="modalTak">Tak</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* ================== KONFIGURACJA ==================
+     Wklej tu adres wdrożonej aplikacji internetowej Apps Script (Wdróż → Zarządzaj wdrożeniami → adres kończący się na /exec). */
+  var API_URL = window.POJAZDY_API || '';
+
+  var $ = function (id) { return document.getElementById(id); };
+  var KLUCZ = '', JA = '', ADMIN = false, CFG = null, DZIS = '';
+  var POJAZDY = [], tyk = null, stanJ = null, komunikatJazdy = null;
+  var mies = '', fMies = '', mOsoba = '', fWybrany = '';
+  var wyb = { j: '', c: '', z: '' };      // wybrane pojazdy (jazda, koszt, zgłoszenie)
+  var cTyp = '', cDok = '', cZgoda = '', zTyp = '', pRodzaj = '', pTryb = '', pKto = '', pForma = '';
+
+  /* ---------- API ---------- */
+  function rpc(fn) {
+    var args = [].slice.call(arguments, 1);
+    if (!API_URL) return Promise.reject(new Error('Aplikacja nie ma jeszcze adresu arkusza. Administrator musi wpisać go w pliku index.html (linia API_URL).'));
+    return fetch(API_URL, {
+      method: 'POST', redirect: 'follow',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ k: KLUCZ, fn: fn, args: args })
+    }).then(function (r) {
+      if (!r.ok) throw new Error('Serwer odpowiedział błędem ' + r.status + '. Spróbuj za chwilę.');
+      return r.json();
+    }).then(function (j) {
+      if (!j.ok) throw new Error(j.error || 'Nieznany błąd.');
+      return j.result;
+    }).catch(function (e) {
+      if (e instanceof TypeError) throw new Error('Brak połączenia. Sprawdź sieć i spróbuj ponownie.');
+      throw e;
+    });
+  }
+  function blad(e, msgId) {
+    var t = (e && e.message) || String(e) || 'Coś poszło nie tak. Spróbuj ponownie.';
+    if (t.indexOf('SESJA:') === 0) { t = t.slice(6).trim(); wyloguj(t); return; }
+    komunikat(msgId, t, 'err');
+  }
+  function komunikat(id, tekst, klasa) { var el = $(id); el.className = 'msg' + (klasa ? ' ' + klasa : ''); el.textContent = tekst || ''; }
+  function pytaj(tekst) {
+    return new Promise(function (res) {
+      $('modalTekst').textContent = tekst;
+      $('modalBg').className = 'modal-bg on';
+      $('modalTak').onclick = function () { $('modalBg').className = 'modal-bg'; res(true); };
+      $('modalNie').onclick = function () { $('modalBg').className = 'modal-bg'; res(false); };
+    });
+  }
+  function zajety(el, tak) { el.className = el.className.replace(' ladowanie', '') + (tak ? ' ladowanie' : ''); }
+  function esc(s) { return String(s === null || s === undefined ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function fmtM(m) { var h = Math.floor(m / 60), r = m % 60; if (!r) return h + ' h'; if (!h) return r + ' min'; return h + ' h ' + ('0' + r).slice(-2) + ' min'; }
+  function fmtMin(min) { return fmtM(Math.max(0, Math.round(min))); }
+  function fmtKm(n) { return (Math.round(Number(n || 0) * 10) / 10).toLocaleString('pl-PL') + ' km'; }
+  function fmtZl(n) { return Number(n || 0).toLocaleString('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' zł'; }
+  function liczDni(n, j, m, w) { n = Number(n) || 0; if (n === 1) return n + ' ' + j; var r = n % 10, s = n % 100; return n + ' ' + ((r >= 2 && r <= 4 && (s < 12 || s > 14)) ? m : w); }
+  function naMin(t) { var c = t.split(':'); return Number(c[0]) * 60 + Number(c[1]); }
+  function dataPL(d) { return d.slice(8) + '.' + d.slice(5, 7) + '.' + d.slice(0, 4); }
+  function krotka(d) { return d.slice(8) + '.' + d.slice(5, 7); }
+  function nazwaMies(m) {
+    var n = ['Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec', 'Lipiec', 'Sierpień', 'Wrzesień', 'Październik', 'Listopad', 'Grudzień'];
+    return n[Number(m.slice(5, 7)) - 1] + ' ' + m.slice(0, 4);
+  }
+  function przesunMies(m, o) { var d = new Date(Number(m.slice(0, 4)), Number(m.slice(5, 7)) - 1 + o, 1); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2); }
+  function teraz() { var d = new Date(); return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2); }
+  function chips(id, lista, wybrane, onPick) {
+    var box = $(id); box.innerHTML = '';
+    lista.forEach(function (v) {
+      var val = Array.isArray(v) ? v[0] : v, lab = Array.isArray(v) ? v[1] : v, kl = Array.isArray(v) && v[2] ? v[2] : '';
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'chip' + (kl ? ' ' + kl : ''); b.textContent = lab; b.dataset.val = val;
+      b.setAttribute('aria-pressed', val === wybrane);
+      b.onclick = function () { onPick(val); zaznacz(id, val); };
+      box.appendChild(b);
+    });
+  }
+  function zaznacz(id, val) { Array.prototype.forEach.call($(id).children, function (c) { c.setAttribute('aria-pressed', c.dataset.val === val); }); }
+  function opcje(id, lista, wybrane) {
+    var s = $(id); s.innerHTML = '';
+    lista.forEach(function (v) { var o = document.createElement('option'); o.value = Array.isArray(v) ? v[0] : v; o.textContent = Array.isArray(v) ? v[1] : v; s.appendChild(o); });
+    if (wybrane) s.value = wybrane;
+  }
+  function zapamietaj(k, v) { try { if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) {} }
+  function odczytaj(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function wartosc(id) { return $(id).value.trim(); }
+  function poj(rej) { for (var i = 0; i < POJAZDY.length; i++) if (POJAZDY[i].rej === rej) return POJAZDY[i]; return null; }
+  function czysc(ids) { ids.forEach(function (id) { $(id).value = ''; }); }
+
+  /* ---------- KLUCZ / START ---------- */
+  function wyloguj(powod) {
+    zapamietaj('pojazdy_klucz', null);
+    KLUCZ = '';
+    $('app').className = 'hidden';
+    $('ekran-klucz').className = 'on';
+    if (powod) komunikat('msgKlucz', powod, 'err');
+  }
+  function uruchom(k) {
+    KLUCZ = k;
+    komunikat('msgKlucz', '');
+    zajety($('ekran-klucz'), true);
+    return rpc('konfig').then(function (c) {
+      zapamietaj('pojazdy_klucz', k);
+      CFG = c; JA = c.imie; ADMIN = c.admin; POJAZDY = c.pojazdy; DZIS = c.dzisiaj;
+      mies = DZIS.slice(0, 7); fMies = mies; mOsoba = JA;
+      $('ekran-klucz').className = '';
+      $('app').className = '';
+      zbudujUI();
+    }).catch(function (e) {
+      var t = (e && e.message) || String(e);
+      if (t.indexOf('SESJA:') === 0) t = t.slice(6).trim();
+      komunikat('msgKlucz', t, 'err');
+    }).then(function () { zajety($('ekran-klucz'), false); });
+  }
+  $('btnKlucz').onclick = function () {
+    var k = $('kluczPole').value.trim().toLowerCase();
+    var m = /[0-9a-f]{40,64}/.exec(k); if (m) k = m[0];
+    if (!/^[0-9a-f]{40,64}$/.test(k)) { komunikat('msgKlucz', 'To nie wygląda na klucz. Wklej cały ciąg 64 znaków albo otwórz link.', 'err'); return; }
+    uruchom(k);
+  };
+  $('btnWyloguj').onclick = function () { pytaj('Wylogować? Żeby wejść ponownie, będzie potrzebny link lub klucz.').then(function (t) { if (t) wyloguj(''); }); };
+
+  (function start() {
+    var u = new URL(location.href);
+    var k = (u.searchParams.get('k') || '').toLowerCase();
+    if (k) { u.searchParams.delete('k'); history.replaceState(null, '', u.pathname + (u.search || '') + u.hash); }
+    else k = odczytaj('pojazdy_klucz') || '';
+    if (k) uruchom(k); else $('ekran-klucz').className = 'on';
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function () {});
+    var pokazOffline = function () { $('offline').className = 'offline' + (navigator.onLine ? '' : ' on'); };
+    window.addEventListener('online', pokazOffline); window.addEventListener('offline', pokazOffline); pokazOffline();
+  })();
+
+  /* ---------- UI ---------- */
+  var zbudowane = false;
+  function zbudujUI() {
+    $('kto').innerHTML = '<span>' + esc(JA) + '</span><small>' + (ADMIN ? 'administrator' : 'ewidencja pojazdów') + '</small>';
+    var zak = [['jazda', 'Jazda'], ['miesiac', 'Miesiąc'], ['prywatny', 'Prywatny'], ['koszty', 'Koszty'], ['zglos', 'Zgłoś']];
+    if (ADMIN) zak.push(['flota', 'Flota']);
+    $('nav').innerHTML = '';
+    zak.forEach(function (z) {
+      var b = document.createElement('button'); b.textContent = z[1]; b.dataset.ekran = z[0];
+      b.onclick = function () { pokaz(z[0]); };
+      $('nav').appendChild(b);
+    });
+    if (!zbudowane) { zbudujFormularze(); zbudowane = true; }
+    wypelnijListy();
+    podpowiedzInstalacji();
+    var e = odczytaj('pojazdy_ekran');
+    if (!e || zak.map(function (z) { return z[0]; }).indexOf(e) === -1 || e === 'flota' && !ADMIN) e = 'jazda';
+    pokaz(e);
+  }
+  var EKRANY = ['jazda', 'miesiac', 'prywatny', 'koszty', 'zglos', 'flota'];
+  function pokaz(nazwa) {
+    Array.prototype.forEach.call($('nav').children, function (b) {
+      var on = b.dataset.ekran === nazwa; b.setAttribute('aria-selected', on);
+      if (on && b.scrollIntoView) b.scrollIntoView({ block: 'nearest', inline: 'center' });
+    });
+    EKRANY.forEach(function (e) { $('ekran-' + e).className = 'ekran' + (e === nazwa ? ' on' : ''); });
+    zapamietaj('pojazdy_ekran', nazwa);
+    window.scrollTo(0, 0);
+    if (nazwa === 'jazda') odswiezJazde();
+    if (nazwa === 'miesiac') ladujMiesiac();
+    if (nazwa === 'flota') ladujFlote();
+  }
+  function podpowiedzInstalacji() {
+    var standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    if (standalone || odczytaj('pojazdy_instal') === 'nie') return;
+    var ios = /iPhone|iPad|iPod/.test(navigator.userAgent || '');
+    $('instalJak').textContent = ios
+      ? 'iPhone: w Safari dotknij ikonę Udostępnij (kwadrat ze strzałką), potem „Do ekranu początkowego”.'
+      : 'Android: w Chrome dotknij menu ⋮ w prawym górnym rogu, potem „Dodaj do ekranu głównego” lub „Zainstaluj aplikację”.';
+    $('instal').className = 'instal on';
+    $('instalZamknij').onclick = function () { $('instal').className = 'instal'; zapamietaj('pojazdy_instal', 'nie'); };
+  }
+
+  function listaPojazdow(zZajetymi) {
+    return POJAZDY.map(function (p) { return [p.rej, p.rej, zZajetymi && p.wTrasie ? 'zajety' : '']; });
+  }
+  function ustawPojazd(rej) {
+    wyb.j = wyb.c = wyb.z = rej;
+    ['jPojazdy', 'cPojazdy', 'zPojazdy'].forEach(function (id) { zaznacz(id, rej); });
+    zapamietaj('pojazdy_ostatni', rej);
+  }
+  function wypelnijListy() {
+    var ostatni = odczytaj('pojazdy_ostatni') || '';
+    wyb.j = poj(ostatni) ? ostatni : (POJAZDY.length === 1 ? POJAZDY[0].rej : '');
+    wyb.c = wyb.j; wyb.z = wyb.j;
+    chips('jPojazdy', listaPojazdow(true), wyb.j, function (v) { ustawPojazd(v); wybranoPojazd(); });
+    chips('jMiejsca', CFG.miejsca, '', function (v) { $('jSkad').value = v; });
+    chips('kMiejsca', CFG.miejsca, '', function (v) { $('kDokad').value = v; });
+    chips('cPojazdy', listaPojazdow(false), wyb.c, ustawPojazd);
+    chips('zPojazdy', listaPojazdow(false), wyb.z, ustawPojazd);
+    chips('cTypy', CFG.typyKosztow, cTyp, function (v) { cTyp = v; przelaczKoszt(); });
+    chips('cDokumenty', CFG.dokumenty, cDok, function (v) { cDok = v; });
+    chips('cZgoda', ['Mam zgodę Koordynatora', 'Sytuacja awaryjna'], cZgoda, function (v) { cZgoda = v; });
+    chips('zTypy', CFG.typyZdarzen, zTyp, function (v) { zTyp = v; $('zKroki').className = 'card piasek' + ((v === 'Szkoda / kolizja' || v === 'Wypadek') ? '' : ' hidden'); });
+    chips('pRodzaje', CFG.stawki.map(function (s) { return [s.id, s.nazwa]; }), pRodzaj, function (v) { pRodzaj = v; przeliczPryw(); });
+    chips('pTryb', ['Jednorazowa podróż', 'Regularne przejazdy lokalne'], pTryb, function (v) { pTryb = v; });
+    chips('pZgodaKto', CFG.zatwierdzajacy, pKto, function (v) { pKto = v; });
+    chips('pZgodaForma', CFG.formyZgody, pForma, function (v) { pForma = v; });
+    // etykiety pojazdów: rej + opis w podpowiedzi
+    ['jPojazdy', 'cPojazdy', 'zPojazdy'].forEach(function (id) { Array.prototype.forEach.call($(id).children, function (c) { var p = poj(c.dataset.val); if (p) c.title = p.nazwa; }); });
+    opcje('rPojazd', POJAZDY.map(function (p) { return [p.rej, p.rej + ' · ' + p.nazwa]; }), wyb.j);
+    $('rData').max = DZIS; $('rData').min = CFG.najwczesniejszaData; $('rData').value = DZIS;
+    $('cData').max = DZIS; $('cData').value = DZIS;
+    $('pData').max = DZIS; $('pData').value = DZIS;
+    $('pMarka').value = odczytaj('pojazdy_pmarka') || ''; $('pRej').value = odczytaj('pojazdy_prej') || ''; $('pPojemnosc').value = odczytaj('pojazdy_ppoj') || '';
+    pRodzaj = odczytaj('pojazdy_prodzaj') || ''; if (pRodzaj) zaznacz('pRodzaje', pRodzaj);
+    przelaczKoszt(); przeliczPryw(); wybranoPojazd();
+    if (ADMIN) {
+      opcje('mOsoba', CFG.osoby, mOsoba); opcje('aOsoba', CFG.osoby, JA);
+      opcje('aPojazd', POJAZDY.map(function (p) { return [p.rej, p.rej + ' · ' + p.nazwa]; }));
+      $('mOsobaBox').className = 'card'; $('aData').value = DZIS; $('aData').max = DZIS;
+      $('linkArkusz').href = CFG.arkusz || '#';
+    }
+  }
+
+  function zbudujFormularze() {
+    $('jSkad').addEventListener('input', function () { zaznacz('jMiejsca', $('jSkad').value); });
+    $('kDokad').addEventListener('input', function () { zaznacz('kMiejsca', $('kDokad').value); });
+    $('kLicznik').addEventListener('input', przeliczKoniec);
+    $('btnStart').onclick = start;
+    $('btnKoniec').onclick = function () { koniec(false); };
+    $('btnReczny').onclick = reczny;
+    $('mPrev').onclick = function () { mies = przesunMies(mies, -1); ladujMiesiac(); };
+    $('mNext').onclick = function () { mies = przesunMies(mies, 1); ladujMiesiac(); };
+    $('mOsoba').onchange = function () { mOsoba = $('mOsoba').value; ladujMiesiac(); };
+    $('fPrev').onclick = function () { fMies = przesunMies(fMies, -1); fWybrany = ''; ladujFlote(); };
+    $('fNext').onclick = function () { fMies = przesunMies(fMies, 1); fWybrany = ''; ladujFlote(); };
+    ['pKm', 'pPojemnosc'].forEach(function (id) { $(id).addEventListener('input', przeliczPryw); });
+    $('btnPryw').onclick = wyslijPryw;
+    $('btnKoszt').onclick = wyslijKoszt;
+    $('btnZglos').onclick = wyslijZglos;
+    $('btnZatwierdz').onclick = zatwierdz;
+    $('btnAdminZapisz').onclick = wpisAdmin;
+  }
+
+  /* ---------- JAZDA ---------- */
+  function wybranoPojazd(zachowajLicznik) {
+    var p = poj(wyb.j), el = $('jPojazdInfo');
+    el.innerHTML = '';
+    if (!p) { el.textContent = 'Wybierz pojazd.'; return; }
+    var t = '<b>' + esc(p.nazwa) + '</b> · licznik ' + fmtKm(p.licznik);
+    el.innerHTML = t;
+    if (p.wTrasie) el.innerHTML += '<div class="alert blad">W trasie: ' + esc(p.wTrasie.kto) + ' od ' + esc(p.wTrasie.od) + '. Poczekaj na zakończenie jazdy.</div>';
+    p.ostrzezenia.forEach(function (o) { el.innerHTML += '<div class="alert ' + (o.poziom === 'blad' ? 'blad' : '') + '">' + esc(o.tekst) + '</div>'; });
+    if (!zachowajLicznik || !$('jLicznik').value) $('jLicznik').value = p.licznik || '';
+  }
+  function odswiezJazde() {
+    rpc('konfig').then(function (c) {
+      POJAZDY = c.pojazdy; DZIS = c.dzisiaj;
+      chips('jPojazdy', listaPojazdow(true), wyb.j, function (v) { ustawPojazd(v); wybranoPojazd(); });
+      if (!stanJ || !stanJ.otwarta) wybranoPojazd(true);
+      return rpc('stanJazdy');
+    }).then(pokazJazde).catch(function (e) { blad(e, 'msgJazda'); });
+  }
+  function pokazJazde(s) {
+    stanJ = s; DZIS = s.dzis;
+    $('statusData').textContent = dataPL(s.dzis);
+    if (tyk) { clearInterval(tyk); tyk = null; }
+    var o = s.otwarta, st = $('status'), pow = $('powitanie');
+    $('blokStart').className = o ? 'hidden' : '';
+    $('blokKoniec').className = o ? '' : 'hidden';
+    pow.className = 'powitanie hidden'; pow.innerHTML = '';
+    var kmDzis = 0; s.dzisiejsze.forEach(function (p) { if (p.status === 'Zakończony') kmDzis += p.km; });
+
+    if (o) {
+      st.className = 'status go';
+      $('statusEtykieta').textContent = 'W trasie od ' + o.start + (o.data !== s.dzis ? ' (' + krotka(o.data) + ')' : '');
+      $('statusSub').textContent = o.rej + ' · licznik na starcie ' + fmtKm(o.licznikPrzed);
+      var licz = function () { var d = naMin(teraz()) - naMin(o.start); if (o.data !== s.dzis) d += 1440 * Math.max(1, Math.round((new Date(s.dzis) - new Date(o.data)) / 864e5)); $('statusCzas').textContent = fmtMin(Math.max(0, d)); };
+      licz(); tyk = setInterval(licz, 30000);
+      if (o.flaga) { pow.className = 'powitanie'; pow.innerHTML = '<b>Start zapisany.</b>' + esc(o.flaga) + '. Administrator to zobaczy, wyjaśnij w uwagach, jeśli ktoś jechał bez wpisu.'; }
+      else if (komunikatJazdy && komunikatJazdy.typ === 'start') { pow.className = 'powitanie'; pow.innerHTML = komunikatJazdy.html; }
+            przeliczKoniec();
+    } else {
+      st.className = 'status';
+      $('statusEtykieta').textContent = 'Dziś';
+      $('statusCzas').textContent = kmDzis ? fmtKm(kmDzis) : '—';
+      $('statusSub').textContent = s.dzisiejsze.length ? liczDni(s.dzisiejsze.length, 'przejazd', 'przejazdy', 'przejazdów') : 'Jeszcze nie jechano. Wybierz pojazd i kliknij Start.';
+      if (komunikatJazdy && komunikatJazdy.typ === 'koniec') { pow.className = 'powitanie koniec'; pow.innerHTML = komunikatJazdy.html; }
+      if (!$('jSkad').value && s.ostatni) { $('jSkad').value = s.ostatni.dokad; zaznacz('jMiejsca', s.ostatni.dokad); }
+    }
+    // lista dzisiejszych
+    $('kartaDzis').className = s.dzisiejsze.length ? 'card' : 'card hidden';
+    $('listaDzis').innerHTML = s.dzisiejsze.map(function (p) {
+      var km = p.status === 'Zakończony' ? fmtKm(p.km) : '<span class="pill toku">w trasie</span>';
+      return '<div><div class="tresc"><b>' + esc(p.start) + (p.koniec ? '–' + esc(p.koniec) : '') + '</b> · ' + esc(p.rej) + '<br>' + esc(p.skad) + (p.dokad ? ' → ' + esc(p.dokad) : '') + '<small>' + esc(p.cel) + '</small></div><div class="kw">' + km + '</div>' +
+        '<button class="x" data-id="' + esc(p.id) + '" aria-label="Usuń wpis">✕</button></div>';
+    }).join('');
+    Array.prototype.forEach.call($('listaDzis').querySelectorAll('.x'), function (b) {
+      b.onclick = function () { usunWpis(b.dataset.id); };
+    });
+  }
+  function przeliczKoniec() {
+    var o = stanJ && stanJ.otwarta; if (!o) return;
+    var v = $('kLicznik').value, el = $('kWynik');
+    if (v === '') { el.innerHTML = 'Licznik na starcie: ' + fmtKm(o.licznikPrzed) + '. Wpisz stan na mecie, a policzę kilometry.'; return; }
+    var km = Number(v) - o.licznikPrzed;
+    el.innerHTML = km < 0 ? 'Licznik jest mniejszy niż na starcie (' + fmtKm(o.licznikPrzed) + '). Sprawdź odczyt.' : 'Przejechane: <b>' + fmtKm(km) + '</b>';
+  }
+  function start() {
+    var rej = wyb.j;
+    if (!rej) { komunikat('msgJazda', 'Wybierz pojazd.', 'err'); return; }
+    var d = { rej: rej, licznik: wartosc('jLicznik'), skad: wartosc('jSkad'), cel: wartosc('jCel'), trasa: wartosc('jTrasa'), uwagi: wartosc('jUwagi'), kontrola: $('jKontrola').checked };
+    var b = $('btnStart'); b.disabled = true; komunikat('msgJazda', '');
+    rpc('startJazdy', d).then(function (r) {
+      zapamietaj('pojazdy_ostatni', rej);
+      komunikatJazdy = { typ: 'start', html: '<b>Szerokiej drogi! 🚗</b>Start zapisany o ' + esc(r.przejazd.start) + '. Po dojechaniu wpisz stan licznika i kliknij Koniec jazdy.' };
+      czysc(['jCel', 'jTrasa', 'jUwagi', 'jSkad']); $('jKontrola').checked = false; $('kLicznik').value = ''; $('kDokad').value = '';
+      return odswiezPoZapisie();
+    }).catch(function (e) { blad(e, 'msgJazda'); }).then(function () { b.disabled = false; });
+  }
+  function odswiezPoZapisie() {
+    return rpc('konfig').then(function (c) { POJAZDY = c.pojazdy; chips('jPojazdy', listaPojazdow(true), wyb.j, function (v) { ustawPojazd(v); wybranoPojazd(); }); wybranoPojazd(); return rpc('stanJazdy'); }).then(pokazJazde);
+  }
+  function koniec(potwierdz) {
+    var d = { licznik: wartosc('kLicznik'), dokad: wartosc('kDokad'), trasa: wartosc('kTrasa'), uwagi: wartosc('kUwagi'), potwierdz: !!potwierdz };
+    var b = $('btnKoniec'); b.disabled = true; komunikat('msgJazda', '');
+    rpc('koniecJazdy', d).then(function (r) {
+      var p = r.przejazd;
+      komunikatJazdy = { typ: 'koniec', html: '<b>Jupi! Jesteś na miejscu. 🎉</b>Przejechane: ' + fmtKm(p.km) + ' (' + esc(p.skad) + ' → ' + esc(p.dokad) + '). Zaparkuj w bezpiecznym miejscu i zabierz kluczyki oraz karty.' +
+        '<span class="mini">Tankowałeś/aś albo płaciłeś/aś za parking? Dodaj koszt w zakładce Koszty. Zauważyłeś/aś usterkę? Zgłoś ją w zakładce Zgłoś.</span>' };
+      czysc(['kLicznik', 'kDokad', 'kTrasa', 'kUwagi']); zaznacz('kMiejsca', '');
+      return odswiezPoZapisie();
+    }).catch(function (e) {
+      if (e && e.message && e.message.indexOf('POTWIERDZ:') === 0) {
+        return pytaj(e.message.slice(10).trim()).then(function (t) { if (t) return koniec(true); });
+      }
+      blad(e, 'msgJazda');
+    }).then(function () { b.disabled = false; });
+  }
+  function usunWpis(id) {
+    pytaj('Usunąć ten wpis? Zostanie to zapisane w dzienniku zmian.').then(function (t) {
+      if (!t) return;
+      rpc('usunJazde', id, 'usunięte przez kierowcę').then(function () { komunikatJazdy = null; return odswiezPoZapisie(); }).catch(function (e) { blad(e, 'msgJazda'); });
+    });
+  }
+  function reczny() {
+    var d = { data: wartosc('rData'), rej: wartosc('rPojazd'), licznikPrzed: wartosc('rPrzed'), licznikPo: wartosc('rPo'), skad: wartosc('rSkad'), dokad: wartosc('rDokad'), cel: wartosc('rCel'), trasa: wartosc('rTrasa') };
+    var b = $('btnReczny'); b.disabled = true; komunikat('msgReczny', '');
+    rpc('dopiszPrzejazd', d).then(function (r) {
+      komunikat('msgReczny', 'Zapisano: ' + fmtKm(r.przejazd.km) + ' (' + dataPL(r.przejazd.data) + ').', 'ok');
+      czysc(['rPrzed', 'rPo', 'rSkad', 'rDokad', 'rCel', 'rTrasa']); komunikatJazdy = null;
+      return odswiezPoZapisie();
+    }).catch(function (e) { blad(e, 'msgReczny'); }).then(function () { b.disabled = false; });
+  }
+
+  /* ---------- MIESIĄC ---------- */
+  function ladujMiesiac() {
+    $('mNazwa').textContent = nazwaMies(mies);
+    zajety($('mPods'), true);
+    rpc('miesiac', mies, ADMIN ? mOsoba : '').then(pokazMiesiac).catch(function (e) { blad(e, 'msgMiesiac'); }).then(function () { zajety($('mPods'), false); });
+  }
+  function pokazMiesiac(m) {
+    komunikat('msgMiesiac', '');
+    var wlasny = m.osoba === JA;
+    $('mKm').textContent = m.km ? fmtKm(m.km) : '—';
+    $('mKmOpis').textContent = m.dniJazdy ? 'w ' + liczDni(m.dniJazdy, 'dniu', 'dniach', 'dniach') : '';
+    var zak = m.przejazdy.filter(function (p) { return p.status === 'Zakończony'; }).length;
+    $('mPrzejazdy').textContent = zak || '—';
+    $('mPrzejazdyOpis').textContent = m.przejazdy.length - zak ? 'w tym ' + (m.przejazdy.length - zak) + ' niezakończony' : '';
+    $('mPojazd').textContent = m.najczestszy || '—';
+    $('mPojazdOpis').textContent = m.najczestszy && poj(m.najczestszy) ? poj(m.najczestszy).nazwa : '';
+    $('mKoszty').textContent = m.kosztySuma ? fmtZl(m.kosztySuma) : '—';
+    $('mKosztyOpis').textContent = m.koszty.length ? liczDni(m.koszty.length, 'wydatek', 'wydatki', 'wydatków') : '';
+    $('mPryw').textContent = m.prywatneKwota ? fmtZl(m.prywatneKwota) : '—';
+    $('mPrywOpis').textContent = m.prywatneKm ? fmtKm(m.prywatneKm) + (m.prywatneOplaty ? ' + opłaty ' + fmtZl(m.prywatneOplaty) : '') : '';
+
+    $('mTabela').innerHTML = m.przejazdy.length ? m.przejazdy.map(function (p) {
+      var kl = p.status !== 'Zakończony' ? 'toku' : (p.flaga && p.flaga.indexOf('Luka') === 0 ? 'uwaga' : '');
+      var pill = p.status !== 'Zakończony' ? ' <span class="pill toku">w trasie</span>' : (m.zatwierdzone[p.rej] ? ' <span class="pill ok">zatw.</span>' : '');
+      return '<tr><td class="dzien ' + kl + '"><b>' + krotka(p.data) + '</b><small>' + esc(p.rej) + '</small></td><td>' + esc(p.skad) + (p.dokad ? ' → ' + esc(p.dokad) : '') + pill + '<small>' + esc(p.cel) + '</small></td><td class="n">' + (p.status === 'Zakończony' ? fmtKm(p.km) : '') + '</td></tr>';
+    }).join('') : '<tr><td colspan="3" class="mini">Brak przejazdów w tym miesiącu.</td></tr>';
+
+    lista('mKosztyKarta', 'mKosztyLista', m.koszty, function (k) {
+      return '<div><div class="tresc"><b>' + esc(k.typ) + '</b> · ' + esc(k.rej) + '<small>' + krotka(k.data) + ' · ' + esc(k.dokument) + (k.ilosc !== '' ? ' · ' + esc(k.ilosc) + (k.typ === 'Ładowanie' ? ' kWh' : ' l') : '') + (k.uwagi ? ' · ' + esc(k.uwagi) : '') + '</small></div><div class="kw">' + fmtZl(k.kwota) + '</div>' +
+        (wlasny || ADMIN ? '<button class="x" data-kasuj="koszt" data-id="' + esc(k.id) + '" aria-label="Usuń">✕</button>' : '') + '</div>';
+    });
+    lista('mPrywKarta', 'mPrywLista', m.prywatne, function (p) {
+      var pill = p.status === 'Zatwierdzone' ? 'ok' : (p.status === 'Odrzucone' ? 'ciemny' : 'cichy');
+      return '<div><div class="tresc"><b>' + krotka(p.data) + '</b> · ' + esc(p.skad) + ' → ' + esc(p.dokad) + '<small>' + esc(p.cel) + ' · ' + fmtKm(p.km) + (p.stawka !== '' ? ' × ' + p.stawka.toLocaleString('pl-PL') + ' zł' : '') + '</small><span class="pill ' + pill + '">' + esc(p.status) + '</span>' + (p.decyzjaUwaga ? '<small>' + esc(p.decyzjaUwaga) + '</small>' : '') + '</div><div class="kw">' + (p.kwota !== '' ? fmtZl(p.kwota) : '—') + '</div>' +
+        ((wlasny || ADMIN) && p.status !== 'Zatwierdzone' ? '<button class="x" data-kasuj="pryw" data-id="' + esc(p.id) + '" aria-label="Usuń">✕</button>' : '') + '</div>';
+    });
+    lista('mZdarzKarta', 'mZdarzLista', m.zdarzenia, function (z) {
+      return '<div><div class="tresc"><b>' + esc(z.typ) + '</b> · ' + esc(z.rej) + '<small>' + krotka(z.data) + ' · ' + esc(z.opis) + (z.komentarz ? ' · ' + esc(z.komentarz) : '') + '</small></div><span class="pill ' + (z.status === 'Zamknięte' ? 'ok' : 'toku') + '">' + esc(z.status) + '</span></div>';
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('#ekran-miesiac [data-kasuj]'), function (b) {
+      b.onclick = function () {
+        pytaj('Usunąć ten wpis? Zostanie to zapisane w dzienniku zmian.').then(function (t) {
+          if (!t) return;
+          rpc(b.dataset.kasuj === 'koszt' ? 'usunKoszt' : 'usunPrywatny', b.dataset.id).then(ladujMiesiac).catch(function (e) { blad(e, 'msgMiesiac'); });
+        });
+      };
+    });
+  }
+  function lista(karta, kont, dane, wiersz) {
+    $(karta).className = 'card' + (dane.length ? '' : ' hidden');
+    $(kont).innerHTML = dane.map(wiersz).join('');
+  }
+
+  /* ---------- PRYWATNY ---------- */
+  function stawkaDla(id) { for (var i = 0; i < CFG.stawki.length; i++) if (CFG.stawki[i].id === id) return CFG.stawki[i]; return null; }
+  function przeliczPryw() {
+    var s = stawkaDla(pRodzaj), km = Number($('pKm').value), el = $('pWynik');
+    $('pPojemnoscBox').className = (pRodzaj === 'os900' || pRodzaj === 'osPow') ? 'field' : 'field hidden';
+    if (!s) { el.textContent = 'Wybierz rodzaj pojazdu i podaj kilometry.'; return; }
+    if (s.stawka === null) { el.innerHTML = 'Stawkę dla pojazdu elektrycznego lub wodorowego potwierdza księgowość. Administrator ustali ją przy zatwierdzeniu.'; return; }
+    if (!km) { el.innerHTML = 'Stawka: <b>' + s.stawka.toLocaleString('pl-PL', { minimumFractionDigits: 2 }) + ' zł/km</b>. Podaj kilometry.'; return; }
+    el.innerHTML = 'Do zwrotu: <b>' + fmtZl(Math.round(km * s.stawka * 100) / 100) + '</b><br><span class="mini">' + fmtKm(km) + ' × ' + s.stawka.toLocaleString('pl-PL', { minimumFractionDigits: 2 }) + ' zł</span>';
+  }
+  function wyslijPryw() {
+    var d = { rodzaj: pRodzaj, pojemnosc: wartosc('pPojemnosc'), marka: wartosc('pMarka'), rej: wartosc('pRej'), data: wartosc('pData'), skad: wartosc('pSkad'), dokad: wartosc('pDokad'),
+              cel: wartosc('pCel'), km: wartosc('pKm'), tryb: pTryb, oplaty: wartosc('pOplaty'), zgodaKto: pKto, zgodaForma: pForma, oswiadczenie: $('pOswiadczenie').checked };
+    var b = $('btnPryw'); b.disabled = true; komunikat('msgPryw', '');
+    rpc('dodajPrywatny', d).then(function (r) {
+      zapamietaj('pojazdy_pmarka', d.marka); zapamietaj('pojazdy_prej', d.rej); zapamietaj('pojazdy_ppoj', d.pojemnosc); zapamietaj('pojazdy_prodzaj', d.rodzaj);
+      var x = r.rozliczenie;
+      komunikat('msgPryw', 'Rozliczenie złożone: ' + fmtKm(x.km) + (x.kwota !== '' ? ', do zwrotu ' + fmtZl(x.kwota) : ', stawkę potwierdzi księgowość') + '. Czeka na zatwierdzenie.', 'ok');
+      czysc(['pSkad', 'pDokad', 'pCel', 'pKm', 'pOplaty']); $('pOswiadczenie').checked = false; przeliczPryw();
+    }).catch(function (e) { blad(e, 'msgPryw'); }).then(function () { b.disabled = false; });
+  }
+
+  /* ---------- KOSZTY ---------- */
+  function przelaczKoszt() {
+    var paliwo = cTyp === 'Paliwo' || cTyp === 'Ładowanie';
+    $('cPaliwoBox').className = paliwo ? 'row field' : 'row field hidden';
+    $('cIloscEt').textContent = cTyp === 'Ładowanie' ? 'kWh' : 'Litry';
+    $('cZgodaBox').className = (cTyp === 'Mycie / płyny' || cTyp === 'Serwis / naprawa') ? 'field' : 'field hidden';
+  }
+  function wyslijKoszt() {
+    var d = { rej: wyb.c, typ: cTyp, kwota: wartosc('cKwota'), data: wartosc('cData'), ilosc: wartosc('cIlosc'), licznik: wartosc('cLicznik'), dokument: cDok, zgoda: cZgoda, uwagi: wartosc('cUwagi') };
+    if (!d.typ) { komunikat('msgKoszt', 'Wybierz rodzaj kosztu.', 'err'); return; }
+    if (!d.rej) { komunikat('msgKoszt', 'Wybierz pojazd.', 'err'); return; }
+    var b = $('btnKoszt'); b.disabled = true; komunikat('msgKoszt', '');
+    rpc('dodajKoszt', d).then(function (r) {
+      komunikat('msgKoszt', 'Zapisano: ' + d.typ + ' ' + fmtZl(r.koszt.kwota) + ' (' + d.rej + ').', 'ok');
+      czysc(['cKwota', 'cIlosc', 'cLicznik', 'cUwagi']);
+    }).catch(function (e) { blad(e, 'msgKoszt'); }).then(function () { b.disabled = false; });
+  }
+
+  /* ---------- ZGŁOSZENIA ---------- */
+  function wyslijZglos() {
+    var d = { typ: zTyp, rej: wyb.z, opis: wartosc('zOpis') };
+    if (!d.typ) { komunikat('msgZglos', 'Wybierz, co się stało.', 'err'); return; }
+    if (!d.rej) { komunikat('msgZglos', 'Wybierz pojazd.', 'err'); return; }
+    var b = $('btnZglos'); b.disabled = true; komunikat('msgZglos', '');
+    rpc('zglosZdarzenie', d).then(function () {
+      komunikat('msgZglos', 'Zgłoszenie wysłane do Koordynatora Biura.', 'ok'); $('zOpis').value = '';
+    }).catch(function (e) { blad(e, 'msgZglos'); }).then(function () { b.disabled = false; });
+  }
+
+  /* ---------- FLOTA (admin) ---------- */
+  var FLOTA = null;
+  function ladujFlote() {
+    $('fNazwa').textContent = nazwaMies(fMies);
+    rpc('flota', fMies).then(function (f) { FLOTA = f; pokazFlote(f); }).catch(function (e) { blad(e, 'msgFlota'); });
+  }
+  function pokazFlote(f) {
+    komunikat('msgFlota', '');
+    var al = '';
+    f.pojazdy.forEach(function (p) { p.ostrzezenia.forEach(function (o) { al += '<div class="alert ' + (o.poziom === 'blad' ? 'blad' : '') + '"><b>' + esc(p.rej) + '</b>: ' + esc(o.tekst) + '</div>'; }); });
+    f.prawaJazdy.forEach(function (k) { al += '<div class="alert ' + (k.po ? 'blad' : '') + '"><b>' + esc(k.imie) + '</b>: prawo jazdy ' + (k.po ? 'po terminie' : 'do') + ' ' + esc(k.do) + '</div>'; });
+    $('fAlerty').innerHTML = al ? '<div class="card">' + '<h3>Terminy</h3>' + al.replace(/margin-top:8px/g, '') + '</div>' : '';
+
+    $('fTabela').innerHTML = f.pojazdy.map(function (p) {
+      var stan = p.wTrasie ? '<span class="pill toku">w trasie: ' + esc(p.wTrasie.kto) + '</span>'
+        : (p.otwarte ? '<span class="pill uwaga">niezamknięta jazda</span>'
+        : (p.zatwierdzone ? '<span class="pill ok">zatwierdzone</span>' : (p.luki ? '<span class="pill uwaga">luka licznika</span>' : '<span class="pill cichy">do zatwierdzenia</span>')));
+      return '<tr class="klik' + (fWybrany === p.rej ? ' wybrany' : '') + '" data-rej="' + esc(p.rej) + '"><td><b>' + esc(p.rej) + '</b><small>' + esc(p.nazwa) + ' · ' + fmtKm(p.licznik) + '</small></td><td class="n">' + (p.km ? fmtKm(p.km) : '—') + '</td><td class="n">' + (p.zuzycie !== null ? p.zuzycie.toLocaleString('pl-PL') : '—') + '</td><td>' + stan + '</td></tr>';
+    }).join('') || '<tr><td colspan="4" class="mini">Brak pojazdów w wykazie.</td></tr>';
+    Array.prototype.forEach.call($('fTabela').querySelectorAll('tr.klik'), function (tr) { tr.onclick = function () { fWybrany = tr.dataset.rej; pokazFlote(f); szczegolyPojazdu(); }; });
+    if (fWybrany) szczegolyPojazdu(); else $('fSzczegoly').className = 'card hidden';
+
+    lista('fPrywKarta', 'fPrywLista', f.prywatneDoDecyzji, function (p) {
+      return '<div style="flex-wrap:wrap"><div class="tresc"><b>' + esc(p.kierowca) + '</b> · ' + krotka(p.data) + (p.spozniony ? ' <span class="pill uwaga">po terminie</span>' : '') + '<small>' + esc(p.skad) + ' → ' + esc(p.dokad) + ' · ' + esc(p.cel) + '</small><small>' + esc(p.marka) + ' ' + esc(p.rej) + ' · ' + esc(p.rodzaj) + ' · zgoda: ' + esc(p.zgodaKto) + ' (' + esc(p.zgodaForma) + ')</small><small>' + fmtKm(p.km) + (p.stawka !== '' ? ' × ' + p.stawka.toLocaleString('pl-PL') + ' zł' : ' · stawka do ustalenia') + (p.oplaty !== '' ? ' + opłaty ' + fmtZl(p.oplaty) : '') + '</small></div><div class="kw">' + (p.kwota !== '' ? fmtZl(p.kwota) : '—') + '</div>' +
+        '<div class="row" style="width:100%;margin-top:8px"><button class="btn mala dark" data-dec="Zatwierdzone" data-id="' + esc(p.id) + '" data-bez="' + (p.kwota === '' ? '1' : '') + '">Zatwierdź</button><button class="btn mala danger" data-dec="Odrzucone" data-id="' + esc(p.id) + '">Odrzuć</button></div></div>';
+    });
+    Array.prototype.forEach.call($('fPrywLista').querySelectorAll('[data-dec]'), function (b) { b.onclick = function () { decyzja(b.dataset.id, b.dataset.dec, b.dataset.bez === '1'); }; });
+    lista('fZdarzKarta', 'fZdarzLista', f.zdarzenia, function (z) {
+      return '<div style="flex-wrap:wrap"><div class="tresc"><b>' + esc(z.typ) + '</b> · ' + esc(z.rej) + ' · ' + esc(z.kierowca) + '<small>' + krotka(z.data) + ' · ' + esc(z.opis) + '</small></div><span class="pill ' + (z.status === 'Nowe' ? 'uwaga' : 'toku') + '">' + esc(z.status) + '</span>' +
+        '<div class="row" style="width:100%;margin-top:8px">' + (z.status === 'Nowe' ? '<button class="btn mala" data-zd="W toku" data-id="' + esc(z.id) + '">Podejmij</button>' : '') + '<button class="btn mala dark" data-zd="Zamknięte" data-id="' + esc(z.id) + '">Zamknij</button></div></div>';
+    });
+    Array.prototype.forEach.call($('fZdarzLista').querySelectorAll('[data-zd]'), function (b) {
+      b.onclick = function () { rpc('zmienZdarzenie', b.dataset.id, b.dataset.zd, '').then(ladujFlote).catch(function (e) { blad(e, 'msgFlota'); }); };
+    });
+  }
+  function szczegolyPojazdu() {
+    var p = null; FLOTA.pojazdy.forEach(function (x) { if (x.rej === fWybrany) p = x; });
+    if (!p) return;
+    $('fSzczegoly').className = 'card';
+    $('fSzczTytul').textContent = p.rej + ' · ' + p.nazwa;
+    rpc('przejazdyPojazdu', fMies, fWybrany).then(function (tr) {
+      $('fSzczTabela').innerHTML = tr.length ? tr.map(function (r) {
+        var luka = r.lukaKm ? '<div class="pill uwaga" style="margin-top:4px">luka licznika ' + (r.lukaKm > 0 ? '+' : '') + r.lukaKm + ' km</div>' : '';
+        return '<tr><td><b>' + krotka(r.data) + '</b><small>' + esc(r.start) + (r.koniec ? '–' + esc(r.koniec) : '') + '</small></td><td>' + esc(r.kierowca) + '<small>' + esc(r.skad) + (r.dokad ? ' → ' + esc(r.dokad) : '') + ' · ' + esc(r.cel) + '</small><small>licznik ' + esc(r.licznikPrzed) + (r.licznikPo !== '' ? '–' + esc(r.licznikPo) : '') + '</small>' + luka + (r.status !== 'Zakończony' ? '<div class="pill toku" style="margin-top:4px">w trasie</div>' : '') + '</td><td class="n">' + (r.status === 'Zakończony' ? fmtKm(r.km) : '') + '</td></tr>';
+      }).join('') : '<tr><td colspan="3" class="mini">Brak przejazdów.</td></tr>';
+    }).catch(function (e) { blad(e, 'msgFlota'); });
+    var b = $('btnZatwierdz');
+    if (p.zatwierdzone) { b.textContent = 'Cofnij zatwierdzenie (' + p.zatwierdzone.kto + ')'; b.className = 'btn danger'; }
+    else { b.textContent = 'Zatwierdź ewidencję tego miesiąca'; b.className = 'btn dark'; }
+  }
+  function zatwierdz() {
+    var p = null; FLOTA.pojazdy.forEach(function (x) { if (x.rej === fWybrany) p = x; });
+    if (!p) return;
+    var cofnij = !!p.zatwierdzone;
+    pytaj(cofnij ? 'Cofnąć zatwierdzenie miesiąca dla ' + p.rej + '? Kierowcy znów będą mogli edytować wpisy.' : 'Zatwierdzić ewidencję ' + p.rej + ' za ' + nazwaMies(fMies) + '? Sprawdziłeś/aś stany liczników i kompletność wpisów?').then(function (t) {
+      if (!t) return;
+      rpc('zatwierdzMiesiac', fMies, p.rej, cofnij).then(ladujFlote).catch(function (e) { blad(e, 'msgFlota'); });
+    });
+  }
+  function decyzja(id, dec, brakStawki) {
+    var uwaga = '', stawka = '';
+    var dalej = function () {
+      rpc('decyzjaPrywatny', id, dec, stawka, uwaga).then(ladujFlote).catch(function (e) { blad(e, 'msgFlota'); });
+    };
+    if (dec === 'Odrzucone') { uwaga = window.prompt('Powód odrzucenia:') || ''; if (!uwaga.trim()) { komunikat('msgFlota', 'Przy odrzuceniu wpisz powód.', 'err'); return; } dalej(); return; }
+    if (brakStawki) { stawka = window.prompt('Stawka zł/km potwierdzona przez księgowość:') || ''; if (!stawka.trim()) return; stawka = stawka.replace(',', '.'); dalej(); return; }
+    pytaj('Zatwierdzić to rozliczenie?').then(function (t) { if (t) dalej(); });
+  }
+  function wpisAdmin() {
+    var d = { kierowca: wartosc('aOsoba'), data: wartosc('aData'), rej: wartosc('aPojazd'), licznikPrzed: wartosc('aPrzed'), licznikPo: wartosc('aPo'), skad: wartosc('aSkad'), dokad: wartosc('aDokad'), cel: wartosc('aCel') };
+    var b = $('btnAdminZapisz'); b.disabled = true; komunikat('msgAdmin', '');
+    rpc('wpisAdmin', d).then(function (r) {
+      komunikat('msgAdmin', 'Zapisano: ' + fmtKm(r.przejazd.km) + ' (' + dataPL(r.przejazd.data) + ').', 'ok');
+      czysc(['aPrzed', 'aPo', 'aSkad', 'aDokad', 'aCel']); ladujFlote();
+    }).catch(function (e) { blad(e, 'msgAdmin'); }).then(function () { b.disabled = false; });
+  }
+</script>
+</body>
+</html>
