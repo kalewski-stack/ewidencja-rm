@@ -177,7 +177,7 @@ Czasem dostaniesz ode mnie plik `rolka-aktualizacja.zip` z poprawkami programu. 
 3. Przeciągnij folder `src` na folder `reelcut` na Pulpicie. Windows zapyta, czy scalić foldery albo zastąpić pliki: potwierdź („Tak” albo „Zamień pliki w miejscu docelowym”).
 4. Kliknij dwa razy `start.bat`, jak zawsze.
 
-**Jak sprawdzić, że aktualizacja weszła:** na samym dole strony Rolki jest wiersz „Wersje: Rolka …, ffmpeg …”. Poprzednia wersja programu nie miała tam informacji o ffmpeg, więc jeśli ją widzisz, aktualizacja weszła.
+**Jak sprawdzić, że aktualizacja weszła:** na samym dole strony Rolki jest wiersz „Wersje: Rolka 1.1.1, ffmpeg …” (numer Rolki 1.1.1 albo wyższy). Poprzednia wersja programu nie miała tam informacji o ffmpeg, więc jeśli ją widzisz, aktualizacja weszła.
 
 ## Słowniczek
 
