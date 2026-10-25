@@ -55,7 +55,7 @@ Wszystko liczy się na Twoim komputerze. Żaden plik nie jest nigdzie wysyłany.
 
 | Co | Po co | Jak zainstalować |
 |---|---|---|
-| **ffmpeg** (z ffprobe) | cały montaż | macOS: `brew install ffmpeg` · Windows: `winget install Gyan.FFmpeg` · Linux: `sudo apt install ffmpeg` |
+| **ffmpeg** 4.4 lub nowszy (z ffprobe) | cały montaż | macOS: `brew install ffmpeg` · Windows: `winget install Gyan.FFmpeg` · Linux: `sudo apt install ffmpeg` |
 | **Python 3.9+** | uruchamia narzędzie | <https://www.python.org/downloads/> |
 | `faster-whisper` *(opcjonalnie)* | napisy (rozpoznawanie mowy) | `pip install faster-whisper` (przy pierwszym użyciu pobiera model, ok. 500 MB dla „small") |
 | `pillow` *(opcjonalnie)* | grafiki na wideo i napisy w kroju marki (szablony `format2`, `format3`, `format4` i `motion`; w trybie motion cały obraz) | `pip install pillow` |
@@ -176,7 +176,7 @@ python rolka.py style user/moj_szablon -o karta.md
 - **Nie ma muzyki ani efektów dźwiękowych**: we wzorcu też ich nie ma, to sam głos.
 - **Nagrania HDR** (np. iPhone w Dolby Vision) mogą wyjść wyblakłe. Nagraj w SDR.
 - **Pionowe zbliżenia z 1080p są miękkie** przy dużym zoomie. Zmniejsz `--max-zoom` albo nagraj w 4K.
-- Przetestowane: Linux, ffmpeg 6.1, Python 3.13 (składnia sprawdzona dla 3.9+). Na Windows i macOS nie uruchamiałem.
+- Przetestowane: Linux, Python 3.13 (składnia sprawdzona dla 3.9+). Cały montaż szablonów Format 1 do 4 (pion i poziom) przeszedł na ffmpeg 4.4, 5.1 i 6.0, Format 2 także na 6.1 i 9.0; sam łańcuch dźwięku sprawdza `tests/test_audio_chain.py` na wersjach z zmiennej `REELCUT_TEST_FFMPEGS`. Na Windows i macOS sam nie uruchamiałem, a wersję ffmpeg użytkownika widać w stopce strony i w komunikacie błędu.
 - Szanuj prawa autorskie: używaj tylko własnych nagrań i B-rollu oraz muzyki, do których masz prawa.
 
 ## Testy
