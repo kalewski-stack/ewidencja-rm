@@ -49,6 +49,7 @@
   .chips{display:flex;gap:8px;flex-wrap:wrap}
   .chip{flex:1 1 auto;min-width:64px;padding:10px 14px;border:1px solid var(--piasek);background:var(--biel);border-radius:999px;font:inherit;font-size:15px;color:var(--grafit);cursor:pointer}
   .chip[aria-pressed=true]{background:var(--grafit);color:var(--biel);border-color:var(--grafit)}
+  .chip.dwie{white-space:pre-line;line-height:1.25;padding-top:12px;padding-bottom:12px}
   .chip.zajety{opacity:.5;border-style:dashed}
   .chips.miejsca{display:grid;grid-template-columns:repeat(6,1fr)}
   .chips.miejsca .chip{grid-column:span 2;min-width:0;padding-left:6px;padding-right:6px}
@@ -123,6 +124,8 @@
   .mnav button{border:1px solid var(--piasek);background:var(--biel);border-radius:999px;width:44px;height:44px;font:inherit;font-size:20px;cursor:pointer;color:var(--grafit)}
   .mnav strong{font-size:18px;font-weight:600}
   .modal-bg{position:fixed;inset:0;background:rgba(56,56,56,.6);display:none;align-items:flex-end;justify-content:center;z-index:9}
+  #modalBg{z-index:10}
+  .modal.duzy{max-height:92vh;overflow:auto}
   .modal-bg.on{display:flex}
   .modal{background:var(--biel);border-radius:var(--r-duze) var(--r-duze) 0 0;padding:24px 20px calc(24px + env(safe-area-inset-bottom));width:100%;max-width:520px}
   .modal p{margin:0 0 18px;font-size:17px}
@@ -166,6 +169,10 @@
   .termin .tw{display:flex;justify-content:space-between;align-items:center;gap:8px}
   .termin .tw strong{font-size:15px}
   .termin small{display:block;font-size:12px;color:var(--szary);font-weight:300;margin-top:2px}
+  .dodatkowe{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+  .dodatkowe .btn{padding:14px 8px}
+  .wroc{margin:-4px 0 8px}
+  .lista .grupa{flex:1}
   /* ekran klucza */
   #ekran-klucz{display:none;min-height:100vh;padding:32px 20px}
   #ekran-klucz.on{display:block}
@@ -218,51 +225,44 @@
 
     <div class="powitanie hidden" id="powitanie"></div>
 
-    <!-- start -->
-    <div id="blokStart">
+    <!-- krok 1 i 2: wybór pojazdu i potwierdzenie licznika -->
+    <div id="blokWybor">
       <div class="card">
-        <div class="field">
-          <label>Pojazd</label>
-          <div class="chips miejsca" id="jPojazdy"></div>
-          <div id="jPojazdInfo" class="hint"></div>
-        </div>
-        <div class="field"><label for="jLicznik">Licznik przed jazdą (km)</label><input type="number" id="jLicznik" inputmode="numeric" min="0" step="1" placeholder="odczyt z licznika"></div>
-        <div class="field">
-          <label>Skąd wyruszasz</label>
-          <div class="chips miejsca" id="jMiejsca"></div>
-          <input type="text" id="jSkad" placeholder="lub wpisz miejscowość i adres" style="margin-top:8px">
-        </div>
-        <div class="field"><label for="jCel">Cel przejazdu</label><input type="text" id="jCel" placeholder="np. odbiór darów od firmy Kowalski" autocomplete="off"><p class="hint">Napisz konkretnie, po co jedziesz. Nie wystarczy „spotkanie” ani „sprawy Fundacji”.</p></div>
-        <details>
-          <summary>Trasa i uwagi (opcjonalnie)</summary>
-          <div class="field" style="margin-top:8px"><label for="jTrasa">Ważniejsze punkty trasy</label><input type="text" id="jTrasa" placeholder="np. Poznań – Kalisz – Ostrów"></div>
-          <div class="field"><label for="jUwagi">Uwagi</label><input type="text" id="jUwagi" placeholder="np. przewóz palet z darami"></div>
-        </details>
+        <label>Którym pojazdem jedziesz?</label>
+        <div class="chips miejsca" id="jPojazdy"></div>
+        <div id="jPojazdInfo"></div>
       </div>
-      <label class="kontrola" for="jKontrola">
-        <input type="checkbox" id="jKontrola">
-        <span>Sprawdziłem/am pojazd przed jazdą<small>Licznik i paliwo, widoczne uszkodzenia, opony i światła, dokumenty i wyposażenie. Usterki zgłoś przed wyjazdem.</small></span>
-      </label>
-      <div style="margin-top:14px"><button class="big start" id="btnStart">▶ Start jazdy</button></div>
+      <div class="card hidden" id="blokLicznik">
+        <h3 id="lTytul"></h3>
+        <div class="wynik"><span class="mini">Ostatni zapisany stan licznika</span><br><b id="lStan">—</b><div class="mini" id="lOpis"></div></div>
+        <p style="margin:12px 0 0;font-size:16px"><b>Sprawdź, czy zgadza się z licznikiem w aucie.</b></p>
+        <div class="field hidden" id="lReczny" style="margin-top:12px"><label for="jLicznik">Aktualny stan licznika (km)</label><input type="number" id="jLicznik" inputmode="numeric" min="0" step="1"></div>
+        <div class="field hidden" id="lSkadBox" style="margin-top:12px"><label>Skąd wyruszasz (pierwszy zapis tego pojazdu)</label>
+          <div class="chips miejsca" id="jMiejsca"></div><input type="text" id="jSkad" placeholder="lub wpisz miejscowość i adres" style="margin-top:8px"></div>
+        <div class="row" style="margin-top:14px">
+          <div><button class="btn" id="btnDopisz">Dopisz ręcznie</button></div>
+          <div><button class="btn primary" id="btnOk">OK</button></div>
+        </div>
+        <p class="hint">Klikając OK potwierdzasz, że licznik się zgadza i że sprawdziłeś/aś pojazd: uszkodzenia, opony, światła, dokumenty. Usterki zgłoś przyciskiem poniżej.</p>
+      </div>
     </div>
 
-    <!-- koniec -->
-    <div id="blokKoniec" class="hidden">
+    <!-- w trasie -->
+    <div id="blokTrasa" class="hidden">
       <div class="card">
-        <div class="field"><label for="kLicznik">Licznik po jeździe (km)</label><input type="number" id="kLicznik" inputmode="numeric" min="0" step="1" placeholder="odczyt z licznika"></div>
-        <div class="wynik" id="kWynik">Wpisz stan licznika, a policzę kilometry.</div>
-        <div class="field" style="margin-top:14px">
-          <label>Gdzie skończyłeś/aś</label>
-          <div class="chips miejsca" id="kMiejsca"></div>
-          <input type="text" id="kDokad" placeholder="lub wpisz miejscowość i adres" style="margin-top:8px">
-        </div>
+        <div class="field"><label for="kCel">Cel przejazdu</label><input type="text" id="kCel" placeholder="np. odbiór darów od firmy Kowalski" autocomplete="off"><p class="hint">Napisz konkretnie, po co jedziesz. Nie wystarczy „spotkanie” ani „sprawy Fundacji”.</p></div>
         <details>
           <summary>Trasa i uwagi (opcjonalnie)</summary>
-          <div class="field" style="margin-top:8px"><label for="kTrasa">Ważniejsze punkty trasy</label><input type="text" id="kTrasa"></div>
-          <div class="field"><label for="kUwagi">Uwagi</label><input type="text" id="kUwagi" placeholder="np. zatankowano, zgłoszono usterkę"></div>
+          <div class="field" style="margin-top:8px"><label for="kTrasa">Ważniejsze punkty trasy</label><input type="text" id="kTrasa" placeholder="np. Poznań – Kalisz – Ostrów"></div>
+          <div class="field"><label for="kUwagi">Uwagi</label><input type="text" id="kUwagi" placeholder="np. przewóz palet z darami"></div>
         </details>
       </div>
-      <button class="big stop" id="btnKoniec">■ Koniec jazdy</button>
+      <button class="big stop" id="btnZdaj">■ Zdaj pojazd</button>
+    </div>
+
+    <div class="dodatkowe">
+      <button class="btn" id="btnTankowanie">⛽ Tankowanie</button>
+      <button class="btn" id="btnUsterka">⚠ Usterka</button>
     </div>
 
     <div class="msg" id="msgJazda"></div>
@@ -356,6 +356,8 @@
 
   <!-- ===================== KOSZTY ===================== -->
   <section class="ekran" id="ekran-koszty">
+    <button class="btn ghost wroc" data-wroc>‹ Wróć do jazdy</button>
+    <h2 style="margin:0 0 12px;font-size:20px;font-weight:600">Tankowanie i koszty</h2>
     <div class="card">
       <div class="field"><label>Rodzaj kosztu</label><div class="chips trzy" id="cTypy"></div></div>
       <div class="field"><label>Pojazd</label><div class="chips miejsca" id="cPojazdy"></div></div>
@@ -378,6 +380,8 @@
 
   <!-- ===================== ZGŁOŚ ===================== -->
   <section class="ekran" id="ekran-zglos">
+    <button class="btn ghost wroc" data-wroc>‹ Wróć do jazdy</button>
+    <h2 style="margin:0 0 12px;font-size:20px;font-weight:600">Zgłoś usterkę lub zdarzenie</h2>
     <div class="card hidden piasek" id="zKroki">
       <h3>Najpierw bezpieczeństwo</h3>
       <ol class="kroki">
@@ -400,11 +404,20 @@
 
   <!-- ===================== FLOTA (admin) ===================== -->
   <section class="ekran" id="ekran-flota">
+    <div class="chips" id="fTyp" style="margin-bottom:12px"></div>
     <div class="mnav">
       <button id="fPrev" aria-label="Poprzedni miesiąc">‹</button>
       <strong id="fNazwa">—</strong>
       <button id="fNext" aria-label="Następny miesiąc">›</button>
     </div>
+    <div class="card" id="fPods">
+      <div class="pods">
+        <div class="pod glowny"><span>Wszystkie pojazdy razem</span><b id="fKm">—</b><small id="fKmOpis"></small></div>
+        <div class="pod"><span>Przejazdy</span><b id="fPrzejazdy">—</b><small id="fPrzejazdyOpis"></small></div>
+        <div class="pod"><span>Koszty</span><b id="fKoszty">—</b><small id="fKosztyOpis"></small></div>
+      </div>
+    </div>
+    <div class="card hidden" id="fKierowcyKarta"><h3>Kierowcy</h3><div class="lista" id="fKierowcy"></div></div>
     <div id="fAlerty"></div>
     <div class="card" style="padding:8px 12px">
       <table>
@@ -442,6 +455,36 @@
     <a class="btn" id="linkArkusz" href="#" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none">Otwórz arkusz (raporty miesięczne)</a>
     <p class="hint">Linki, klucze i kody QR kierowców: w arkuszu, menu <b>Pojazdy → Odśwież zakładkę Linki</b>. Raport do księgowości: <b>Pojazdy → Raport miesiąca</b>.</p>
     <div class="msg" id="msgFlota"></div>
+  </section>
+
+  <!-- ===================== AUTA (admin): którym autem kto jechał ===================== -->
+  <section class="ekran" id="ekran-auta">
+    <div class="card"><label for="auSel">Pojazd</label><select id="auSel"></select></div>
+    <div class="chips" id="auTyp" style="margin-bottom:12px"></div>
+    <div class="mnav"><button id="auPrev" aria-label="Wcześniej">‹</button><strong id="auNazwa">—</strong><button id="auNext" aria-label="Później">›</button></div>
+    <div class="card"><div class="pods">
+      <div class="pod glowny"><span>Przebieg w okresie</span><b id="auKm">—</b><small id="auKmOpis"></small></div>
+      <div class="pod"><span>Przejazdy</span><b id="auLiczba">—</b></div>
+      <div class="pod"><span>Kierowców</span><b id="auKierowcy">—</b></div>
+    </div></div>
+    <div class="card hidden" id="auKarta"><h3>Kto jechał tym autem</h3><div class="lista" id="auLista"></div></div>
+    <div class="card" style="padding:8px 12px"><table><thead><tr><th>Dzień</th><th>Kierowca i trasa</th><th class="n">Km</th></tr></thead><tbody id="auTabela"></tbody></table></div>
+    <div class="msg" id="msgAuta"></div>
+  </section>
+
+  <!-- ===================== LUDZIE (admin): kto którym autem jechał ===================== -->
+  <section class="ekran" id="ekran-ludzie">
+    <div class="card"><label for="luSel">Pracownik</label><select id="luSel"></select></div>
+    <div class="chips" id="luTyp" style="margin-bottom:12px"></div>
+    <div class="mnav"><button id="luPrev" aria-label="Wcześniej">‹</button><strong id="luNazwa">—</strong><button id="luNext" aria-label="Później">›</button></div>
+    <div class="card"><div class="pods">
+      <div class="pod glowny"><span>Przebieg w okresie</span><b id="luKm">—</b><small id="luKmOpis"></small></div>
+      <div class="pod"><span>Przejazdy</span><b id="luLiczba">—</b></div>
+      <div class="pod"><span>Pojazdów</span><b id="luPojazdy">—</b></div>
+    </div></div>
+    <div class="card hidden" id="luKarta"><h3>Którymi autami jechał/a</h3><div class="lista" id="luLista"></div></div>
+    <div class="card" style="padding:8px 12px"><table><thead><tr><th>Dzień</th><th>Pojazd i trasa</th><th class="n">Km</th></tr></thead><tbody id="luTabela"></tbody></table></div>
+    <div class="msg" id="msgLudzie"></div>
   </section>
 
   <!-- ===================== POJAZDY (admin) ===================== -->
@@ -487,6 +530,21 @@
 </main>
 </div>
 
+<div class="modal-bg" id="zdajBg">
+  <div class="modal duzy">
+    <h3 style="margin:0 0 12px;font-size:20px;font-weight:600">Zdaj pojazd</h3>
+    <div class="field"><label for="zLicznik">Aktualny stan licznika (km)</label><input type="number" id="zLicznik" inputmode="numeric" min="0" step="1" placeholder="odczyt z licznika"></div>
+    <div class="wynik" id="zWynik">Wpisz stan licznika, a policzę kilometry.</div>
+    <div class="field" style="margin-top:14px">
+      <label>Gdzie zostawiasz pojazd</label>
+      <div class="chips miejsca" id="kMiejsca"></div>
+      <input type="text" id="kDokad" placeholder="lub wpisz miejscowość i adres" style="margin-top:8px">
+    </div>
+    <div class="row"><button class="btn" id="zAnuluj">Anuluj</button><button class="btn primary" id="zOk">Zdaj pojazd</button></div>
+    <div class="msg" id="msgZdaj"></div>
+  </div>
+</div>
+
 <div class="modal-bg" id="modalBg">
   <div class="modal">
     <p id="modalTekst"></p>
@@ -505,7 +563,7 @@
   var $ = function (id) { return document.getElementById(id); };
   var KLUCZ = '', JA = '', ADMIN = false, CFG = null, DZIS = '';
   var POJAZDY = [], tyk = null, stanJ = null, komunikatJazdy = null;
-  var mies = '', fMies = '', mOsoba = '', fWybrany = '';
+  var mies = '', fMies = '', mOsoba = '', fWybrany = '', fTyp = 'M', AU = { typ: 'M', baza: '' }, LU = { typ: 'M', baza: '' };
   var wyb = { j: '', c: '', z: '' };      // wybrane pojazdy (jazda, koszt, zgłoszenie)
   var cTyp = '', cDok = '', cZgoda = '', zTyp = '', pRodzaj = '', pTryb = '', pKto = '', pForma = '';
 
@@ -628,8 +686,9 @@
   var zbudowane = false;
   function zbudujUI() {
     $('kto').innerHTML = '<span>' + esc(JA) + '</span><small>' + (ADMIN ? 'administrator' : 'ewidencja pojazdów') + '</small>';
-    var zak = [['jazda', 'Jazda'], ['miesiac', 'Miesiąc'], ['prywatny', 'Prywatny'], ['koszty', 'Koszty'], ['zglos', 'Zgłoś']];
-    if (ADMIN) { zak.push(['flota', 'Flota']); zak.push(['pojazdy', 'Pojazdy']); }
+    var zak = [['jazda', 'Jazda']];
+    if (ADMIN) zak.push(['flota', 'Podsumowanie'], ['auta', 'Auta'], ['ludzie', 'Ludzie'], ['pojazdy', 'Pojazdy']);
+    zak.push(['miesiac', 'Miesiąc'], ['prywatny', 'Prywatny']);
     $('nav').innerHTML = '';
     zak.forEach(function (z) {
       var b = document.createElement('button'); b.textContent = z[1]; b.dataset.ekran = z[0];
@@ -640,21 +699,24 @@
     wypelnijListy();
     podpowiedzInstalacji();
     var e = odczytaj('pojazdy_ekran');
-    if (!e || zak.map(function (z) { return z[0]; }).indexOf(e) === -1 || (e === 'flota' || e === 'pojazdy') && !ADMIN) e = 'jazda';
+    if (!e || zak.map(function (z) { return z[0]; }).indexOf(e) === -1 || ['flota', 'auta', 'ludzie', 'pojazdy'].indexOf(e) >= 0 && !ADMIN) e = 'jazda';
     pokaz(e);
   }
-  var EKRANY = ['jazda', 'miesiac', 'prywatny', 'koszty', 'zglos', 'flota', 'pojazdy'];
+  var EKRANY = ['jazda', 'miesiac', 'prywatny', 'koszty', 'zglos', 'flota', 'auta', 'ludzie', 'pojazdy'];
   function pokaz(nazwa) {
+    var podekran = nazwa === 'koszty' || nazwa === 'zglos', wTle = podekran ? 'jazda' : nazwa;
     Array.prototype.forEach.call($('nav').children, function (b) {
-      var on = b.dataset.ekran === nazwa; b.setAttribute('aria-selected', on);
+      var on = b.dataset.ekran === wTle; b.setAttribute('aria-selected', on);
       if (on && b.scrollIntoView) b.scrollIntoView({ block: 'nearest', inline: 'center' });
     });
     EKRANY.forEach(function (e) { $('ekran-' + e).className = 'ekran' + (e === nazwa ? ' on' : ''); });
-    zapamietaj('pojazdy_ekran', nazwa);
+    if (!podekran) zapamietaj('pojazdy_ekran', nazwa);
     window.scrollTo(0, 0);
     if (nazwa === 'jazda') odswiezJazde();
     if (nazwa === 'miesiac') ladujMiesiac();
     if (nazwa === 'flota') ladujFlote();
+    if (nazwa === 'auta') ladujAuta();
+    if (nazwa === 'ludzie') ladujLudzi();
     if (nazwa === 'pojazdy') ladujPojazdy();
   }
   function podpowiedzInstalacji() {
@@ -669,7 +731,7 @@
   }
 
   function listaPojazdow(zZajetymi) {
-    return POJAZDY.map(function (p) { return [p.rej, p.rej, zZajetymi && p.wTrasie ? 'zajety' : '']; });
+    return POJAZDY.map(function (p) { return [p.rej, p.rej.replace(/ /g, '\u00a0') + '\n' + p.nazwa, 'dwie' + (zZajetymi && p.wTrasie ? ' zajety' : '')]; });
   }
   function ustawPojazd(rej) {
     wyb.j = wyb.c = wyb.z = rej;
@@ -678,13 +740,14 @@
   }
   function wypelnijListy() {
     var ostatni = odczytaj('pojazdy_ostatni') || '';
-    wyb.j = poj(ostatni) ? ostatni : (POJAZDY.length === 1 ? POJAZDY[0].rej : '');
-    wyb.c = wyb.j; wyb.z = wyb.j;
+    wyb.j = POJAZDY.length === 1 ? POJAZDY[0].rej : '';        // pierwszy ekran: kierowca wybiera pojazd sam
+    wyb.c = wyb.z = wyb.j || (poj(ostatni) ? ostatni : '');
     chips('jPojazdy', listaPojazdow(true), wyb.j, function (v) { ustawPojazd(v); wybranoPojazd(); });
     chips('jMiejsca', CFG.miejsca, '', function (v) { $('jSkad').value = v; });
     chips('kMiejsca', CFG.miejsca, '', function (v) { $('kDokad').value = v; });
     chips('cPojazdy', listaPojazdow(false), wyb.c, ustawPojazd);
     chips('zPojazdy', listaPojazdow(false), wyb.z, ustawPojazd);
+    cTyp = 'Paliwo'; zTyp = 'Usterka';
     chips('cTypy', CFG.typyKosztow, cTyp, function (v) { cTyp = v; przelaczKoszt(); });
     chips('cDokumenty', CFG.dokumenty, cDok, function (v) { cDok = v; });
     chips('cZgoda', ['Mam zgodę Koordynatora', 'Sytuacja awaryjna'], cZgoda, function (v) { cZgoda = v; });
@@ -693,8 +756,6 @@
     chips('pTryb', ['Jednorazowa podróż', 'Regularne przejazdy lokalne'], pTryb, function (v) { pTryb = v; });
     chips('pZgodaKto', CFG.zatwierdzajacy, pKto, function (v) { pKto = v; });
     chips('pZgodaForma', CFG.formyZgody, pForma, function (v) { pForma = v; });
-    // etykiety pojazdów: rej + opis w podpowiedzi
-    ['jPojazdy', 'cPojazdy', 'zPojazdy'].forEach(function (id) { Array.prototype.forEach.call($(id).children, function (c) { var p = poj(c.dataset.val); if (p) c.title = p.nazwa; }); });
     opcje('rPojazd', POJAZDY.map(function (p) { return [p.rej, p.rej + ' · ' + p.nazwa]; }), wyb.j);
     $('rData').max = DZIS; $('rData').min = CFG.najwczesniejszaData; $('rData').value = DZIS;
     $('cData').max = DZIS; $('cData').value = DZIS;
@@ -703,9 +764,15 @@
     pRodzaj = odczytaj('pojazdy_prodzaj') || ''; if (pRodzaj) zaznacz('pRodzaje', pRodzaj);
     przelaczKoszt(); przeliczPryw(); wybranoPojazd();
     if (ADMIN) {
-      opcje('mOsoba', CFG.osoby, mOsoba); opcje('aOsoba', CFG.osoby, JA);
-      opcje('aPojazd', POJAZDY.map(function (p) { return [p.rej, p.rej + ' · ' + p.nazwa]; }));
-      $('mOsobaBox').className = 'card'; $('aData').value = DZIS; $('aData').max = DZIS;
+      opcje('aOsoba', CFG.osoby, JA);
+      var opis = POJAZDY.map(function (p) { return [p.rej, p.rej + ' · ' + p.nazwa]; });
+      opcje('aPojazd', opis); opcje('auSel', opis); opcje('luSel', CFG.osoby, JA);
+      $('aData').value = DZIS; $('aData').max = DZIS;
+      var okr = [['M', 'Miesiąc'], ['R', 'Rok']];
+      chips('auTyp', okr, AU.typ, function (v) { AU.typ = v; ladujAuta(); });
+      chips('luTyp', okr, LU.typ, function (v) { LU.typ = v; ladujLudzi(); });
+      chips('fTyp', okr, fTyp, function (v) { fTyp = v; fWybrany = ''; ladujFlote(); });
+      AU.baza = LU.baza = DZIS.slice(0, 7);
       $('linkArkusz').href = CFG.arkusz || '#';
     }
   }
@@ -713,15 +780,23 @@
   function zbudujFormularze() {
     $('jSkad').addEventListener('input', function () { zaznacz('jMiejsca', $('jSkad').value); });
     $('kDokad').addEventListener('input', function () { zaznacz('kMiejsca', $('kDokad').value); });
-    $('kLicznik').addEventListener('input', przeliczKoniec);
-    $('btnStart').onclick = start;
-    $('btnKoniec').onclick = function () { koniec(false); };
+    $('zLicznik').addEventListener('input', przeliczKoniec);
+    $('btnOk').onclick = start;
+    $('btnDopisz').onclick = function () { manualnyLicznik = true; $('lReczny').className = 'field'; $('btnDopisz').parentNode.className = 'hidden'; $('jLicznik').focus(); $('jLicznik').select(); };
+    $('btnZdaj').onclick = otworzZdaj;
+    $('zAnuluj').onclick = function () { $('zdajBg').className = 'modal-bg'; };
+    $('zOk').onclick = function () { koniec(false); };
+    $('btnTankowanie').onclick = function () { otworzPodekran('koszty'); };
+    $('btnUsterka').onclick = function () { otworzPodekran('zglos'); };
+    Array.prototype.forEach.call(document.querySelectorAll('[data-wroc]'), function (b) { b.onclick = function () { pokaz('jazda'); }; });
+    var przesun = function (st, o, f) { return function () { st.baza = przesunOkres(st.typ, st.baza, o); f(); }; };
+    $('auPrev').onclick = przesun(AU, -1, ladujAuta); $('auNext').onclick = przesun(AU, 1, ladujAuta); $('auSel').onchange = ladujAuta;
+    $('luPrev').onclick = przesun(LU, -1, ladujLudzi); $('luNext').onclick = przesun(LU, 1, ladujLudzi); $('luSel').onchange = ladujLudzi;
     $('btnReczny').onclick = reczny;
     $('mPrev').onclick = function () { mies = przesunMies(mies, -1); ladujMiesiac(); };
     $('mNext').onclick = function () { mies = przesunMies(mies, 1); ladujMiesiac(); };
-    $('mOsoba').onchange = function () { mOsoba = $('mOsoba').value; ladujMiesiac(); };
-    $('fPrev').onclick = function () { fMies = przesunMies(fMies, -1); fWybrany = ''; ladujFlote(); };
-    $('fNext').onclick = function () { fMies = przesunMies(fMies, 1); fWybrany = ''; ladujFlote(); };
+    $('fPrev').onclick = function () { fMies = przesunOkres(fTyp, fMies, -1); fWybrany = ''; ladujFlote(); };
+    $('fNext').onclick = function () { fMies = przesunOkres(fTyp, fMies, 1); fWybrany = ''; ladujFlote(); };
     ['pKm', 'pPojemnosc'].forEach(function (id) { $(id).addEventListener('input', przeliczPryw); });
     $('btnPryw').onclick = wyslijPryw;
     $('btnKoszt').onclick = wyslijKoszt;
@@ -734,21 +809,27 @@
   }
 
   /* ---------- JAZDA ---------- */
-  function wybranoPojazd(zachowajLicznik) {
-    var p = poj(wyb.j), el = $('jPojazdInfo');
-    el.innerHTML = '';
-    if (!p) { el.textContent = 'Wybierz pojazd.'; return; }
-    var t = '<b>' + esc(p.nazwa) + '</b> · licznik ' + fmtKm(p.licznik);
-    el.innerHTML = t;
-    if (p.wTrasie) el.innerHTML += '<div class="alert blad">W trasie: ' + esc(p.wTrasie.kto) + ' od ' + esc(p.wTrasie.od) + '. Poczekaj na zakończenie jazdy.</div>';
-    p.ostrzezenia.forEach(function (o) { el.innerHTML += '<div class="alert ' + (o.poziom === 'blad' ? 'blad' : '') + '">' + esc(o.tekst) + '</div>'; });
-    if (!zachowajLicznik || !$('jLicznik').value) $('jLicznik').value = p.licznik || '';
+  var manualnyLicznik = false;
+  function wybranoPojazd() {
+    var p = poj(wyb.j), info = $('jPojazdInfo'), box = $('blokLicznik');
+    info.innerHTML = ''; manualnyLicznik = false;
+    $('lReczny').className = 'field hidden'; $('btnDopisz').parentNode.className = '';
+    if (!p) { box.className = 'card hidden'; return; }
+    p.ostrzezenia.forEach(function (o) { info.innerHTML += '<div class="alert ' + (o.poziom === 'blad' ? 'blad' : '') + '">' + esc(o.tekst) + '</div>'; });
+    if (p.wTrasie) { info.innerHTML += '<div class="alert blad">W trasie: ' + esc(p.wTrasie.kto) + ' od ' + esc(p.wTrasie.od) + '. Poczekaj, aż zda pojazd.</div>'; box.className = 'card hidden'; return; }
+    box.className = 'card';
+    $('lTytul').textContent = p.nazwa + ' · ' + p.rej;
+    $('lStan').textContent = fmtKm(p.licznik);
+    $('lOpis').textContent = p.ostatni ? 'po jeździe: ' + p.ostatni.kierowca + ', ' + dataPL(p.ostatni.data) + (p.ostatni.koniec ? ' o ' + p.ostatni.koniec : '') : 'stan początkowy z wykazu pojazdów';
+    $('jLicznik').value = p.licznik;
+    $('lSkadBox').className = p.ostatni ? 'field hidden' : 'field';
+    komunikat('msgJazda', '');
   }
   function odswiezJazde() {
     rpc('konfig').then(function (c) {
       POJAZDY = c.pojazdy; DZIS = c.dzisiaj;
       chips('jPojazdy', listaPojazdow(true), wyb.j, function (v) { ustawPojazd(v); wybranoPojazd(); });
-      if (!stanJ || !stanJ.otwarta) wybranoPojazd(true);
+      if (!stanJ || !stanJ.otwarta) wybranoPojazd();
       return rpc('stanJazdy');
     }).then(pokazJazde).catch(function (e) { blad(e, 'msgJazda'); });
   }
@@ -757,8 +838,8 @@
     $('statusData').textContent = dataPL(s.dzis);
     if (tyk) { clearInterval(tyk); tyk = null; }
     var o = s.otwarta, st = $('status'), pow = $('powitanie');
-    $('blokStart').className = o ? 'hidden' : '';
-    $('blokKoniec').className = o ? '' : 'hidden';
+    $('blokWybor').className = o ? 'hidden' : '';
+    $('blokTrasa').className = o ? '' : 'hidden';
     pow.className = 'powitanie hidden'; pow.innerHTML = '';
     var kmDzis = 0; s.dzisiejsze.forEach(function (p) { if (p.status === 'Zakończony') kmDzis += p.km; });
 
@@ -768,65 +849,81 @@
       $('statusSub').textContent = o.rej + ' · licznik na starcie ' + fmtKm(o.licznikPrzed);
       var licz = function () { var d = naMin(teraz()) - naMin(o.start); if (o.data !== s.dzis) d += 1440 * Math.max(1, Math.round((new Date(s.dzis) - new Date(o.data)) / 864e5)); $('statusCzas').textContent = fmtMin(Math.max(0, d)); };
       licz(); tyk = setInterval(licz, 30000);
-      if (o.flaga) { pow.className = 'powitanie'; pow.innerHTML = '<b>Start zapisany.</b>' + esc(o.flaga) + '. Administrator to zobaczy, wyjaśnij w uwagach, jeśli ktoś jechał bez wpisu.'; }
+      if (!$('kCel').value && o.cel) $('kCel').value = o.cel;
+      if (o.flaga && o.flaga.indexOf('Luka') === 0) { pow.className = 'powitanie'; pow.innerHTML = '<b>Start zapisany.</b>' + esc(o.flaga) + '. Administrator to zobaczy. Jeśli ktoś jechał bez wpisu, napisz to w uwagach.'; }
       else if (komunikatJazdy && komunikatJazdy.typ === 'start') { pow.className = 'powitanie'; pow.innerHTML = komunikatJazdy.html; }
-            przeliczKoniec();
     } else {
       st.className = 'status';
       $('statusEtykieta').textContent = 'Dziś';
       $('statusCzas').textContent = kmDzis ? fmtKm(kmDzis) : '—';
-      $('statusSub').textContent = s.dzisiejsze.length ? liczDni(s.dzisiejsze.length, 'przejazd', 'przejazdy', 'przejazdów') : 'Jeszcze nie jechano. Wybierz pojazd i kliknij Start.';
+      $('statusSub').textContent = s.dzisiejsze.length ? liczDni(s.dzisiejsze.length, 'przejazd', 'przejazdy', 'przejazdów') : 'Wybierz pojazd, którym jedziesz.';
       if (komunikatJazdy && komunikatJazdy.typ === 'koniec') { pow.className = 'powitanie koniec'; pow.innerHTML = komunikatJazdy.html; }
-      if (!$('jSkad').value && s.ostatni) { $('jSkad').value = s.ostatni.dokad; zaznacz('jMiejsca', s.ostatni.dokad); }
     }
-    // lista dzisiejszych
     $('kartaDzis').className = s.dzisiejsze.length ? 'card' : 'card hidden';
     $('listaDzis').innerHTML = s.dzisiejsze.map(function (p) {
       var km = p.status === 'Zakończony' ? fmtKm(p.km) : '<span class="pill toku">w trasie</span>';
-      return '<div><div class="tresc"><b>' + esc(p.start) + (p.koniec ? '–' + esc(p.koniec) : '') + '</b> · ' + esc(p.rej) + '<br>' + esc(p.skad) + (p.dokad ? ' → ' + esc(p.dokad) : '') + '<small>' + esc(p.cel) + '</small></div><div class="kw">' + km + '</div>' +
+      return '<div><div class="tresc"><b>' + esc(p.start) + (p.koniec ? '–' + esc(p.koniec) : '') + '</b> · ' + esc(p.rej) + '<br>' + esc(p.skad) + (p.dokad ? ' → ' + esc(p.dokad) : '') + '<small>' + esc(p.cel || '—') + '</small></div><div class="kw">' + km + '</div>' +
         '<button class="x" data-id="' + esc(p.id) + '" aria-label="Usuń wpis">✕</button></div>';
     }).join('');
-    Array.prototype.forEach.call($('listaDzis').querySelectorAll('.x'), function (b) {
-      b.onclick = function () { usunWpis(b.dataset.id); };
-    });
+    Array.prototype.forEach.call($('listaDzis').querySelectorAll('.x'), function (b) { b.onclick = function () { usunWpis(b.dataset.id); }; });
   }
   function przeliczKoniec() {
     var o = stanJ && stanJ.otwarta; if (!o) return;
-    var v = $('kLicznik').value, el = $('kWynik');
+    var v = $('zLicznik').value, el = $('zWynik');
     if (v === '') { el.innerHTML = 'Licznik na starcie: ' + fmtKm(o.licznikPrzed) + '. Wpisz stan na mecie, a policzę kilometry.'; return; }
     var km = Number(v) - o.licznikPrzed;
     el.innerHTML = km < 0 ? 'Licznik jest mniejszy niż na starcie (' + fmtKm(o.licznikPrzed) + '). Sprawdź odczyt.' : 'Przejechane: <b>' + fmtKm(km) + '</b>';
   }
   function start() {
-    var rej = wyb.j;
-    if (!rej) { komunikat('msgJazda', 'Wybierz pojazd.', 'err'); return; }
-    var d = { rej: rej, licznik: wartosc('jLicznik'), skad: wartosc('jSkad'), cel: wartosc('jCel'), trasa: wartosc('jTrasa'), uwagi: wartosc('jUwagi'), kontrola: $('jKontrola').checked };
-    var b = $('btnStart'); b.disabled = true; komunikat('msgJazda', '');
+    var p = poj(wyb.j);
+    if (!p) { komunikat('msgJazda', 'Wybierz pojazd.', 'err'); return; }
+    var lic = manualnyLicznik ? wartosc('jLicznik') : String(p.licznik);
+    if (manualnyLicznik && lic === '') { komunikat('msgJazda', 'Wpisz stan licznika.', 'err'); return; }
+    var d = { rej: p.rej, licznik: lic, skad: wartosc('jSkad'), kontrola: true };
+    var b = $('btnOk'); b.disabled = true; komunikat('msgJazda', '');
     rpc('startJazdy', d).then(function (r) {
-      zapamietaj('pojazdy_ostatni', rej);
-      komunikatJazdy = { typ: 'start', html: '<b>Szerokiej drogi! 🚗</b>Start zapisany o ' + esc(r.przejazd.start) + '. Po dojechaniu wpisz stan licznika i kliknij Koniec jazdy.' };
-      czysc(['jCel', 'jTrasa', 'jUwagi', 'jSkad']); $('jKontrola').checked = false; $('kLicznik').value = ''; $('kDokad').value = '';
+      zapamietaj('pojazdy_ostatni', p.rej);
+      komunikatJazdy = { typ: 'start', html: '<b>Szerokiej drogi! 🚗</b>Start zapisany o ' + esc(r.przejazd.start) + '. Wpisz cel przejazdu. Na końcu kliknij Zdaj pojazd i podaj stan licznika.' };
+      czysc(['jSkad', 'kCel', 'kTrasa', 'kUwagi']);
       return odswiezPoZapisie();
-    }).catch(function (e) { blad(e, 'msgJazda'); }).then(function () { b.disabled = false; });
+    }).then(function () { $('kCel').focus(); }).catch(function (e) { blad(e, 'msgJazda'); }).then(function () { b.disabled = false; });
   }
   function odswiezPoZapisie() {
     return rpc('konfig').then(function (c) { POJAZDY = c.pojazdy; chips('jPojazdy', listaPojazdow(true), wyb.j, function (v) { ustawPojazd(v); wybranoPojazd(); }); wybranoPojazd(); return rpc('stanJazdy'); }).then(pokazJazde);
   }
+  function otworzZdaj() {
+    var o = stanJ && stanJ.otwarta; if (!o) return;
+    if (!wartosc('kCel')) { komunikat('msgJazda', 'Najpierw wpisz cel przejazdu (po co jechałeś/aś).', 'err'); $('kCel').focus(); return; }
+    komunikat('msgJazda', '');
+    $('zLicznik').value = ''; $('kDokad').value = ''; zaznacz('kMiejsca', ''); komunikat('msgZdaj', ''); przeliczKoniec();
+    $('zdajBg').className = 'modal-bg on';
+    setTimeout(function () { $('zLicznik').focus(); }, 60);
+  }
   function koniec(potwierdz) {
-    var d = { licznik: wartosc('kLicznik'), dokad: wartosc('kDokad'), trasa: wartosc('kTrasa'), uwagi: wartosc('kUwagi'), potwierdz: !!potwierdz };
-    var b = $('btnKoniec'); b.disabled = true; komunikat('msgJazda', '');
+    var d = { licznik: wartosc('zLicznik'), dokad: wartosc('kDokad'), cel: wartosc('kCel'), trasa: wartosc('kTrasa'), uwagi: wartosc('kUwagi'), potwierdz: !!potwierdz };
+    var b = $('zOk'); b.disabled = true; komunikat('msgZdaj', '');
     rpc('koniecJazdy', d).then(function (r) {
       var p = r.przejazd;
-      komunikatJazdy = { typ: 'koniec', html: '<b>Jupi! Jesteś na miejscu. 🎉</b>Przejechane: ' + fmtKm(p.km) + ' (' + esc(p.skad) + ' → ' + esc(p.dokad) + '). Zaparkuj w bezpiecznym miejscu i zabierz kluczyki oraz karty.' +
-        '<span class="mini">Tankowałeś/aś albo płaciłeś/aś za parking? Dodaj koszt w zakładce Koszty. Zauważyłeś/aś usterkę? Zgłoś ją w zakładce Zgłoś.</span>' };
-      czysc(['kLicznik', 'kDokad', 'kTrasa', 'kUwagi']); zaznacz('kMiejsca', '');
+      $('zdajBg').className = 'modal-bg';
+      komunikatJazdy = { typ: 'koniec', html: '<b>Jupi! Pojazd zdany. 🎉</b>Przejechane: ' + fmtKm(p.km) + ' (' + esc(p.skad) + ' → ' + esc(p.dokad) + '). Zaparkuj w bezpiecznym miejscu i zabierz kluczyki oraz karty.' +
+        '<span class="mini">Tankowałeś/aś? Zauważyłeś/aś usterkę? Użyj przycisków poniżej.</span>' };
+      czysc(['zLicznik', 'kDokad', 'kCel', 'kTrasa', 'kUwagi']); zaznacz('kMiejsca', '');
+      if (POJAZDY.length !== 1) wyb.j = '';
       return odswiezPoZapisie();
     }).catch(function (e) {
       if (e && e.message && e.message.indexOf('POTWIERDZ:') === 0) {
         return pytaj(e.message.slice(10).trim()).then(function (t) { if (t) return koniec(true); });
       }
-      blad(e, 'msgJazda');
+      blad(e, 'msgZdaj');
     }).then(function () { b.disabled = false; });
+  }
+  function otworzPodekran(nazwa) {
+    var o = stanJ && stanJ.otwarta;
+    if (o) ustawPojazd(o.rej);
+    else if (poj(wyb.j)) ustawPojazd(wyb.j);
+    if (nazwa === 'koszty') { cTyp = 'Paliwo'; zaznacz('cTypy', cTyp); przelaczKoszt(); komunikat('msgKoszt', ''); }
+    if (nazwa === 'zglos') { zTyp = 'Usterka'; zaznacz('zTypy', zTyp); $('zKroki').className = 'card piasek hidden'; komunikat('msgZglos', ''); }
+    pokaz(nazwa);
   }
   function usunWpis(id) {
     pytaj('Usunąć ten wpis? Zostanie to zapisane w dzienniku zmian.').then(function (t) {
@@ -1030,14 +1127,63 @@
     }).then(ladujPojazdy).catch(function (e) { blad(e, 'msgPojazdForm'); }).then(function () { b.disabled = false; });
   }
 
+
+  /* ---------- AUTA i LUDZIE (admin) ---------- */
+  function okresDla(typ, baza) { return typ === 'R' ? baza.slice(0, 4) : baza; }
+  function nazwaOkresu(typ, baza) { return typ === 'R' ? baza.slice(0, 4) : nazwaMies(baza); }
+  function przesunOkres(typ, baza, o) { return typ === 'R' ? String(Number(baza.slice(0, 4)) + o) + '-' + baza.slice(5) : przesunMies(baza, o); }
+  function dzienRok(d) { return d.slice(8) + '.' + d.slice(5, 7) + '.' + d.slice(2, 4); }
+  function godziny(p) { return p.start ? esc(p.start) + (p.koniec ? '–' + esc(p.koniec) : '') : ''; }
+  function ladujAuta() {
+    var rej = $('auSel').value; if (!rej) return;
+    $('auNazwa').textContent = nazwaOkresu(AU.typ, AU.baza);
+    rpc('dziennikPojazdu', rej, okresDla(AU.typ, AU.baza)).then(function (d) {
+      komunikat('msgAuta', '');
+      $('auKm').textContent = d.km ? fmtKm(d.km) : '—';
+      $('auKmOpis').textContent = d.liczba ? (poj(rej) ? poj(rej).nazwa : '') : 'Brak przejazdów w tym okresie';
+      $('auLiczba').textContent = d.liczba || '—'; $('auKierowcy').textContent = d.kierowcy.length || '—';
+      lista('auKarta', 'auLista', d.kierowcy, function (k) {
+        return '<div><div class="tresc"><b>' + esc(k.imie) + '</b><small>' + liczDni(k.przejazdy, 'przejazd', 'przejazdy', 'przejazdów') + ' · ostatnio ' + dataPL(k.ostatnio) + '</small></div><div class="kw">' + fmtKm(k.km) + '</div></div>';
+      });
+      $('auTabela').innerHTML = d.przejazdy.length ? d.przejazdy.map(function (p) {
+        return '<tr><td><b>' + dzienRok(p.data) + '</b><small>' + godziny(p) + '</small></td><td><b>' + esc(p.kierowca) + '</b><small>' + esc(p.skad) + (p.dokad ? ' → ' + esc(p.dokad) : '') + ' · ' + esc(p.cel || '—') + '</small><small>licznik ' + esc(p.licznikPrzed) + (p.licznikPo !== '' ? '–' + esc(p.licznikPo) : '') + '</small></td><td class="n">' +
+          (p.status === 'Zakończony' ? fmtKm(p.km) : '<span class="pill toku">w trasie</span>') + '</td></tr>';
+      }).join('') : '<tr><td colspan="3" class="mini">Brak przejazdów.</td></tr>';
+    }).catch(function (e) { blad(e, 'msgAuta'); });
+  }
+  function ladujLudzi() {
+    var os = $('luSel').value; if (!os) return;
+    $('luNazwa').textContent = nazwaOkresu(LU.typ, LU.baza);
+    rpc('dziennikOsoby', os, okresDla(LU.typ, LU.baza)).then(function (d) {
+      komunikat('msgLudzie', '');
+      $('luKm').textContent = d.km ? fmtKm(d.km) : '—';
+      $('luKmOpis').textContent = d.liczba ? '' : 'Brak przejazdów w tym okresie';
+      $('luLiczba').textContent = d.liczba || '—'; $('luPojazdy').textContent = d.pojazdy.length || '—';
+      lista('luKarta', 'luLista', d.pojazdy, function (p) {
+        return '<div><div class="tresc"><b>' + esc(p.rej) + '</b> · ' + esc(p.nazwa) + '<small>' + liczDni(p.przejazdy, 'przejazd', 'przejazdy', 'przejazdów') + ' · ostatnio ' + dataPL(p.ostatnio) + '</small></div><div class="kw">' + fmtKm(p.km) + '</div></div>';
+      });
+      $('luTabela').innerHTML = d.przejazdy.length ? d.przejazdy.map(function (p) {
+        return '<tr><td><b>' + dzienRok(p.data) + '</b><small>' + godziny(p) + '</small></td><td><b>' + esc(p.rej) + '</b><small>' + esc(p.skad) + (p.dokad ? ' → ' + esc(p.dokad) : '') + ' · ' + esc(p.cel || '—') + '</small></td><td class="n">' +
+          (p.status === 'Zakończony' ? fmtKm(p.km) : '<span class="pill toku">w trasie</span>') + '</td></tr>';
+      }).join('') : '<tr><td colspan="3" class="mini">Brak przejazdów.</td></tr>';
+    }).catch(function (e) { blad(e, 'msgLudzie'); });
+  }
+
   /* ---------- FLOTA (admin) ---------- */
   var FLOTA = null;
   function ladujFlote() {
-    $('fNazwa').textContent = nazwaMies(fMies);
-    rpc('flota', fMies).then(function (f) { FLOTA = f; pokazFlote(f); }).catch(function (e) { blad(e, 'msgFlota'); });
+    $('fNazwa').textContent = nazwaOkresu(fTyp, fMies);
+    rpc('flota', okresDla(fTyp, fMies)).then(function (f) { FLOTA = f; pokazFlote(f); }).catch(function (e) { blad(e, 'msgFlota'); });
   }
   function pokazFlote(f) {
     komunikat('msgFlota', '');
+    var sm = f.sumy;
+    $('fKm').textContent = sm.km ? fmtKm(sm.km) : '—'; $('fKmOpis').textContent = 'z ' + liczDni(sm.aktywne, 'pojazdu', 'pojazdów', 'pojazdów');
+    $('fPrzejazdy').textContent = sm.przejazdy || '—'; $('fPrzejazdyOpis').textContent = sm.przejazdy ? 'średnio ' + fmtKm(sm.km / sm.przejazdy) : '';
+    $('fKoszty').textContent = sm.koszty ? fmtZl(sm.koszty) : '—'; $('fKosztyOpis').textContent = sm.km && sm.koszty ? fmtZl(sm.koszty / sm.km) + ' / km' : '';
+    lista('fKierowcyKarta', 'fKierowcy', sm.kierowcy, function (k) {
+      return '<div><div class="tresc"><b>' + esc(k.imie) + '</b><small>' + liczDni(k.przejazdy, 'przejazd', 'przejazdy', 'przejazdów') + '</small></div><div class="kw">' + fmtKm(k.km) + '</div></div>';
+    });
     var al = '';
     f.pojazdy.forEach(function (p) { p.ostrzezenia.forEach(function (o) { al += '<div class="alert ' + (o.poziom === 'blad' ? 'blad' : '') + '"><b>' + esc(p.rej) + '</b>: ' + esc(o.tekst) + '</div>'; }); });
     f.prawaJazdy.forEach(function (k) { al += '<div class="alert ' + (k.po ? 'blad' : '') + '"><b>' + esc(k.imie) + '</b>: prawo jazdy ' + (k.po ? 'po terminie' : 'do') + ' ' + esc(k.do) + '</div>'; });
@@ -1046,7 +1192,7 @@
     $('fTabela').innerHTML = f.pojazdy.map(function (p) {
       var stan = p.wTrasie ? '<span class="pill toku">w trasie: ' + esc(p.wTrasie.kto) + '</span>'
         : (p.otwarte ? '<span class="pill uwaga">niezamknięta jazda</span>'
-        : (p.zatwierdzone ? '<span class="pill ok">zatwierdzone</span>' : (p.luki ? '<span class="pill uwaga">luka licznika</span>' : '<span class="pill cichy">do zatwierdzenia</span>')));
+        : (fTyp === 'R' ? (p.luki ? '<span class="pill uwaga">luka licznika</span>' : '') : (p.zatwierdzone ? '<span class="pill ok">zatwierdzone</span>' : (p.luki ? '<span class="pill uwaga">luka licznika</span>' : '<span class="pill cichy">do zatwierdzenia</span>'))));
       return '<tr class="klik' + (fWybrany === p.rej ? ' wybrany' : '') + '" data-rej="' + esc(p.rej) + '"><td><b>' + esc(p.rej) + '</b><small>' + esc(p.nazwa) + ' · ' + fmtKm(p.licznik) + '</small></td><td class="n">' + (p.km ? fmtKm(p.km) : '—') + '</td><td class="n">' + (p.zuzycie !== null ? p.zuzycie.toLocaleString('pl-PL') : '—') + '</td><td>' + stan + '</td></tr>';
     }).join('') || '<tr><td colspan="4" class="mini">Brak pojazdów w wykazie.</td></tr>';
     Array.prototype.forEach.call($('fTabela').querySelectorAll('tr.klik'), function (tr) { tr.onclick = function () { fWybrany = tr.dataset.rej; pokazFlote(f); szczegolyPojazdu(); }; });
@@ -1070,13 +1216,14 @@
     if (!p) return;
     $('fSzczegoly').className = 'card';
     $('fSzczTytul').textContent = p.rej + ' · ' + p.nazwa;
-    rpc('przejazdyPojazdu', fMies, fWybrany).then(function (tr) {
+    rpc('przejazdyPojazdu', okresDla(fTyp, fMies), fWybrany).then(function (tr) {
       $('fSzczTabela').innerHTML = tr.length ? tr.map(function (r) {
         var luka = r.lukaKm ? '<div class="pill uwaga" style="margin-top:4px">luka licznika ' + (r.lukaKm > 0 ? '+' : '') + r.lukaKm + ' km</div>' : '';
         return '<tr><td><b>' + krotka(r.data) + '</b><small>' + esc(r.start) + (r.koniec ? '–' + esc(r.koniec) : '') + '</small></td><td>' + esc(r.kierowca) + '<small>' + esc(r.skad) + (r.dokad ? ' → ' + esc(r.dokad) : '') + ' · ' + esc(r.cel) + '</small><small>licznik ' + esc(r.licznikPrzed) + (r.licznikPo !== '' ? '–' + esc(r.licznikPo) : '') + '</small>' + luka + (r.status !== 'Zakończony' ? '<div class="pill toku" style="margin-top:4px">w trasie</div>' : '') + '</td><td class="n">' + (r.status === 'Zakończony' ? fmtKm(r.km) : '') + '</td></tr>';
       }).join('') : '<tr><td colspan="3" class="mini">Brak przejazdów.</td></tr>';
     }).catch(function (e) { blad(e, 'msgFlota'); });
     var b = $('btnZatwierdz');
+    if (fTyp === 'R') { b.className = 'hidden'; return; }
     if (p.zatwierdzone) { b.textContent = 'Cofnij zatwierdzenie (' + p.zatwierdzone.kto + ')'; b.className = 'btn danger'; }
     else { b.textContent = 'Zatwierdź ewidencję tego miesiąca'; b.className = 'btn dark'; }
   }

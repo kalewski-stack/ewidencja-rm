@@ -206,6 +206,15 @@ function nrKolejny_(rej, rok) {
   var n = 0; wiersze_('Przejazdy').forEach(function (p) { if (p.rej === rej && p.data.slice(0, 4) === rok) n++; });
   return n + 1;
 }
+function ostatniePrzejazdy_() {
+  var m = {};
+  wiersze_('Przejazdy').forEach(function (p) {
+    if (p.status !== 'Zakończony') return;
+    var k = p.data + ' ' + p.koniec, x = m[p.rej];      // ostatni = najwyższy licznik (nie cofa się), przy remisie późniejszy wpis
+    if (!x || p.licznikPo > x.licznik || (p.licznikPo === x.licznik && k > x.k)) m[p.rej] = { k: k, data: p.data, koniec: p.koniec, kierowca: p.kierowca, dokad: p.dokad, licznik: p.licznikPo };
+  });
+  return m;
+}
 function opisPrzejazdu_(p) { return p.data + ' ' + p.rej + ' ' + p.licznikPrzed + '→' + (p.licznikPo === '' ? '…' : p.licznikPo) + ' ' + p.skad + '→' + p.dokad + ' (' + p.cel + ')'; }
 
 /* ============ API: KIEROWCA ============ */
@@ -217,13 +226,14 @@ API.konfig = function (u) {
     var d = u.pojazdy.split(',').map(function (x) { return tekst_(x).toUpperCase(); }).filter(Boolean);
     return !d.length || d.indexOf(p.rej.toUpperCase()) >= 0;
   });
-  var otwarte = {};
+  var otwarte = {}, ost = ostatniePrzejazdy_();
   wiersze_('Przejazdy').forEach(function (p) { if (p.status === 'W trakcie') otwarte[p.rej] = { kto: p.kierowca, od: p.start, data: p.data }; });
   var wynik = {
     imie: u.imie, admin: u.admin, dzisiaj: dzis_(), najwczesniejszaData: najwczesniejszaData_(),
     pojazdy: lista.map(function (p) {
       return { rej: p.rej, nazwa: p.nazwa, rodzaj: p.rodzaj, paliwo: p.paliwo, licznik: p.licznik, przegladDo: p.przegladDo, polisaDo: p.polisaDo,
-               ostrzezenia: ostrzezeniaPojazdu_(p), wTrasie: otwarte[p.rej] || null };
+               ostrzezenia: ostrzezeniaPojazdu_(p), wTrasie: otwarte[p.rej] || null,
+               ostatni: ost[p.rej] ? { data: ost[p.rej].data, koniec: ost[p.rej].koniec, kierowca: ost[p.rej].kierowca, dokad: ost[p.rej].dokad } : null };
     }),
     miejsca: CONFIG.MIEJSCA,
     typyKosztow: CONFIG.TYPY_KOSZTOW, dokumenty: CONFIG.DOKUMENTY, typyZdarzen: CONFIG.TYPY_ZDARZEN,
@@ -272,8 +282,10 @@ API.startJazdy = function (u, d) {
   var flaga = '';
   if (przed < p.licznik) throw new Error('Licznik (' + przed + ') jest mniejszy niż ostatni zapis tego pojazdu (' + p.licznik + ' km). Sprawdź odczyt.');
   if (przed > p.licznik) flaga = 'Luka licznika: +' + (przed - p.licznik) + ' km od ostatniego zapisu';
-  var skad = tekst_(d.skad); if (!skad) throw new Error('Wpisz, skąd wyruszasz.');
-  var cel = sprawdzCel_(d.cel);
+  var skad = tekst_(d.skad), ost = ostatniePrzejazdy_()[p.rej];
+  if (!skad && ost) skad = ost.dokad;
+  if (!skad) throw new Error('Wpisz, skąd wyruszasz (to pierwszy zapis tego pojazdu).');
+  var cel = tekst_(d.cel) ? sprawdzCel_(d.cel) : '';      // cel można podać przy zdaniu pojazdu
   var t = dzis_(), id = nowyId_();
   var o = dodaj_('Przejazdy', { id: id, nr: nrKolejny_(p.rej, t.slice(0, 4)), data: t, kierowca: u.imie, rej: p.rej, licznikPrzed: przed, licznikPo: '', km: '',
     skad: skad, dokad: '', trasa: tekst_(d.trasa), cel: cel, start: hhmm_(), koniec: '', status: 'W trakcie', kontrola: 'tak', flaga: flaga, uwagi: tekst_(d.uwagi) });
@@ -284,15 +296,16 @@ API.koniecJazdy = function (u, d) {
   var o = null;
   wiersze_('Przejazdy').forEach(function (p) { if (p.kierowca === u.imie && p.status === 'W trakcie') o = p; });
   if (!o) throw new Error('Nie masz rozpoczętej jazdy.');
+  var cel = sprawdzCel_(tekst_(d.cel) || o.cel);
   var po = Math.round(liczba_(d.licznik, 'Licznik po jeździe'));
   if (po < o.licznikPrzed) throw new Error('Licznik po jeździe (' + po + ') nie może być mniejszy niż przed (' + o.licznikPrzed + ').');
   var km = po - o.licznikPrzed;
   if (km > CONFIG.PROG_KM_POTWIERDZ && !d.potwierdz) throw new Error('POTWIERDZ: To ' + km + ' km. Czy odczyt licznika jest poprawny?');
-  var dokad = tekst_(d.dokad); if (!dokad) throw new Error('Wpisz, gdzie zakończyłeś/aś jazdę.');
+  var dokad = tekst_(d.dokad); if (!dokad) throw new Error('Wpisz, gdzie zostawiasz pojazd.');
   nakladanie_(o.rej, o.licznikPrzed, po, o.id);
   o.licznikPo = po; o.km = km; o.dokad = dokad; o.koniec = hhmm_(); o.status = 'Zakończony';
   if (d.trasa !== undefined && tekst_(d.trasa)) o.trasa = tekst_(d.trasa);
-  if (d.cel !== undefined && tekst_(d.cel) && tekst_(d.cel) !== o.cel) o.cel = sprawdzCel_(d.cel);
+  o.cel = cel;
   if (tekst_(d.uwagi)) o.uwagi = (o.uwagi ? o.uwagi + ' | ' : '') + tekst_(d.uwagi);
   zapisz_('Przejazdy', o);
   return { przejazd: o };
@@ -428,20 +441,20 @@ API.miesiac = function (u, mies, osoba, pojazd) {
 
 /* ============ API: ADMIN ============ */
 API.flota = function (u, mies) {
-  wymagajAdmina_(u);
+  wymagajAdmina_(u); okres_(mies);
   var lista = pojazdy_(), tr = wiersze_('Przejazdy'), ko = wiersze_('Koszty'), t = dzis_();
-  var zatw = {}; wiersze_('Zatwierdzenia').forEach(function (z) { if (z.mies === mies) zatw[z.rej] = z; });
+  var zatw = {}; if (mies.length === 7) wiersze_('Zatwierdzenia').forEach(function (z) { if (z.mies === mies) zatw[z.rej] = z; });
   var poj = lista.map(function (p) {
     var x = { rej: p.rej, nazwa: p.nazwa, licznik: p.licznik, km: 0, przejazdy: 0, otwarte: 0, luki: 0, wTrasie: null, litry: 0, paliwoKwota: 0, koszty: 0, ostrzezenia: ostrzezeniaPojazdu_(p),
               zatwierdzone: zatw[p.rej] ? { kto: zatw[p.rej].kto, kiedy: zatw[p.rej].kiedy } : null };
     tr.forEach(function (r) {
-      if (r.rej !== p.rej || r.data.slice(0, 7) !== mies) return;
+      if (r.rej !== p.rej || r.data.indexOf(mies) !== 0) return;
       if (r.status === 'W trakcie') { x.otwarte++; if (r.data === t) x.wTrasie = { kto: r.kierowca, od: r.start }; return; }
       x.km += r.km; x.przejazdy++;
       if (r.flaga && r.flaga.indexOf('Luka') === 0) x.luki++;
     });
     ko.forEach(function (k) {
-      if (k.rej !== p.rej || k.data.slice(0, 7) !== mies) return;
+      if (k.rej !== p.rej || k.data.indexOf(mies) !== 0) return;
       x.koszty += k.kwota;
       if (k.typ === 'Paliwo' && k.ilosc !== '') { x.litry += k.ilosc; x.paliwoKwota += k.kwota; }
     });
@@ -458,12 +471,21 @@ API.flota = function (u, mies) {
       return p;
     });
   var zd = wiersze_('Zdarzenia').filter(function (z) { return z.status !== 'Zamknięte'; }).sort(function (a, b) { return a.dodano < b.dodano ? 1 : -1; });
-  return { mies: mies, pojazdy: poj, prawaJazdy: prawa, prywatneDoDecyzji: prywatne, zdarzenia: zd, osoby: kier.map(function (k) { return k.imie; }) };
+  var sumy = { km: 0, przejazdy: 0, koszty: 0 }, wgK = {};
+  tr.forEach(function (r) {
+    if (r.data.indexOf(mies) !== 0 || r.status !== 'Zakończony') return;
+    sumy.km += r.km; sumy.przejazdy++;
+    var k = wgK[r.kierowca] = wgK[r.kierowca] || { imie: r.kierowca, km: 0, przejazdy: 0 }; k.km += r.km; k.przejazdy++;
+  });
+  ko.forEach(function (k) { if (k.data.indexOf(mies) === 0) sumy.koszty += k.kwota; });
+  sumy.koszty = Math.round(sumy.koszty * 100) / 100; sumy.aktywne = lista.length;
+  sumy.kierowcy = Object.keys(wgK).map(function (n) { return wgK[n]; }).sort(function (a, b) { return b.km - a.km; });
+  return { mies: mies, sumy: sumy, pojazdy: poj, prawaJazdy: prawa, prywatneDoDecyzji: prywatne, zdarzenia: zd, osoby: kier.map(function (k) { return k.imie; }) };
 };
 
 API.przejazdyPojazdu = function (u, mies, rej) {
-  wymagajAdmina_(u);
-  var tr = wiersze_('Przejazdy').filter(function (p) { return p.rej === rej && p.data.slice(0, 7) === mies; })
+  wymagajAdmina_(u); okres_(mies);
+  var tr = wiersze_('Przejazdy').filter(function (p) { return p.rej === rej && p.data.indexOf(mies) === 0; })
     .sort(function (a, b) { return (a.data + a.start) < (b.data + b.start) ? -1 : 1; });
   // kontrola ciągłości licznika (§8.6a): poprzedni „po” = następny „przed”
   var prev = null;
@@ -530,6 +552,40 @@ API.wpisAdmin = function (u, d) {
   return { przejazd: dopiszPrzejazd_(u, kier, d) };
 };
 
+
+
+/* ============ API: WIDOKI ADMINA — per pojazd i per pracownik ============ */
+function okres_(o) { if (!/^\d{4}(-\d{2})?$/.test(String(o || ''))) throw new Error('Zły okres.'); return o; }
+function sumujPrzejazdy_(tr, kluczGrupy, nazwaGrupy) {
+  var g = {}, km = 0, liczba = 0;
+  tr.forEach(function (p) {
+    if (p.status !== 'Zakończony') return;
+    km += p.km; liczba++;
+    var k = p[kluczGrupy], x = g[k] = g[k] || { klucz: k, km: 0, przejazdy: 0, ostatnio: '' };
+    x.km += p.km; x.przejazdy++; if (p.data > x.ostatnio) x.ostatnio = p.data;
+  });
+  var lista = Object.keys(g).map(function (k) { return g[k]; }).sort(function (a, b) { return b.km - a.km; });
+  return { km: km, liczba: liczba, grupy: lista };
+}
+function przejazdyOkresu_(okres, warunek) {
+  return wiersze_('Przejazdy').filter(function (p) { return p.data.indexOf(okres) === 0 && warunek(p); })
+    .sort(function (a, b) { return (a.data + a.start) < (b.data + b.start) ? 1 : -1; });   // najnowsze na górze
+}
+API.dziennikPojazdu = function (u, rej, okres) {
+  wymagajAdmina_(u); okres_(okres);
+  var tr = przejazdyOkresu_(okres, function (p) { return p.rej === rej; });
+  var s = sumujPrzejazdy_(tr, 'kierowca');
+  return { rej: rej, okres: okres, przejazdy: tr, km: s.km, liczba: s.liczba,
+           kierowcy: s.grupy.map(function (x) { return { imie: x.klucz, km: x.km, przejazdy: x.przejazdy, ostatnio: x.ostatnio }; }) };
+};
+API.dziennikOsoby = function (u, imie, okres) {
+  wymagajAdmina_(u); okres_(okres);
+  var tr = przejazdyOkresu_(okres, function (p) { return p.kierowca === imie; });
+  var s = sumujPrzejazdy_(tr, 'rej'), nazwy = {};
+  wszystkiePojazdy_().forEach(function (p) { nazwy[p.rej] = p.nazwa; });
+  return { imie: imie, okres: okres, przejazdy: tr, km: s.km, liczba: s.liczba,
+           pojazdy: s.grupy.map(function (x) { return { rej: x.klucz, nazwa: nazwy[x.klucz] || '', km: x.km, przejazdy: x.przejazdy, ostatnio: x.ostatnio }; }) };
+};
 
 /* ============ API: DANE POJAZDÓW (admin) ============ */
 function termin_(data) {

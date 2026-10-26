@@ -25,13 +25,13 @@ Wypchnij zmianę na `main`, Pages opublikuje całość. Przy zmianach wyglądu p
 
 | Zakładka | Funkcja | Paragraf |
 |---|---|---|
-| Jazda | Start / Koniec jazdy, kontrola pojazdu przed jazdą, stan licznika, konkretny cel (ogólne opisy są odrzucane), dopisanie zapomnianego przejazdu do następnego dnia roboczego | §5, §8 |
+| Jazda | 1) wybór pojazdu, 2) potwierdzenie stanu licznika po poprzedniej jeździe („OK” albo „Dopisz ręcznie”), 3) cel przejazdu i **Zdaj pojazd** z oknem na aktualny stan licznika i miejsce zostawienia. Przyciski **Tankowanie** (paliwo, ładowanie, parking, opłaty, mycie i serwis) i **Usterka** (usterka, kolizja, wypadek, awaria, mandat). Dopisanie zapomnianego przejazdu do następnego dnia roboczego | §5, §7, §8, §13 |
 | Miesiąc | km, przejazdy, koszty, kilometrówka, zgłoszenia, status zatwierdzenia | §8 |
 | Prywatny | kilometrówka: stawka z rodzaju pojazdu, zgoda przed wyjazdem, oświadczenie o pojeździe | §9, §10 |
-| Koszty | paliwo, ładowanie, parking, opłaty, mycie i serwis (wymagają zgody lub trybu awaryjnego) | §7 |
-| Zgłoś | usterka, szkoda, wypadek, awaria, mandat; przy kolizji lista kroków | §12, §13 |
-| Pojazdy (admin) | karta każdego auta: polisa (numer, okres, zakres), przegląd, licznik, przebieg i koszty w roku, ostatni przejazd, zgłoszenia; lista od najpilniejszych terminów; dodawanie i edycja pojazdów; ostrzeżenia 30 dni przed końcem | §3 |
-| Flota (admin) | terminy (przegląd, OC, prawo jazdy), km i zużycie l/100, kontrola ciągłości licznika, zatwierdzanie miesiąca, decyzje o kilometrówkach, zgłoszenia, wpis ręczny | §3, §8.6, §10 |
+| Podsumowanie (admin) | wszystkie pojazdy razem (km, przejazdy, koszty), kierowcy, terminy, km i zużycie l/100 per pojazd, kontrola ciągłości licznika, zatwierdzanie miesiąca, decyzje o kilometrówkach, zgłoszenia, wpis ręczny. Miesiąc lub rok | §3, §8.6, §10 |
+| Auta (admin) | wybrany pojazd: kto jechał, kiedy, ile km, stany liczników; podsumowanie km per kierowca. Miesiąc lub rok | §8, §14 |
+| Ludzie (admin) | wybrany pracownik: którymi autami jechał, kiedy, ile km; podsumowanie km per pojazd. Miesiąc lub rok | §8, §14 |
+| Pojazdy (admin) | karta każdego auta: polisa (numer, okres, zakres), przegląd, licznik, przebieg i koszty w roku, ostatni przejazd, zgłoszenia; lista od najpilniejszych terminów; dodawanie i edycja pojazdów | §3 |
 
 Zabezpieczenia: licznik nie może się cofnąć, zakresy liczników nie mogą się nakładać, pojazd nie może być w dwóch trasach naraz,
 luka licznika jest oznaczana, zatwierdzony miesiąc blokuje edycję, każda korekta trafia do zakładki **Dziennik** (kto, kiedy, co, powód),
