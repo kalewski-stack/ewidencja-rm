@@ -25,7 +25,7 @@ Wypchnij zmianę na `main`, Pages opublikuje całość. Przy zmianach wyglądu p
 
 | Zakładka | Funkcja | Paragraf |
 |---|---|---|
-| Jazda | 1) wybór pojazdu, 2) potwierdzenie stanu licznika po poprzedniej jeździe („OK” albo „Dopisz ręcznie”), 3) cel przejazdu i **Zdaj pojazd** z oknem na aktualny stan licznika i miejsce zostawienia. Przyciski **Tankowanie** (paliwo, ładowanie, parking, opłaty, mycie i serwis) i **Usterka** (usterka, kolizja, wypadek, awaria, mandat). Dopisanie zapomnianego przejazdu do następnego dnia roboczego | §5, §7, §8, §13 |
+| Jazda | 1) wybór pojazdu, 2) potwierdzenie stanu licznika po poprzedniej jeździe („OK” albo „Dopisz ręcznie”), 3) cel przejazdu i **Zdaj pojazd** z oknem na aktualny stan licznika i miejsce zostawienia. Przyciski **Tankowanie** (paliwo, ładowanie, parking, opłaty, mycie i serwis) i **Usterka** (usterka, kolizja, wypadek, awaria, mandat). Na dole: dopisanie zapomnianego przejazdu i poprawa błędnego (do następnego dnia roboczego, z powodem, zapis w dzienniku) | §5, §7, §8, §13 |
 | Miesiąc | km, przejazdy, koszty, kilometrówka, zgłoszenia, status zatwierdzenia | §8 |
 | Prywatny | kilometrówka: stawka z rodzaju pojazdu, zgoda przed wyjazdem, oświadczenie o pojeździe | §9, §10 |
 | Podsumowanie (admin) | wszystkie pojazdy razem (km, przejazdy, koszty), kierowcy, terminy, km i zużycie l/100 per pojazd, kontrola ciągłości licznika, zatwierdzanie miesiąca, decyzje o kilometrówkach, zgłoszenia, wpis ręczny. Miesiąc lub rok | §3, §8.6, §10 |

@@ -273,8 +273,10 @@
     </div>
 
     <details class="card" id="reczny" style="padding:12px 16px;margin-top:14px">
-      <summary>Dopisz zapomniany przejazd</summary>
-      <p class="hint" style="margin-top:6px">Przejazd dopisujesz najpóźniej następnego dnia roboczego. Starsze wpisy dodaje administrator.</p>
+      <summary>Dopisz lub popraw przejazd (zapomniałeś/aś albo pomyłka)</summary>
+      <p class="hint" style="margin-top:6px">Przejazd dopisujesz lub poprawiasz najpóźniej następnego dnia roboczego. Starsze wpisy zmienia administrator. Każda poprawka zostaje w dzienniku zmian.</p>
+      <div id="rOstatnieBox" class="hidden" style="margin-top:10px"><label>Twoje ostatnie przejazdy</label><div class="lista" id="rOstatnie"></div></div>
+      <div class="alert hidden" id="rTryb" style="margin-top:12px"></div>
       <div class="field" style="margin-top:12px"><label for="rData">Dzień</label><input type="date" id="rData"></div>
       <div class="field"><label for="rPojazd">Pojazd</label><select id="rPojazd"></select></div>
       <div class="row field">
@@ -287,7 +289,11 @@
       </div>
       <div class="field"><label for="rCel">Cel przejazdu</label><input type="text" id="rCel" placeholder="np. transport materiałów do magazynu"></div>
       <div class="field"><label for="rTrasa">Trasa (opcjonalnie)</label><input type="text" id="rTrasa"></div>
-      <button class="btn dark" id="btnReczny">Zapisz przejazd</button>
+      <div class="field hidden" id="rPowodBox"><label for="rPowod">Powód poprawki</label><input type="text" id="rPowod" placeholder="np. pomyłka w odczycie licznika"></div>
+      <div class="stack">
+        <button class="btn dark" id="btnReczny">Zapisz przejazd</button>
+        <button class="btn hidden" id="btnRAnuluj">Anuluj poprawkę</button>
+      </div>
       <div class="msg" id="msgReczny"></div>
     </details>
   </section>
@@ -793,6 +799,7 @@
     $('auPrev').onclick = przesun(AU, -1, ladujAuta); $('auNext').onclick = przesun(AU, 1, ladujAuta); $('auSel').onchange = ladujAuta;
     $('luPrev').onclick = przesun(LU, -1, ladujLudzi); $('luNext').onclick = przesun(LU, 1, ladujLudzi); $('luSel').onchange = ladujLudzi;
     $('btnReczny').onclick = reczny;
+    $('btnRAnuluj').onclick = function () { ustawReczny(null); };
     $('mPrev').onclick = function () { mies = przesunMies(mies, -1); ladujMiesiac(); };
     $('mNext').onclick = function () { mies = przesunMies(mies, 1); ladujMiesiac(); };
     $('fPrev').onclick = function () { fMies = przesunOkres(fTyp, fMies, -1); fWybrany = ''; ladujFlote(); };
@@ -866,6 +873,14 @@
         '<button class="x" data-id="' + esc(p.id) + '" aria-label="Usuń wpis">✕</button></div>';
     }).join('');
     Array.prototype.forEach.call($('listaDzis').querySelectorAll('.x'), function (b) { b.onclick = function () { usunWpis(b.dataset.id); }; });
+    OSTATNIE = s.ostatnie || [];
+    $('rOstatnieBox').className = OSTATNIE.length ? '' : 'hidden';
+    $('rOstatnie').innerHTML = OSTATNIE.map(function (p) {
+      return '<div><div class="tresc"><b>' + krotka(p.data) + '</b> · ' + esc(p.rej) + ' · ' + fmtKm(p.km) + '<small>' + esc(p.skad) + ' → ' + esc(p.dokad) + ' · ' + esc(p.cel) + '</small></div><button class="btn mala" data-popraw="' + esc(p.id) + '">Popraw</button></div>';
+    }).join('');
+    Array.prototype.forEach.call($('rOstatnie').querySelectorAll('[data-popraw]'), function (b) {
+      b.onclick = function () { var x = null; OSTATNIE.forEach(function (p) { if (p.id === b.dataset.popraw) x = p; }); ustawReczny(x); };
+    });
   }
   function przeliczKoniec() {
     var o = stanJ && stanJ.otwarta; if (!o) return;
@@ -931,12 +946,27 @@
       rpc('usunJazde', id, 'usunięte przez kierowcę').then(function () { komunikatJazdy = null; return odswiezPoZapisie(); }).catch(function (e) { blad(e, 'msgJazda'); });
     });
   }
+  var OSTATNIE = [], rEdycja = '';
+  function ustawReczny(p) {
+    rEdycja = p ? p.id : '';
+    $('rTryb').className = p ? 'alert' : 'alert hidden';
+    if (p) $('rTryb').innerHTML = '<b>Poprawiasz przejazd z ' + dataPL(p.data) + '</b> (' + esc(p.rej) + ', ' + fmtKm(p.km) + '). Zmień dane i wpisz powód.';
+    $('rPowodBox').className = p ? 'field' : 'field hidden';
+    $('btnRAnuluj').className = p ? 'btn' : 'btn hidden';
+    $('btnReczny').textContent = p ? 'Zapisz poprawkę' : 'Zapisz przejazd';
+    komunikat('msgReczny', '');
+    if (p) {
+      $('rData').value = p.data; $('rPojazd').value = p.rej; $('rPrzed').value = p.licznikPrzed; $('rPo').value = p.licznikPo;
+      $('rSkad').value = p.skad; $('rDokad').value = p.dokad; $('rCel').value = p.cel; $('rTrasa').value = p.trasa || ''; $('rPowod').value = '';
+      $('reczny').open = true; $('reczny').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else { $('rData').value = DZIS; czysc(['rPrzed', 'rPo', 'rSkad', 'rDokad', 'rCel', 'rTrasa', 'rPowod']); }
+  }
   function reczny() {
     var d = { data: wartosc('rData'), rej: wartosc('rPojazd'), licznikPrzed: wartosc('rPrzed'), licznikPo: wartosc('rPo'), skad: wartosc('rSkad'), dokad: wartosc('rDokad'), cel: wartosc('rCel'), trasa: wartosc('rTrasa') };
-    var b = $('btnReczny'); b.disabled = true; komunikat('msgReczny', '');
-    rpc('dopiszPrzejazd', d).then(function (r) {
-      komunikat('msgReczny', 'Zapisano: ' + fmtKm(r.przejazd.km) + ' (' + dataPL(r.przejazd.data) + ').', 'ok');
-      czysc(['rPrzed', 'rPo', 'rSkad', 'rDokad', 'rCel', 'rTrasa']); komunikatJazdy = null;
+    var b = $('btnReczny'), edycja = !!rEdycja; b.disabled = true; komunikat('msgReczny', '');
+    (edycja ? rpc('poprawPrzejazd', rEdycja, d, wartosc('rPowod')) : rpc('dopiszPrzejazd', d)).then(function (r) {
+      ustawReczny(null); komunikatJazdy = null;
+      komunikat('msgReczny', (edycja ? 'Poprawiono: ' : 'Zapisano: ') + fmtKm(r.przejazd.km) + ' (' + dataPL(r.przejazd.data) + ').', 'ok');
       return odswiezPoZapisie();
     }).catch(function (e) { blad(e, 'msgReczny'); }).then(function () { b.disabled = false; });
   }

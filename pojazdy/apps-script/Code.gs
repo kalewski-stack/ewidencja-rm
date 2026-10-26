@@ -264,7 +264,10 @@ API.stanJazdy = function (u) {
     if (p.status === 'Zakończony' && (!ostatni || (p.data + p.koniec) > (ostatni.data + ostatni.koniec))) ostatni = p;
   });
   dzis.sort(function (a, b) { return a.start < b.start ? -1 : 1; });
-  return { dzis: t, otwarta: otwarta, dzisiejsze: dzis, ostatni: ostatni ? { rej: ostatni.rej, dokad: ostatni.dokad } : null };
+  var od = najwczesniejszaData_();
+  var ostatnie = w.filter(function (p) { return p.status === 'Zakończony' && p.data >= od; })
+    .sort(function (a, b) { return (a.data + a.start) < (b.data + b.start) ? 1 : -1; }).slice(0, 15);
+  return { dzis: t, otwarta: otwarta, dzisiejsze: dzis, ostatnie: ostatnie, ostatni: ostatni ? { rej: ostatni.rej, dokad: ostatni.dokad } : null };
 };
 
 API.startJazdy = function (u, d) {
@@ -331,6 +334,30 @@ function dopiszPrzejazd_(u, kierowca, d) {
   dziennik_(u.imie, o.id, 'dopisanie' + (u.imie !== kierowca ? ' za ' + kierowca : ''), '', opisPrzejazdu_(o), '');
   return o;
 }
+
+API.poprawPrzejazd = function (u, id, d, powod) {
+  var o = null; wiersze_('Przejazdy').forEach(function (p) { if (p.id === id) o = p; });
+  if (!o) throw new Error('Nie znaleziono wpisu.');
+  if (o.kierowca !== u.imie && !u.admin) throw new Error('Możesz poprawić tylko własny wpis.');
+  if (o.status !== 'Zakończony') throw new Error('Rozpoczętą jazdę zakończ przyciskiem Zdaj pojazd.');
+  powod = tekst_(powod);
+  if (powod.length < 3) throw new Error('Wpisz powód poprawki (np. „pomyłka w odczycie licznika”).');
+  oknoDopisania_(u, o.data); zablokowany_(o.data, o.rej);
+  var data = dataOk_(d.data, 'Data'), p = pojazd_(d.rej);
+  oknoDopisania_(u, data); zablokowany_(data, p.rej);
+  var przed = Math.round(liczba_(d.licznikPrzed, 'Licznik przed')), po = Math.round(liczba_(d.licznikPo, 'Licznik po'));
+  if (po <= przed) throw new Error('Licznik po musi być większy niż przed.');
+  nakladanie_(p.rej, przed, po, o.id);
+  var skad = tekst_(d.skad), dokad = tekst_(d.dokad);
+  if (!skad || !dokad) throw new Error('Wpisz miejsce rozpoczęcia i zakończenia.');
+  var cel = sprawdzCel_(d.cel), opisPrzed = opisPrzejazdu_(o);
+  o.data = data; o.rej = p.rej; o.licznikPrzed = przed; o.licznikPo = po; o.km = po - przed;
+  o.skad = skad; o.dokad = dokad; o.cel = cel; o.trasa = tekst_(d.trasa);
+  o.flaga = (o.flaga && o.flaga.indexOf('Poprawione') < 0 ? o.flaga + ' | ' : '') + (o.flaga && o.flaga.indexOf('Poprawione') >= 0 ? o.flaga : 'Poprawione');
+  zapisz_('Przejazdy', o);
+  dziennik_(u.imie, o.id, 'poprawka', opisPrzed, opisPrzejazdu_(o), powod);
+  return { przejazd: o };
+};
 
 API.usunJazde = function (u, id, powod) {
   var o = null; wiersze_('Przejazdy').forEach(function (p) { if (p.id === id) o = p; });
