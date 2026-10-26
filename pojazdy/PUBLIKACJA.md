@@ -29,9 +29,7 @@ Ewidencja czasu działa dalej bez zmian.
      Co najmniej jedna osoba musi mieć rolę `admin`.
    - **Pojazdy**: możesz je dodać teraz w arkuszu albo później w aplikacji (zakładka **Pojazdy**, przycisk „Dodaj pojazd”).
      Kolumny: nr rejestracyjny, nazwa, rodzaj, paliwo, licznik początkowy, numer polisy, polisa od, polisa do, zakres, przegląd do (daty `RRRR-MM-DD`), aktywny, uwagi.
-   - **Ustawienia**: w wierszu `APP_URL` wpisz adres aplikacji (krok 3). Poniżej są stawki za kilometr dla kilometrówki
-     (maksymalne z przepisów: 0,89 / 1,15 / 0,69 / 0,42 zł/km). Zarząd może ustalić niższe. Stawkę dla aut elektrycznych zostaw pustą,
-     ustala ją administrator przy zatwierdzaniu.
+   - **Ustawienia**: w wierszu `APP_URL`, w kolumnie „wartosc” (B), wpisz adres aplikacji (krok 3).
 6. **Wdróż → Nowe wdrożenie → ikona koła zębatego → Aplikacja internetowa**. Ustawienia:
    *Wykonaj jako: Ja*, *Kto ma dostęp: Każdy*. Kliknij „Wdróż” i **skopiuj adres kończący się na `/exec`**.
    Dostęp „Każdy” jest potrzebny, bo telefony kierowców nie są zalogowane na Twoje konto. Zabezpieczeniem jest indywidualny klucz w linku.
@@ -83,27 +81,30 @@ Repozytorium `ewidencja-rm` ma już workflow publikujący całość na GitHub Pa
 - **Nowa osoba:** dopisz w zakładce Kierowcy, uruchom „Wygeneruj klucze”, wyślij link.
 - **Zgubiony telefon:** **Pojazdy → Unieważnij link osoby…**, potem wyślij nowy link z zakładki Linki.
 - **Nowy pojazd, zmiana polisy lub przeglądu:** w aplikacji, zakładka **Pojazdy → Edytuj dane**.
-- **Zatwierdzanie miesiąca i kilometrówek:** zakładka **Podsumowanie**.
-- **Raport do księgowości i art. 86a VAT:** **Pojazdy → Raport miesiąca: ewidencja przebiegu i kilometrówki…**
-- **Zmiana logiki** (stawki, listy miejsc, progi): zmień `Code.gs`, potem **Wdróż → Zarządzaj wdrożeniami → ołówek → Nowa wersja → Wdróż**.
+- **Zatwierdzanie miesiąca:** zakładka **Podsumowanie**.
+- **Raport miesiąca:** **Pojazdy → Raport miesiąca: ewidencja przebiegu i użytek prywatny…**
+- **Zmiana logiki** (listy miejsc i celów, osoby akceptujące, progi): zmień `Code.gs`, potem **Wdróż → Zarządzaj wdrożeniami → ołówek → Nowa wersja → Wdróż**.
   Adres `/exec` się nie zmienia.
 - **Zmiana wyglądu:** podmień `index.html` w repozytorium i podbij `WERSJA` w `pojazdy/sw.js` (np. `pojazdy-rm-v2`), żeby telefony pobrały nową wersję.
 
-## Co robi aplikacja (wg regulaminu pojazdów)
+## Co robi aplikacja
 
-| Zakładka | Funkcja | Paragraf |
-|---|---|---|
-| Jazda | 1) wybór pojazdu, 2) potwierdzenie stanu licznika po poprzedniej jeździe („OK” albo „Dopisz ręcznie”), 3) cel przejazdu i **Zdaj pojazd** z oknem na aktualny stan licznika i miejsce zostawienia. Przyciski **Tankowanie** (paliwo, ładowanie, parking, opłaty, mycie i serwis) i **Usterka** (usterka, kolizja, wypadek, awaria, mandat). Na dole: dopisanie zapomnianego przejazdu i poprawa błędnego (do następnego dnia roboczego, z powodem, zapis w dzienniku) | §5, §7, §8, §13, §14 |
-| Miesiąc | km, przejazdy, koszty, kilometrówka, zgłoszenia, status zatwierdzenia | §8 |
-| Prywatny | kilometrówka: stawka z rodzaju pojazdu, zgoda przed wyjazdem, oświadczenie o pojeździe | §9, §10 |
-| Podsumowanie (admin) | wszystkie pojazdy razem (km, przejazdy, koszty), kierowcy, terminy, km i zużycie l/100 per pojazd, kontrola ciągłości licznika, zatwierdzanie miesiąca, decyzje o kilometrówkach, zgłoszenia, wpis ręczny. Miesiąc lub rok | §3, §8.6, §10 |
-| Auta (admin) | wybrany pojazd: kto jechał, kiedy, ile km, stany liczników; km per kierowca. Miesiąc lub rok | §8, §14 |
-| Ludzie (admin) | wybrany pracownik: którymi autami jechał, kiedy, ile km; km per pojazd. Miesiąc lub rok | §8, §14 |
-| Pojazdy (admin) | karta każdego auta: polisa, przegląd, licznik, przebieg i koszty w roku, ostatni przejazd, zgłoszenia; lista od najpilniejszych terminów; dodawanie i edycja | §3 |
+| Zakładka | Funkcja |
+|---|---|
+| Jazda | Wybierasz pojazd (SKODA, DACIA, PEUGEOT, pod spodem numer rejestracyjny), cel podróży (Transport sprzętu, Diecezje, Marketing, Spotkanie, Inne), skąd startujesz (G7, J48, DOM, Inne), sprawdzasz stan licznika i klikasz **W drogę!**. Na końcu **Zdaj pojazd**: stan licznika i gdzie zostawiasz auto. Przyciski **Tankowanie** (paliwo, parking, drogowe, płyny) i **Usterka**. Na dole: dopisanie zapomnianego przejazdu i poprawa błędnego (z powodem, zapis w dzienniku). Auta w użyciu lub zarezerwowane przez kogoś innego nie pojawiają się do wyboru. |
+| Prywatny | Auto służbowe zabrane prywatnie: pojazd, data zabrania i zdania, licznik przed i po, paliwo do pełna (Tak/Nie), PL czy zagranica, kto wyraził zgodę (Mateusz, Tomasz, Marysia). |
+| Rezerwacja | Pojazd, data zabrania i zdania, cel podróży, kto zaakceptował. Zarezerwowane auto znika z wyboru w pierwszym widoku (poza osobą, która je zarezerwowała). Rezerwacje nie mogą się nakładać. |
+| Gdzie auta | Gdzie jest teraz każde auto: w trasie (kto, od której, skąd, cel), zarezerwowane, wolne (gdzie stoi, kto je zdał). Odświeża się co minutę. |
+| Podsumowanie (admin) | Wszystkie pojazdy razem (km, przejazdy, koszty), kierowcy, terminy, km per pojazd, kontrola ciągłości licznika, zatwierdzanie miesiąca, zgłoszenia, wpis ręczny. Miesiąc lub rok. |
+| Auta (admin) | Wybrany pojazd: kto jechał, kiedy, ile km, stany liczników, użytek prywatny. Miesiąc lub rok. |
+| Ludzie (admin) | Wybrany pracownik: którymi autami jechał, kiedy, ile km, użytek prywatny. Miesiąc lub rok. |
+| Pojazdy (admin) | Karta każdego auta: polisa, przegląd, licznik, przebieg i koszty w roku, ostatni przejazd, zgłoszenia. Dodawanie i edycja. |
 
-Zabezpieczenia: licznik nie może się cofnąć, zakresy liczników nie mogą się nakładać, pojazd nie może być w dwóch trasach naraz,
-luka licznika jest oznaczana, zatwierdzony miesiąc blokuje edycję, każda korekta trafia do zakładki **Dziennik** (kto, kiedy, co, powód),
-administrator nie zatwierdza własnej kilometrówki.
+Zabezpieczenia: licznik nie może się cofnąć, zakresy liczników nie mogą się nakładać (także z użytkiem prywatnym), pojazd nie może być w dwóch trasach naraz,
+luka licznika jest oznaczana, zatwierdzony miesiąc blokuje edycję, każda korekta trafia do zakładki **Dziennik**.
+
+Zakładki arkusza: Kierowcy, Pojazdy, Przejazdy, Koszty, Zdarzenia, Zatwierdzenia, Dziennik, Ustawienia, Linki oraz nowe **Rezerwacje** i **UzytekPrywatny**
+(powstają same przy pierwszym użyciu). Stara zakładka „Prywatne” (kilometrówka) nie jest już używana i możesz ją usunąć.
 
 ## Rozwiązywanie problemów
 
