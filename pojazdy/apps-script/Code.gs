@@ -28,7 +28,7 @@ var CONFIG = {
 };
 
 var TAB = {
-  Pojazdy:   [['rej','t'],['nazwa','t'],['rodzaj','t'],['paliwo','t'],['licznikStart','n'],['przegladDo','t'],['ocDo','t'],['aktywny','t']],
+  Pojazdy:   [['rej','t'],['nazwa','t'],['rodzaj','t'],['paliwo','t'],['licznikStart','n'],['polisaNr','t'],['polisaOd','t'],['polisaDo','t'],['zakres','t'],['przegladDo','t'],['aktywny','t'],['uwagi','t']],
   Kierowcy:  [['imie','t'],['rola','t'],['aktywny','t'],['klucz','t'],['pojazdy','t'],['prawoJazdyDo','t'],['uwagi','t']],
   Przejazdy: [['id','t'],['nr','n'],['data','t'],['kierowca','t'],['rej','t'],['licznikPrzed','n'],['licznikPo','n'],['km','n'],['skad','t'],['dokad','t'],['trasa','t'],['cel','t'],['start','t'],['koniec','t'],['status','t'],['kontrola','t'],['flaga','t'],['uwagi','t'],['zatwierdzil','t'],['zatwierdzonoKiedy','t']],
   Koszty:    [['id','t'],['data','t'],['kierowca','t'],['rej','t'],['typ','t'],['kwota','n'],['ilosc','n'],['licznik','n'],['dokument','t'],['zgoda','t'],['uwagi','t'],['dodano','t']],
@@ -143,15 +143,18 @@ function dataOk_(s, nazwa) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(String(s || ''))) throw new Error(nazwa + ': wybierz datę.');
   return s;
 }
-function pojazdy_() {
+function wszystkiePojazdy_() {
   var licz = {};
   wiersze_('Przejazdy').forEach(function (p) {
     if (p.status === 'Zakończony' && p.licznikPo !== '') licz[p.rej] = Math.max(licz[p.rej] || 0, p.licznikPo);
   });
-  return wiersze_('Pojazdy').filter(function (p) { return p.aktywny.toLowerCase() !== 'nie' && p.rej; }).map(function (p) {
+  return wiersze_('Pojazdy').filter(function (p) { return p.rej; }).map(function (p) {
     p.licznik = Math.max(licz[p.rej] || 0, p.licznikStart === '' ? 0 : p.licznikStart);
     return p;
   });
+}
+function pojazdy_() {
+  return wszystkiePojazdy_().filter(function (p) { return p.aktywny.toLowerCase() !== 'nie'; });
 }
 function pojazd_(rej, lista) {
   rej = tekst_(rej).toUpperCase();
@@ -168,7 +171,7 @@ function mozeJechac_(u, p) {
 }
 function ostrzezeniaPojazdu_(p) {
   var t = dzis_(), lim = dodajDni_(t, CONFIG.ALERT_DNI), a = [];
-  [['przegladDo', 'Przegląd'], ['ocDo', 'OC']].forEach(function (x) {
+  [['przegladDo', 'Przegląd'], ['polisaDo', 'Polisa']].forEach(function (x) {
     var d = p[x[0]];
     if (!d) return;
     if (d < t) a.push({ poziom: 'blad', tekst: x[1] + ' po terminie (' + pl_(d) + ')' });
@@ -219,7 +222,7 @@ API.konfig = function (u) {
   var wynik = {
     imie: u.imie, admin: u.admin, dzisiaj: dzis_(), najwczesniejszaData: najwczesniejszaData_(),
     pojazdy: lista.map(function (p) {
-      return { rej: p.rej, nazwa: p.nazwa, rodzaj: p.rodzaj, paliwo: p.paliwo, licznik: p.licznik, przegladDo: p.przegladDo, ocDo: p.ocDo,
+      return { rej: p.rej, nazwa: p.nazwa, rodzaj: p.rodzaj, paliwo: p.paliwo, licznik: p.licznik, przegladDo: p.przegladDo, polisaDo: p.polisaDo,
                ostrzezenia: ostrzezeniaPojazdu_(p), wTrasie: otwarte[p.rej] || null };
     }),
     miejsca: CONFIG.MIEJSCA,
@@ -525,6 +528,62 @@ API.wpisAdmin = function (u, d) {
   wymagajAdmina_(u);
   var kier = tekst_(d.kierowca); if (!kier) throw new Error('Wybierz kierowcę.');
   return { przejazd: dopiszPrzejazd_(u, kier, d) };
+};
+
+
+/* ============ API: DANE POJAZDÓW (admin) ============ */
+function termin_(data) {
+  // poziom: brak | blad (po terminie) | uwaga (do ALERT_DNI) | ok
+  if (!data) return { do: '', dni: null, poziom: 'brak' };
+  var t = dzis_(), dni = Math.round((dt_(data) - dt_(t)) / 864e5);
+  return { do: data, dni: dni, poziom: dni < 0 ? 'blad' : (dni <= CONFIG.ALERT_DNI ? 'uwaga' : 'ok') };
+}
+API.danePojazdow = function (u) {
+  wymagajAdmina_(u);
+  var t = dzis_(), rok = t.slice(0, 4), tr = wiersze_('Przejazdy'), ko = wiersze_('Koszty'), zd = wiersze_('Zdarzenia');
+  return wszystkiePojazdy_().map(function (p) {
+    var x = { rej: p.rej, nazwa: p.nazwa, rodzaj: p.rodzaj, paliwo: p.paliwo, aktywny: p.aktywny.toLowerCase() !== 'nie', uwagi: p.uwagi,
+      licznikStart: p.licznikStart, licznik: p.licznik, kmLacznie: p.licznik - (p.licznikStart === '' ? 0 : p.licznikStart),
+      polisaNr: p.polisaNr, polisaOd: p.polisaOd, zakres: p.zakres, polisa: termin_(p.polisaDo), przeglad: termin_(p.przegladDo),
+      kmRok: 0, przejazdyRok: 0, kosztyRok: 0, paliwoRok: 0, litryRok: 0, ostatni: null, otwarteZgloszenia: 0, wTrasie: null };
+    tr.forEach(function (r) {
+      if (r.rej !== p.rej) return;
+      if (r.status === 'W trakcie') { x.wTrasie = { kto: r.kierowca, od: r.start }; return; }
+      if (r.data.slice(0, 4) === rok) { x.kmRok += r.km; x.przejazdyRok++; }
+      if (!x.ostatni || r.data > x.ostatni.data) x.ostatni = { data: r.data, kierowca: r.kierowca };
+    });
+    ko.forEach(function (k) {
+      if (k.rej !== p.rej || k.data.slice(0, 4) !== rok) return;
+      x.kosztyRok += k.kwota;
+      if (k.typ === 'Paliwo') { x.paliwoRok += k.kwota; if (k.ilosc !== '') x.litryRok += k.ilosc; }
+    });
+    x.kosztyRok = Math.round(x.kosztyRok * 100) / 100; x.paliwoRok = Math.round(x.paliwoRok * 100) / 100;
+    zd.forEach(function (z) { if (z.rej === p.rej && z.status !== 'Zamknięte') x.otwarteZgloszenia++; });
+    return x;
+  });
+};
+
+API.zapiszPojazd = function (u, d) {
+  wymagajAdmina_(u);
+  var rej = tekst_(d.rej).toUpperCase();
+  if (!rej) throw new Error('Wpisz numer rejestracyjny.');
+  if (!tekst_(d.nazwa)) throw new Error('Wpisz markę i model.');
+  ['polisaOd', 'polisaDo', 'przegladDo'].forEach(function (k) {
+    var v = tekst_(d[k]); if (v && !/^\d{4}-\d{2}-\d{2}$/.test(v)) throw new Error('Data „' + k + '” ma zły format.');
+  });
+  if (tekst_(d.polisaOd) && tekst_(d.polisaDo) && d.polisaOd > d.polisaDo) throw new Error('Początek polisy jest po jej końcu.');
+  var start = (d.licznikStart === '' || d.licznikStart === undefined || d.licznikStart === null) ? 0 : Math.round(liczba_(d.licznikStart, 'Licznik początkowy'));
+  var oryginal = tekst_(d.oryginalnaRej).toUpperCase();
+  if (oryginal && oryginal !== rej) throw new Error('Numeru rejestracyjnego istniejącego pojazdu nie zmienia się (zmieniłoby to historię przejazdów). Dodaj nowy pojazd.');
+  var istn = null; wiersze_('Pojazdy').forEach(function (p) { if (p.rej.toUpperCase() === rej) istn = p; });
+  if (istn && !oryginal) throw new Error('Pojazd o numerze ' + rej + ' już istnieje. Edytuj go na liście.');
+  var o = istn || {}, przed = istn ? JSON.stringify(istn) : '';
+  o.rej = rej; o.nazwa = tekst_(d.nazwa); o.rodzaj = tekst_(d.rodzaj); o.paliwo = tekst_(d.paliwo); o.licznikStart = start;
+  o.polisaNr = tekst_(d.polisaNr); o.polisaOd = tekst_(d.polisaOd); o.polisaDo = tekst_(d.polisaDo); o.zakres = tekst_(d.zakres);
+  o.przegladDo = tekst_(d.przegladDo); o.aktywny = d.aktywny === false ? 'nie' : 'tak'; o.uwagi = tekst_(d.uwagi);
+  if (istn) zapisz_('Pojazdy', o); else dodaj_('Pojazdy', o);
+  dziennik_(u.imie, rej, istn ? 'edycja pojazdu' : 'nowy pojazd', przed.slice(0, 400), '', '');
+  return true;
 };
 
 /* ============ WEJŚCIE ============ */

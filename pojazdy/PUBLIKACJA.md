@@ -9,7 +9,7 @@ Adres po publikacji: `https://TWOJ-LOGIN.github.io/ewidencja-rm/pojazdy/`. Pliki
 2. **Rozszerzenia → Apps Script**, wklej zawartość `pojazdy/apps-script/Code.gs`, zapisz.
 3. Odśwież arkusz. W menu pojawi się **Pojazdy → Przygotuj arkusze**. Uruchom (zatwierdź uprawnienia).
 4. Uzupełnij zakładki:
-   - **Pojazdy**: nr rejestracyjny, nazwa, rodzaj, paliwo, licznik początkowy, data końca przeglądu i OC (`RRRR-MM-DD`), aktywny (`tak`/`nie`).
+   - **Pojazdy**: najłatwiej uzupełnić w aplikacji (zakładka **Pojazdy**, przycisk „Dodaj pojazd”). W arkuszu kolumny to: nr rejestracyjny, nazwa, rodzaj, paliwo, licznik początkowy, numer polisy, polisa od, polisa do, zakres, przegląd do (daty `RRRR-MM-DD`), aktywny (`tak`/`nie`), uwagi.
    - **Kierowcy**: imię i nazwisko, rola (`admin` albo `kierowca`), aktywny, opcjonalnie: lista pojazdów po przecinku (puste = wszystkie), data ważności prawa jazdy.
    - **Ustawienia**: `APP_URL` (adres aplikacji z końcówką `/pojazdy/`) oraz stawki za km (Zarząd może ustalić niższe niż maksymalne).
 5. **Pojazdy → Wygeneruj klucze brakującym osobom**. W zakładce **Linki** dostajesz link i kod QR dla każdej osoby.
@@ -30,6 +30,7 @@ Wypchnij zmianę na `main`, Pages opublikuje całość. Przy zmianach wyglądu p
 | Prywatny | kilometrówka: stawka z rodzaju pojazdu, zgoda przed wyjazdem, oświadczenie o pojeździe | §9, §10 |
 | Koszty | paliwo, ładowanie, parking, opłaty, mycie i serwis (wymagają zgody lub trybu awaryjnego) | §7 |
 | Zgłoś | usterka, szkoda, wypadek, awaria, mandat; przy kolizji lista kroków | §12, §13 |
+| Pojazdy (admin) | karta każdego auta: polisa (numer, okres, zakres), przegląd, licznik, przebieg i koszty w roku, ostatni przejazd, zgłoszenia; lista od najpilniejszych terminów; dodawanie i edycja pojazdów; ostrzeżenia 30 dni przed końcem | §3 |
 | Flota (admin) | terminy (przegląd, OC, prawo jazdy), km i zużycie l/100, kontrola ciągłości licznika, zatwierdzanie miesiąca, decyzje o kilometrówkach, zgłoszenia, wpis ręczny | §3, §8.6, §10 |
 
 Zabezpieczenia: licznik nie może się cofnąć, zakresy liczników nie mogą się nakładać, pojazd nie może być w dwóch trasach naraz,

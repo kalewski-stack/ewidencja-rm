@@ -104,6 +104,7 @@
   .pill.toku{background:var(--pom);color:var(--grafit)}
   .pill.uwaga{background:var(--biel);color:var(--pom2);border-color:var(--pom2)}
   .pill.ciemny{background:var(--grafit);color:var(--biel)}
+  .pill.blad{background:var(--pom2);color:var(--biel)}
   .pill.cichy{background:var(--jasna);color:var(--szary)}
   .pods{display:grid;grid-template-columns:1fr 1fr;gap:8px}
   @media(min-width:640px){.pods{grid-template-columns:1.25fr 1fr 1fr}.pod.glowny{grid-column:1;grid-row:1 / span 2;display:flex;flex-direction:column;justify-content:center}}
@@ -144,6 +145,27 @@
   .x{border:1px solid var(--piasek);background:var(--biel);border-radius:999px;width:32px;height:32px;font:inherit;cursor:pointer;color:var(--pom2);flex:none}
   .kroki{margin:8px 0 0;padding-left:20px;font-size:14px}
   .kroki li{margin-bottom:4px}
+  .kpi3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+  .kpi3 div{background:var(--piasek);border-radius:14px;padding:10px 12px 8px}
+  .kpi3 div.zle{background:var(--pom2);color:var(--biel)} .kpi3 div.zle span{color:#FFE6D4}
+  .kpi3 span{display:block;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--szary);font-weight:600}
+  .kpi3 b{font-size:24px;font-weight:600}
+  .wozek{padding:16px}
+  .wozek .gora{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px}
+  .wozek .gora b{font-size:18px;font-weight:600;display:block}
+  .wozek .gora small{color:var(--szary);font-weight:300;font-size:13px}
+  .wozek.nieaktywny{opacity:.6}
+  .dane{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px;margin:12px 0}
+  .dane div span{display:block;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--szary);font-weight:600}
+  .dane div b{display:block;font-size:15px;font-weight:600;line-height:1.3}
+  .dane div small{display:block;font-size:12px;color:var(--szary);font-weight:300}
+  .dane .szer{grid-column:1 / -1}
+  .termin{background:var(--bez);border-radius:var(--r-pole);padding:10px 12px;margin-bottom:8px}
+  .termin.blad{background:#FFF1E6;border-left:4px solid var(--pom2)}
+  .termin.uwaga{background:#FFF8F2;border-left:4px solid var(--pom)}
+  .termin .tw{display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .termin .tw strong{font-size:15px}
+  .termin small{display:block;font-size:12px;color:var(--szary);font-weight:300;margin-top:2px}
   /* ekran klucza */
   #ekran-klucz{display:none;min-height:100vh;padding:32px 20px}
   #ekran-klucz.on{display:block}
@@ -422,6 +444,40 @@
     <div class="msg" id="msgFlota"></div>
   </section>
 
+  <!-- ===================== POJAZDY (admin) ===================== -->
+  <section class="ekran" id="ekran-pojazdy">
+    <div class="kpi3" id="dpPodsumowanie"></div>
+    <div id="dpLista"></div>
+    <button class="btn" id="btnNowyPojazd" style="margin-bottom:14px">+ Dodaj pojazd</button>
+    <div class="card hidden" id="dpFormularz">
+      <h3 id="dpFormTytul">Pojazd</h3>
+      <div class="row field">
+        <div><label for="dpRej">Nr rejestracyjny</label><input type="text" id="dpRej" autocapitalize="characters" placeholder="PO 12345"></div>
+        <div><label for="dpNazwa">Marka i model</label><input type="text" id="dpNazwa" placeholder="np. Škoda Roomster"></div>
+      </div>
+      <div class="field"><label>Własność</label><div class="chips trzy" id="dpRodzaj"></div></div>
+      <div class="row field">
+        <div><label for="dpPaliwo">Paliwo</label><select id="dpPaliwo"></select></div>
+        <div><label for="dpLicznikStart">Licznik początkowy (km)</label><input type="number" id="dpLicznikStart" inputmode="numeric" min="0"></div>
+      </div>
+      <div class="field"><label for="dpPolisaNr">Numer polisy</label><input type="text" id="dpPolisaNr"></div>
+      <div class="row field">
+        <div><label for="dpPolisaOd">Polisa od</label><input type="date" id="dpPolisaOd"></div>
+        <div><label for="dpPolisaDo">Polisa do</label><input type="date" id="dpPolisaDo"></div>
+      </div>
+      <div class="field"><label for="dpZakres">Zakres ubezpieczenia</label><input type="text" id="dpZakres" placeholder="np. OC, AC, NNW i Assistance"></div>
+      <div class="field"><label for="dpPrzeglad">Przegląd ważny do</label><input type="date" id="dpPrzeglad"></div>
+      <div class="field"><label for="dpUwagi">Uwagi</label><input type="text" id="dpUwagi" placeholder="np. karta paliwowa, miejsce parkowania"></div>
+      <label class="kontrola" for="dpAktywny"><input type="checkbox" id="dpAktywny" checked><span>Pojazd aktywny<small>Odznacz, jeśli pojazd wyszedł z użytku. Historia przejazdów zostaje.</small></span></label>
+      <div class="stack" style="margin-top:14px">
+        <button class="btn dark" id="btnZapiszPojazd">Zapisz pojazd</button>
+        <button class="btn" id="btnAnulujPojazd">Anuluj</button>
+      </div>
+      <div class="msg" id="msgPojazdForm"></div>
+    </div>
+    <div class="msg" id="msgPojazdy"></div>
+  </section>
+
   <div class="instal" id="instal" style="margin-top:20px">
     <button id="instalZamknij" aria-label="zamknij">✕</button>
     <b>Dodaj do ekranu głównego</b>, żeby mieć ikonę jak aplikację.<br>
@@ -573,7 +629,7 @@
   function zbudujUI() {
     $('kto').innerHTML = '<span>' + esc(JA) + '</span><small>' + (ADMIN ? 'administrator' : 'ewidencja pojazdów') + '</small>';
     var zak = [['jazda', 'Jazda'], ['miesiac', 'Miesiąc'], ['prywatny', 'Prywatny'], ['koszty', 'Koszty'], ['zglos', 'Zgłoś']];
-    if (ADMIN) zak.push(['flota', 'Flota']);
+    if (ADMIN) { zak.push(['flota', 'Flota']); zak.push(['pojazdy', 'Pojazdy']); }
     $('nav').innerHTML = '';
     zak.forEach(function (z) {
       var b = document.createElement('button'); b.textContent = z[1]; b.dataset.ekran = z[0];
@@ -584,10 +640,10 @@
     wypelnijListy();
     podpowiedzInstalacji();
     var e = odczytaj('pojazdy_ekran');
-    if (!e || zak.map(function (z) { return z[0]; }).indexOf(e) === -1 || e === 'flota' && !ADMIN) e = 'jazda';
+    if (!e || zak.map(function (z) { return z[0]; }).indexOf(e) === -1 || (e === 'flota' || e === 'pojazdy') && !ADMIN) e = 'jazda';
     pokaz(e);
   }
-  var EKRANY = ['jazda', 'miesiac', 'prywatny', 'koszty', 'zglos', 'flota'];
+  var EKRANY = ['jazda', 'miesiac', 'prywatny', 'koszty', 'zglos', 'flota', 'pojazdy'];
   function pokaz(nazwa) {
     Array.prototype.forEach.call($('nav').children, function (b) {
       var on = b.dataset.ekran === nazwa; b.setAttribute('aria-selected', on);
@@ -599,6 +655,7 @@
     if (nazwa === 'jazda') odswiezJazde();
     if (nazwa === 'miesiac') ladujMiesiac();
     if (nazwa === 'flota') ladujFlote();
+    if (nazwa === 'pojazdy') ladujPojazdy();
   }
   function podpowiedzInstalacji() {
     var standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
@@ -671,6 +728,9 @@
     $('btnZglos').onclick = wyslijZglos;
     $('btnZatwierdz').onclick = zatwierdz;
     $('btnAdminZapisz').onclick = wpisAdmin;
+    $('btnNowyPojazd').onclick = function () { formularzPojazdu(null); };
+    $('btnAnulujPojazd').onclick = function () { $('dpFormularz').className = 'card hidden'; };
+    $('btnZapiszPojazd').onclick = zapiszPojazd;
   }
 
   /* ---------- JAZDA ---------- */
@@ -886,6 +946,88 @@
     rpc('zglosZdarzenie', d).then(function () {
       komunikat('msgZglos', 'Zgłoszenie wysłane do Koordynatora Biura.', 'ok'); $('zOpis').value = '';
     }).catch(function (e) { blad(e, 'msgZglos'); }).then(function () { b.disabled = false; });
+  }
+
+
+  /* ---------- POJAZDY: dane zbiorcze (admin) ---------- */
+  var DP = [], dpEdytowany = '';
+  var RODZAJE_POJAZDU = ['Własny', 'Leasing', 'Najem / użyczenie'], PALIWA = ['Diesel', 'Benzyna', 'Benzyna + LPG', 'Hybryda', 'Elektryczny'];
+  function ladujPojazdy() {
+    rpc('danePojazdow').then(function (l) { DP = l; pokazPojazdy(); }).catch(function (e) { blad(e, 'msgPojazdy'); });
+  }
+  function terminOpis(t) {
+    if (t.poziom === 'brak') return 'brak daty';
+    if (t.dni < 0) return 'po terminie ' + liczDni(-t.dni, 'dzień', 'dni', 'dni');
+    if (t.dni === 0) return 'kończy się dziś';
+    return 'za ' + liczDni(t.dni, 'dzień', 'dni', 'dni');
+  }
+  function terminHtml(etykieta, t, extra) {
+    var kl = t.poziom === 'blad' ? 'blad' : (t.poziom === 'uwaga' ? 'uwaga' : '');
+    var pill = t.poziom === 'ok' ? 'ok' : (t.poziom === 'brak' ? 'cichy' : (t.poziom === 'blad' ? 'blad' : 'uwaga'));
+    return '<div class="termin ' + kl + '"><div class="tw"><span><span class="mini">' + etykieta + '</span><br><strong>' + (t.do ? dataPL(t.do) : '—') + '</strong></span><span class="pill ' + pill + '">' + terminOpis(t) + '</span></div>' + (extra ? '<small>' + extra + '</small>' : '') + '</div>';
+  }
+  function pilnosc(p) {
+    var w = { blad: 0, uwaga: 1, brak: 2, ok: 3 };
+    return Math.min(w[p.polisa.poziom], w[p.przeglad.poziom]) * 100000 + Math.min(p.polisa.dni === null ? 9999 : p.polisa.dni, p.przeglad.dni === null ? 9999 : p.przeglad.dni) + (p.aktywny ? 0 : 1e7);
+  }
+  function pokazPojazdy() {
+    komunikat('msgPojazdy', '');
+    var akt = DP.filter(function (p) { return p.aktywny; }), po = 0, wkrotce = 0, brak = 0;
+    akt.forEach(function (p) {
+      [p.polisa, p.przeglad].forEach(function (t) { if (t.poziom === 'blad') po++; else if (t.poziom === 'uwaga') wkrotce++; else if (t.poziom === 'brak') brak++; });
+    });
+    $('dpPodsumowanie').innerHTML = '<div class="' + (po ? 'zle' : '') + '"><span>Po terminie</span><b>' + po + '</b></div><div><span>Do 30 dni</span><b>' + wkrotce + '</b></div><div><span>Brak daty</span><b>' + brak + '</b></div>';
+    var l = DP.slice().sort(function (a, b) { return pilnosc(a) - pilnosc(b); });
+    $('dpLista').innerHTML = l.map(function (p) {
+      var zuz = (p.litryRok && p.kmRok) ? (Math.round(p.litryRok / p.kmRok * 1000) / 10).toLocaleString('pl-PL') + ' l/100 km' : '';
+      var polisaExtra = [p.polisaNr ? 'polisa nr ' + esc(p.polisaNr) : '', (p.polisaOd ? 'od ' + dataPL(p.polisaOd) : ''), esc(p.zakres)].filter(Boolean).join(' · ');
+      return '<div class="card wozek' + (p.aktywny ? '' : ' nieaktywny') + '"><div class="gora"><div><b>' + esc(p.rej) + '</b><small>' + esc(p.nazwa) + [p.rodzaj, p.paliwo].filter(Boolean).map(function (x) { return ' · ' + esc(x); }).join('') + '</small></div>' +
+        (p.wTrasie ? '<span class="pill toku">w trasie: ' + esc(p.wTrasie.kto) + '</span>' : (p.aktywny ? '' : '<span class="pill cichy">nieaktywny</span>')) + '</div>' +
+        terminHtml('Polisa ważna do', p.polisa, polisaExtra) + terminHtml('Przegląd ważny do', p.przeglad, '') +
+        '<div class="dane"><div><span>Licznik</span><b>' + fmtKm(p.licznik) + '</b></div><div><span>Od startu ewidencji</span><b>' + (p.kmLacznie ? fmtKm(p.kmLacznie) : '—') + '</b></div>' +
+        '<div><span>Przebieg w tym roku</span><b>' + (p.kmRok ? fmtKm(p.kmRok) : '—') + '</b><small>' + (p.przejazdyRok ? liczDni(p.przejazdyRok, 'przejazd', 'przejazdy', 'przejazdów') : '') + '</small></div>' +
+        '<div><span>Koszty w tym roku</span><b>' + (p.kosztyRok ? fmtZl(p.kosztyRok) : '—') + '</b><small>' + (p.paliwoRok ? 'w tym paliwo ' + fmtZl(p.paliwoRok) : '') + (zuz ? ' · ' + zuz : '') + '</small></div>' +
+        '<div><span>Ostatni przejazd</span><b>' + (p.ostatni ? dataPL(p.ostatni.data) : '—') + '</b><small>' + (p.ostatni ? esc(p.ostatni.kierowca) : '') + '</small></div>' +
+        '<div><span>Otwarte zgłoszenia</span><b>' + (p.otwarteZgloszenia || '—') + '</b></div>' +
+        (p.uwagi ? '<div class="szer"><span>Uwagi</span><b style="font-weight:400">' + esc(p.uwagi) + '</b></div>' : '') + '</div>' +
+        '<button class="btn mala" data-edytuj="' + esc(p.rej) + '">Edytuj dane</button></div>';
+    }).join('') || '<div class="card"><p class="mini" style="margin:0">Brak pojazdów. Dodaj pierwszy poniżej.</p></div>';
+    Array.prototype.forEach.call($('dpLista').querySelectorAll('[data-edytuj]'), function (b) {
+      b.onclick = function () { var x = null; DP.forEach(function (p) { if (p.rej === b.dataset.edytuj) x = p; }); formularzPojazdu(x); };
+    });
+  }
+  function formularzPojazdu(p) {
+    dpEdytowany = p ? p.rej : '';
+    $('dpFormTytul').textContent = p ? 'Edycja: ' + p.rej : 'Nowy pojazd';
+    $('dpRej').value = p ? p.rej : ''; $('dpRej').disabled = !!p;
+    $('dpNazwa').value = p ? p.nazwa : '';
+    var rodzaj = p ? p.rodzaj : '';
+    chips('dpRodzaj', RODZAJE_POJAZDU, rodzaj, function (v) { $('dpRodzaj').dataset.val = v; });
+    $('dpRodzaj').dataset.val = rodzaj;
+    opcje('dpPaliwo', [''].concat(PALIWA), p ? p.paliwo : '');
+    $('dpLicznikStart').value = p && p.licznikStart !== '' ? p.licznikStart : '';
+    $('dpPolisaNr').value = p ? p.polisaNr : ''; $('dpPolisaOd').value = p ? p.polisaOd : ''; $('dpPolisaDo').value = p ? (p.polisa.do || '') : '';
+    $('dpZakres').value = p ? p.zakres : ''; $('dpPrzeglad').value = p ? (p.przeglad.do || '') : ''; $('dpUwagi').value = p ? p.uwagi : '';
+    $('dpAktywny').checked = p ? p.aktywny : true;
+    komunikat('msgPojazdForm', '');
+    $('dpFormularz').className = 'card';
+    $('dpFormularz').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  function zapiszPojazd() {
+    var d = { oryginalnaRej: dpEdytowany, rej: wartosc('dpRej'), nazwa: wartosc('dpNazwa'), rodzaj: $('dpRodzaj').dataset.val || '', paliwo: $('dpPaliwo').value,
+      licznikStart: wartosc('dpLicznikStart'), polisaNr: wartosc('dpPolisaNr'), polisaOd: $('dpPolisaOd').value, polisaDo: $('dpPolisaDo').value, zakres: wartosc('dpZakres'),
+      przegladDo: $('dpPrzeglad').value, uwagi: wartosc('dpUwagi'), aktywny: $('dpAktywny').checked };
+    var b = $('btnZapiszPojazd'); b.disabled = true; komunikat('msgPojazdForm', '');
+    rpc('zapiszPojazd', d).then(function () {
+      $('dpFormularz').className = 'card hidden';
+      return rpc('konfig').then(function (c) {
+        POJAZDY = c.pojazdy; CFG.pojazdy = c.pojazdy;
+        chips('jPojazdy', listaPojazdow(true), wyb.j, function (v) { ustawPojazd(v); wybranoPojazd(); });
+        chips('cPojazdy', listaPojazdow(false), wyb.c, ustawPojazd); chips('zPojazdy', listaPojazdow(false), wyb.z, ustawPojazd);
+        var opts = POJAZDY.map(function (p) { return [p.rej, p.rej + ' · ' + p.nazwa]; });
+        opcje('rPojazd', opts, wyb.j); opcje('aPojazd', opts);
+      });
+    }).then(ladujPojazdy).catch(function (e) { blad(e, 'msgPojazdForm'); }).then(function () { b.disabled = false; });
   }
 
   /* ---------- FLOTA (admin) ---------- */
