@@ -31,8 +31,8 @@
   header img{height:34px;width:auto;display:block}
   header .kto{font-size:15px;font-weight:600;text-align:right;line-height:1.25}
   header .kto small{display:block;font-weight:300;font-size:12px;color:#C9C9C9}
-  nav{display:flex;gap:8px;margin-top:12px}
-  nav button{flex:1;padding:10px 6px;border:1px solid #6A6A6A;background:transparent;color:#E6E6E6;border-radius:999px;font:inherit;font-size:13px;font-weight:600;cursor:pointer;letter-spacing:.02em}
+  nav{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap}
+  nav button{flex:1 1 auto;min-width:68px;padding:10px 4px;border:1px solid #6A6A6A;background:transparent;color:#E6E6E6;border-radius:999px;font:inherit;font-size:13px;font-weight:600;cursor:pointer;letter-spacing:.02em}
   nav button[aria-selected=true]{background:var(--pom);color:var(--grafit);border-color:var(--pom)}
   main{max-width:520px;margin:0 auto;padding:16px}
   .ekran{display:none}
@@ -100,6 +100,20 @@
   .pill.brak{background:var(--biel);color:var(--pom2);border-color:var(--pom2)}
   .pill.wolny{background:var(--jasna);color:var(--szary)}
   .pill.dzis{background:var(--biel);color:var(--grafit);border:1px dashed var(--grafit)}
+  .obecni{display:flex;flex-direction:column;gap:8px}
+  .osoba{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:var(--biel);border:1px solid var(--piasek)}
+  .osoba.biuro{background:var(--pom);border-color:var(--pom)}
+  .osoba.poza{background:#DCE8EE;border-color:#DCE8EE}
+  .osoba.przerwa{opacity:.75}
+  .osoba .kropka{width:12px;height:12px;border-radius:50%;background:var(--grafit);flex:0 0 auto}
+  .osoba.biuro .kropka{background:#1F7A4D}
+  .osoba.poza .kropka{background:#2F6F8F}
+  .osoba b{font-size:17px;font-weight:600}
+  .osoba .gdzie{margin-left:auto;text-align:right;font-size:13px;color:var(--grafit);font-weight:600;white-space:nowrap}
+  .osoba .gdzie small{display:block;font-weight:300;font-size:12px;color:var(--szary)}
+  .osoba.biuro .gdzie small{color:#5A3A1A}
+  .legenda{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--szary);margin:10px 0 0}
+  .legenda i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:middle}
   .pods{display:grid;grid-template-columns:1fr 1fr;gap:8px}
   @media(min-width:640px){.pods{grid-template-columns:1.25fr 1fr 1fr}.pod.glowny{grid-column:1;grid-row:1 / span 2;display:flex;flex-direction:column;justify-content:center}}
   .pod{background:var(--piasek);border-radius:14px;padding:12px 14px 10px}
@@ -281,6 +295,21 @@
     <p class="hint" id="hintWolne" style="display:none">„Wolne” to dzień roboczy wolny w zamian za pracę w weekend lub w święto. Godziny z weekendu wpisujesz w zakładce Dziś, w sekcji „Popraw godziny”, wybierając datę.</p>
     <p class="hint">„Odbiór nadgodzin” to dzień wolny za wypracowane wcześniej nadgodziny (0 h przy pełnej normie). „Inne” to dni płatne poza urlopem i L4, np. oddanie krwi albo opieka nad dzieckiem z art. 188 KP. Przy „Inne” powód jest obowiązkowy.</p>
     <div class="msg" id="msgNieob"></div>
+  </section>
+
+  <!-- ===================== W PRACY (dla każdego) ===================== -->
+  <section class="ekran" id="ekran-obecni">
+    <div class="card">
+      <div class="pod glowny" style="margin-bottom:12px"><span>Teraz w pracy</span><b id="oLiczba">—</b><small id="oOpis"></small></div>
+      <div class="obecni" id="oLista"></div>
+      <p class="legenda"><span><i style="background:#1F7A4D"></i>w biurze</span><span><i style="background:#2F6F8F"></i>HO / w terenie</span><span><i style="background:var(--grafit)"></i>na przerwie</span></p>
+    </div>
+    <div class="card" id="oReszta" style="display:none">
+      <p class="mini" id="oSkonczyli" style="margin:0"></p>
+      <p class="mini" id="oNieobecni" style="margin:6px 0 0"></p>
+    </div>
+    <p class="hint" id="oOdswiezono" style="text-align:center"></p>
+    <div class="msg" id="msgObecni"></div>
   </section>
 
   <!-- ===================== ZESPÓŁ (admin) ===================== -->
@@ -479,6 +508,7 @@
     if (MA_EWIDENCJE) ZAKLADKI.push(['dzis', 'Dziś']);
     ZAKLADKI.push(['miesiac', 'Miesiąc']);
     ZAKLADKI.push(['nieob', 'Nieobecność']);
+    ZAKLADKI.push(['obecni', 'W pracy']);
     if (ADMIN) ZAKLADKI.push(['zespol', 'Zespół']);
     $('nav').innerHTML = '';
     ZAKLADKI.forEach(function (z) {
@@ -497,8 +527,10 @@
   }
   function pokaz(nazwa) {
     Array.prototype.forEach.call($('nav').children, function (b) { b.setAttribute('aria-selected', b.dataset.ekran === nazwa); });
-    ['dzis', 'miesiac', 'nieob', 'zespol'].forEach(function (e) { $('ekran-' + e).className = 'ekran' + (e === nazwa ? ' on' : ''); });
+    ['dzis', 'miesiac', 'nieob', 'obecni', 'zespol'].forEach(function (e) { $('ekran-' + e).className = 'ekran' + (e === nazwa ? ' on' : ''); });
     zapamietaj('ewidencja_ekran', nazwa);
+    if (tykObecni) { clearInterval(tykObecni); tykObecni = null; }
+    if (nazwa === 'obecni') { ladujObecnych(); tykObecni = setInterval(function () { if (!document.hidden) ladujObecnych(true); }, 60000); }
     if (nazwa === 'dzis') odswiezDzis();
     if (nazwa === 'miesiac') ladujMiesiac();
     if (nazwa === 'zespol') ladujZespol();
@@ -822,6 +854,34 @@
       if (ADMIN) { tr.className = 'klik'; tr.onclick = function () { adminZaladuj(m.imie, d); }; }
       tb.appendChild(tr);
     });
+  }
+
+  /* ---------- W PRACY ---------- */
+  var tykObecni = null;
+  function ladujObecnych(cicho) {
+    var ekran = $('ekran-obecni'); if (!cicho) zajety(ekran, true);
+    rpc('ktoWPracy').then(pokazObecnych).catch(function (e) { blad(e, 'msgObecni'); }).then(function () { zajety(ekran, false); });
+  }
+  function pokazObecnych(o) {
+    komunikat('msgObecni', '');
+    var n = o.wPracy.length, biuro = o.wPracy.filter(function (x) { return x.biuro; }).length;
+    $('oLiczba').textContent = n ? liczDni(n, 'osoba', 'osoby', 'osób') : 'nikogo';
+    $('oOpis').textContent = n ? (biuro ? liczDni(biuro, 'osoba', 'osoby', 'osób') + ' w biurze' : 'nikogo w biurze') + (n - biuro ? ' · ' + (n - biuro) + ' zdalnie / w terenie' : '')
+      : (o.roboczy ? 'nikt jeszcze nie włączył dnia pracy' : 'dziś dzień wolny');
+    var lista = $('oLista'); lista.innerHTML = '';
+    o.wPracy.forEach(function (x) {
+      var d = document.createElement('div');
+      d.className = 'osoba ' + (x.biuro ? 'biuro' : 'poza') + (x.przerwa ? ' przerwa' : '');
+      d.innerHTML = '<i class="kropka"></i><b>' + x.imie + '</b><span class="gdzie">' + (x.miejsce || (x.biuro ? 'biuro' : 'poza biurem')) +
+        '<small>' + (x.przerwa ? 'przerwa od ' + x.przerwa : 'od ' + x.od) + '</small></span>';
+      lista.appendChild(d);
+    });
+    var sk = o.skonczyli.map(function (x) { return x.imie + ' (' + x.od + '–' + x.do + (x.miejsce ? ', ' + x.miejsce : '') + ')'; }).join(', ');
+    var ni = o.nieobecni.map(function (x) { return x.imie + ' (' + x.typ.toLowerCase() + ')'; }).join(', ');
+    $('oSkonczyli').textContent = sk ? 'Dziś już skończyli: ' + sk : '';
+    $('oNieobecni').textContent = ni ? 'Nieobecni: ' + ni : '';
+    $('oReszta').style.display = (sk || ni) ? '' : 'none';
+    $('oOdswiezono').textContent = 'Stan na ' + o.teraz + ' · odświeża się co minutę';
   }
 
   /* ---------- NIEOBECNOŚĆ ---------- */
