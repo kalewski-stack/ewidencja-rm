@@ -11,20 +11,12 @@ var CONFIG = {
   ALERT_DNI: 30,                     // ostrzeżenie o terminach (przegląd, OC, prawo jazdy)
   MIN_CEL_ZNAKOW: 10,
   ZAKAZANE_CELE: ['sprawy fundacji', 'wyjazd służbowy', 'spotkanie', 'sprawy służbowe', 'służbowo', 'sprawy', 'delegacja', 'wyjazd'],
-  MIEJSCA: ['Biuro', 'Magazyn', 'Dom kierowcy', 'Parking', 'Inne'],
-  ZATWIERDZAJACY: ['Prezes', 'Wiceprezes', 'Koordynator Biura'],
-  FORMY_ZGODY: ['Polecenie wyjazdu', 'E-mail', 'System'],
+  MIEJSCA: ['G7', 'J48', 'DOM', 'Inne'],                       // jak w ewidencji czasu
+  CELE: ['Transport sprzętu', 'Diecezje', 'Marketing', 'Spotkanie', 'Inne'],
+  AKCEPTUJACY: ['Mateusz', 'Tomasz', 'Marysia'],     // kto zgadza się na rezerwację i użytek prywatny
+  KRAJE: ['PL', 'Zagranica'],
   TYPY_KOSZTOW: ['Paliwo', 'Ładowanie', 'Parking', 'Opłata drogowa', 'Mycie / płyny', 'Serwis / naprawa'],
-  DOKUMENTY: ['Faktura na Fundację', 'Karta paliwowa', 'Paragon / inny'],
-  TYPY_ZDARZEN: ['Usterka', 'Szkoda / kolizja', 'Wypadek', 'Awaria', 'Mandat'],
-  // maksymalne stawki za 1 km (rozporządzenie); Zarząd może ustalić niższe — wpisz w arkuszu Ustawienia
-  STAWKI: [
-    { id: 'os900',  nazwa: 'Osobowy do 900 cm³',          stawka: 0.89 },
-    { id: 'osPow',  nazwa: 'Osobowy powyżej 900 cm³',     stawka: 1.15 },
-    { id: 'motor',  nazwa: 'Motocykl',                    stawka: 0.69 },
-    { id: 'moped',  nazwa: 'Motorower',                   stawka: 0.42 },
-    { id: 'elek',   nazwa: 'Elektryczny / wodorowy',      stawka: null }   // stawkę potwierdza księgowość
-  ]
+  TYPY_ZDARZEN: ['Usterka', 'Szkoda / kolizja', 'Wypadek', 'Awaria', 'Mandat']
 };
 
 var TAB = {
@@ -32,7 +24,8 @@ var TAB = {
   Kierowcy:  [['imie','t'],['rola','t'],['aktywny','t'],['klucz','t'],['pojazdy','t'],['prawoJazdyDo','t'],['uwagi','t']],
   Przejazdy: [['id','t'],['nr','n'],['data','t'],['kierowca','t'],['rej','t'],['licznikPrzed','n'],['licznikPo','n'],['km','n'],['skad','t'],['dokad','t'],['trasa','t'],['cel','t'],['start','t'],['koniec','t'],['status','t'],['kontrola','t'],['flaga','t'],['uwagi','t'],['zatwierdzil','t'],['zatwierdzonoKiedy','t']],
   Koszty:    [['id','t'],['data','t'],['kierowca','t'],['rej','t'],['typ','t'],['kwota','n'],['ilosc','n'],['licznik','n'],['dokument','t'],['zgoda','t'],['uwagi','t'],['dodano','t']],
-  Prywatne:  [['id','t'],['data','t'],['kierowca','t'],['rodzaj','t'],['marka','t'],['rej','t'],['pojemnosc','t'],['skad','t'],['dokad','t'],['cel','t'],['km','n'],['tryb','t'],['stawka','n'],['kwota','n'],['oplaty','n'],['zgodaKto','t'],['zgodaForma','t'],['status','t'],['decyzjaKto','t'],['decyzjaKiedy','t'],['decyzjaUwaga','t'],['dodano','t']],
+  UzytekPrywatny: [['id','t'],['kierowca','t'],['rej','t'],['odData','t'],['doData','t'],['licznikPrzed','n'],['licznikPo','n'],['km','n'],['paliwoPelne','t'],['kraj','t'],['zgoda','t'],['dodano','t']],
+  Rezerwacje: [['id','t'],['rej','t'],['kierowca','t'],['odData','t'],['doData','t'],['cel','t'],['akceptowal','t'],['dodano','t']],
   Zdarzenia: [['id','t'],['data','t'],['kierowca','t'],['rej','t'],['typ','t'],['opis','t'],['status','t'],['komentarz','t'],['dodano','t']],
   Zatwierdzenia: [['klucz','t'],['mies','t'],['rej','t'],['kto','t'],['kiedy','t']],
   Dziennik:  [['kiedy','t'],['kto','t'],['rekord','t'],['akcja','t'],['przed','t'],['po','t'],['powod','t']],
@@ -48,6 +41,12 @@ function tab_(nazwa) {
     s.getRange(1, 1, 1, def.length).setValues([def.map(function (d) { return d[0]; })]).setFontWeight('bold');
     def.forEach(function (d, i) { if (d[1] === 't') s.getRange(1, i + 1, s.getMaxRows(), 1).setNumberFormat('@'); });
     s.setFrozenRows(1);
+  }
+  else if (s.getLastColumn() < def.length) {      // zakładka sprzed dodania kolumn: dopisz brakujące nagłówki
+    for (var i = s.getLastColumn(); i < def.length; i++) {
+      s.getRange(1, i + 1).setValue(def[i][0]).setFontWeight('bold');
+      if (def[i][1] === 't') s.getRange(1, i + 1, s.getMaxRows(), 1).setNumberFormat('@');
+    }
   }
   return s;
 }
@@ -134,6 +133,9 @@ function liczba_(x, nazwa) {
 function tekst_(x) { return String(x === null || x === undefined ? '' : x).replace(/\s+/g, ' ').trim(); }
 function sprawdzCel_(cel) {
   cel = tekst_(cel);
+  if (CONFIG.CELE.indexOf(cel) >= 0 && cel !== 'Inne') return cel;                 // kategoria z listy
+  var inne = /^Inne:\s*(.+)$/.exec(cel);
+  if (inne) { if (inne[1].length < 3) throw new Error('Opisz cel w polu „Inne”.'); return 'Inne: ' + inne[1]; }
   if (cel.length < CONFIG.MIN_CEL_ZNAKOW) throw new Error('Cel przejazdu opisz konkretnie, np. „odbiór darów od firmy …”, „spotkanie z partnerem projektu …”.');
   var m = cel.toLowerCase().replace(/[.!]+$/, '');
   if (CONFIG.ZAKAZANE_CELE.indexOf(m) >= 0) throw new Error('Opis „' + cel + '” jest zbyt ogólny. Napisz, po co i do kogo jedziesz (np. „transport materiałów do magazynu”).');
@@ -148,6 +150,7 @@ function wszystkiePojazdy_() {
   wiersze_('Przejazdy').forEach(function (p) {
     if (p.status === 'Zakończony' && p.licznikPo !== '') licz[p.rej] = Math.max(licz[p.rej] || 0, p.licznikPo);
   });
+  wiersze_('UzytekPrywatny').forEach(function (p) { if (p.licznikPo !== '') licz[p.rej] = Math.max(licz[p.rej] || 0, p.licznikPo); });
   return wiersze_('Pojazdy').filter(function (p) { return p.rej; }).map(function (p) {
     p.licznik = Math.max(licz[p.rej] || 0, p.licznikStart === '' ? 0 : p.licznikStart);
     return p;
@@ -194,6 +197,9 @@ function zablokowany_(data, rej) {
   if (z) throw new Error('Miesiąc dla pojazdu ' + rej + ' jest już zatwierdzony. Poproś administratora o cofnięcie zatwierdzenia.');
 }
 function nakladanie_(rej, przed, po, pomin) {
+  wiersze_('UzytekPrywatny').forEach(function (u) {
+    if (u.rej === rej && u.id !== pomin && przed < u.licznikPo && po > u.licznikPrzed) throw new Error('Ten zakres licznika (' + przed + '–' + po + ') jest już zajęty przez użytek prywatny (' + u.kierowca + ', ' + pl_(u.odData) + ').');
+  });
   var w = wiersze_('Przejazdy');
   for (var i = 0; i < w.length; i++) {
     var p = w[i];
@@ -213,6 +219,10 @@ function ostatniePrzejazdy_() {
     var k = p.data + ' ' + p.koniec, x = m[p.rej];      // ostatni = najwyższy licznik (nie cofa się), przy remisie późniejszy wpis
     if (!x || p.licznikPo > x.licznik || (p.licznikPo === x.licznik && k > x.k)) m[p.rej] = { k: k, data: p.data, koniec: p.koniec, kierowca: p.kierowca, dokad: p.dokad, licznik: p.licznikPo };
   });
+  wiersze_('UzytekPrywatny').forEach(function (u) {      // po użytku prywatnym miejsce nie jest znane
+    var x = m[u.rej];
+    if (!x || u.licznikPo > x.licznik) m[u.rej] = { k: u.doData, data: u.doData, koniec: '', kierowca: u.kierowca, dokad: '', licznik: u.licznikPo, prywatnie: true };
+  });
   return m;
 }
 function opisPrzejazdu_(p) { return p.data + ' ' + p.rej + ' ' + p.licznikPrzed + '→' + (p.licznikPo === '' ? '…' : p.licznikPo) + ' ' + p.skad + '→' + p.dokad + ' (' + p.cel + ')'; }
@@ -226,18 +236,18 @@ API.konfig = function (u) {
     var d = u.pojazdy.split(',').map(function (x) { return tekst_(x).toUpperCase(); }).filter(Boolean);
     return !d.length || d.indexOf(p.rej.toUpperCase()) >= 0;
   });
-  var otwarte = {}, ost = ostatniePrzejazdy_();
+  var otwarte = {}, ost = ostatniePrzejazdy_(), rez = wiersze_('Rezerwacje'), dzis = dzis_();
   wiersze_('Przejazdy').forEach(function (p) { if (p.status === 'W trakcie') otwarte[p.rej] = { kto: p.kierowca, od: p.start, data: p.data }; });
   var wynik = {
     imie: u.imie, admin: u.admin, dzisiaj: dzis_(), najwczesniejszaData: najwczesniejszaData_(),
     pojazdy: lista.map(function (p) {
       return { rej: p.rej, nazwa: p.nazwa, rodzaj: p.rodzaj, paliwo: p.paliwo, licznik: p.licznik, przegladDo: p.przegladDo, polisaDo: p.polisaDo,
-               ostrzezenia: ostrzezeniaPojazdu_(p), wTrasie: otwarte[p.rej] || null,
-               ostatni: ost[p.rej] ? { data: ost[p.rej].data, koniec: ost[p.rej].koniec, kierowca: ost[p.rej].kierowca, dokad: ost[p.rej].dokad } : null };
+               ostrzezenia: ostrzezeniaPojazdu_(p), wTrasie: otwarte[p.rej] || null, rezerwacja: rezerwacjaNa_(p.rej, dzis, rez),
+               ostatni: ost[p.rej] ? { data: ost[p.rej].data, koniec: ost[p.rej].koniec, kierowca: ost[p.rej].kierowca, dokad: ost[p.rej].dokad, prywatnie: !!ost[p.rej].prywatnie } : null };
     }),
-    miejsca: CONFIG.MIEJSCA,
-    typyKosztow: CONFIG.TYPY_KOSZTOW, dokumenty: CONFIG.DOKUMENTY, typyZdarzen: CONFIG.TYPY_ZDARZEN,
-    stawki: stawki_(), zatwierdzajacy: CONFIG.ZATWIERDZAJACY, formyZgody: CONFIG.FORMY_ZGODY,
+    miejsca: CONFIG.MIEJSCA, cele: CONFIG.CELE,
+    typyKosztow: CONFIG.TYPY_KOSZTOW, typyZdarzen: CONFIG.TYPY_ZDARZEN,
+    akceptujacy: CONFIG.AKCEPTUJACY, kraje: CONFIG.KRAJE,
     prawoJazdyDo: u.prawoJazdyDo || '', progKm: CONFIG.PROG_KM_POTWIERDZ
   };
   if (u.admin) {
@@ -246,14 +256,6 @@ API.konfig = function (u) {
   }
   return wynik;
 };
-
-function stawki_() {
-  return CONFIG.STAWKI.map(function (s) {
-    var v = ustawienie_('STAWKA_' + s.id, '');
-    var st = v !== '' ? Number(String(v).replace(',', '.')) : s.stawka;
-    return { id: s.id, nazwa: s.nazwa, stawka: st };
-  });
-}
 
 API.stanJazdy = function (u) {
   var w = wiersze_('Przejazdy').filter(function (p) { return p.kierowca === u.imie; });
@@ -279,6 +281,8 @@ API.startJazdy = function (u, d) {
     if (x.kierowca === u.imie) throw new Error('Masz już rozpoczętą jazdę (' + x.rej + ' od ' + x.start + '). Najpierw ją zakończ.');
     if (x.rej === p.rej) throw new Error('Pojazd ' + p.rej + ' jest w trasie: ' + x.kierowca + ' od ' + x.start + '. Poczekaj na zakończenie jazdy.');
   });
+  var rz = rezerwacjaNa_(p.rej, dzis_());
+  if (rz && rz.kto !== u.imie && !u.admin) throw new Error('Pojazd jest zarezerwowany: ' + rz.kto + ' (' + pl_(rz.od) + '–' + pl_(rz.do) + ').');
   if (d.kontrola !== true) throw new Error('Potwierdź kontrolę pojazdu przed jazdą (licznik, paliwo, uszkodzenia, opony, dokumenty).');
   var przed = Math.round(liczba_(d.licznik, 'Licznik przed jazdą'));
   if (przed < 0) throw new Error('Licznik przed jazdą: liczba nie może być ujemna.');
@@ -370,26 +374,36 @@ API.usunJazde = function (u, id, powod) {
   return true;
 };
 
-API.dodajKoszt = function (u, d) {
-  var p = pojazd_(d.rej), typ = tekst_(d.typ);
-  if (CONFIG.TYPY_KOSZTOW.indexOf(typ) < 0) throw new Error('Wybierz rodzaj kosztu.');
-  var data = dataOk_(d.data || dzis_(), 'Data');
+function kosztyWspolne_(u, d) {
+  var p = pojazd_(d.rej), data = dataOk_(d.data || dzis_(), 'Data');
   if (!u.admin && data > dzis_()) throw new Error('Data z przyszłości.');
   zablokowany_(data, p.rej);
-  var kwota = liczba_(d.kwota, 'Kwota');
-  if (kwota <= 0) throw new Error('Kwota musi być większa od zera.');
-  var zgoda = '';
-  if (typ === 'Mycie / płyny' || typ === 'Serwis / naprawa') {
-    zgoda = tekst_(d.zgoda);
-    if (['Mam zgodę Koordynatora', 'Sytuacja awaryjna'].indexOf(zgoda) < 0) throw new Error('Mycie, płyny i serwis wymagają zgody Koordynatora Biura (poza sytuacją awaryjną). Wybierz właściwą opcję.');
-  }
-  var dokument = tekst_(d.dokument);
-  if (CONFIG.DOKUMENTY.indexOf(dokument) < 0) throw new Error('Wybierz dokument potwierdzający wydatek.');
+  return { p: p, data: data };
+}
+function kosztPozycja_(x) {
+  var typ = tekst_(x.typ);
+  if (CONFIG.TYPY_KOSZTOW.indexOf(typ) < 0) throw new Error('Wybierz rodzaj kosztu.');
+  var kwota = liczba_(x.kwota, typ);
+  if (kwota <= 0) throw new Error(typ + ': kwota musi być większa od zera.');
+  return { typ: typ, kwota: Math.round(kwota * 100) / 100 };
+}
+API.dodajKoszt = function (u, d) {
+  var w = kosztyWspolne_(u, d), x = kosztPozycja_(d);
   var ilosc = (d.ilosc === '' || d.ilosc === undefined || d.ilosc === null) ? '' : liczba_(d.ilosc, 'Ilość');
   var licznik = (d.licznik === '' || d.licznik === undefined || d.licznik === null) ? '' : Math.round(liczba_(d.licznik, 'Licznik'));
-  var o = dodaj_('Koszty', { id: nowyId_(), data: data, kierowca: u.imie, rej: p.rej, typ: typ, kwota: Math.round(kwota * 100) / 100, ilosc: ilosc, licznik: licznik,
-    dokument: dokument, zgoda: zgoda, uwagi: tekst_(d.uwagi), dodano: teraz_() });
+  var o = dodaj_('Koszty', { id: nowyId_(), data: w.data, kierowca: u.imie, rej: w.p.rej, typ: x.typ, kwota: x.kwota, ilosc: ilosc, licznik: licznik,
+    dokument: tekst_(d.dokument), zgoda: tekst_(d.zgoda), uwagi: tekst_(d.uwagi), dodano: teraz_() });
   return { koszt: o };
+};
+// kilka pozycji naraz (paliwo, parking, drogowe, płyny): wszystkie albo żadna
+API.dodajKoszty = function (u, d) {
+  var w = kosztyWspolne_(u, d), poz = d.pozycje || [];
+  if (!poz.length) throw new Error('Wpisz kwotę.');
+  var gotowe = poz.map(kosztPozycja_);
+  var zapisane = gotowe.map(function (x) {
+    return dodaj_('Koszty', { id: nowyId_(), data: w.data, kierowca: u.imie, rej: w.p.rej, typ: x.typ, kwota: x.kwota, ilosc: '', licznik: '', dokument: '', zgoda: '', uwagi: '', dodano: teraz_() });
+  });
+  return { koszty: zapisane };
 };
 API.usunKoszt = function (u, id) {
   var o = null; wiersze_('Koszty').forEach(function (p) { if (p.id === id) o = p; });
@@ -401,42 +415,6 @@ API.usunKoszt = function (u, id) {
   return true;
 };
 
-API.dodajPrywatny = function (u, d, kierowca) {
-  var wlasciciel = u.imie;
-  var st = null; stawki_().forEach(function (s) { if (s.id === d.rodzaj) st = s; });
-  if (!st) throw new Error('Wybierz rodzaj pojazdu.');
-  var data = dataOk_(d.data, 'Data');
-  if (data > dzis_()) throw new Error('Data z przyszłości.');
-  var skad = tekst_(d.skad), dokad = tekst_(d.dokad);
-  if (!skad || !dokad) throw new Error('Wpisz trasę: skąd i dokąd.');
-  var cel = sprawdzCel_(d.cel);
-  var km = liczba_(d.km, 'Kilometry'); if (km <= 0) throw new Error('Liczba kilometrów musi być większa od zera.');
-  km = Math.round(km * 10) / 10;
-  var marka = tekst_(d.marka), rej = tekst_(d.rej).toUpperCase();
-  if (!marka || !rej) throw new Error('Wpisz markę, model i numer rejestracyjny pojazdu.');
-  if (st.id === 'os900' || st.id === 'osPow') { if (!tekst_(d.pojemnosc)) throw new Error('Wpisz pojemność silnika (cm³).'); }
-  var tryb = tekst_(d.tryb);
-  if (['Jednorazowa podróż', 'Regularne przejazdy lokalne'].indexOf(tryb) < 0) throw new Error('Wybierz rodzaj rozliczenia.');
-  if (CONFIG.ZATWIERDZAJACY.indexOf(tekst_(d.zgodaKto)) < 0) throw new Error('Wskaż, kto wyraził zgodę na przejazd prywatnym pojazdem (zgoda musi być przed wyjazdem).');
-  if (CONFIG.FORMY_ZGODY.indexOf(tekst_(d.zgodaForma)) < 0) throw new Error('Wskaż formę zgody.');
-  if (d.oswiadczenie !== true) throw new Error('Potwierdź oświadczenie o pojeździe (prawo jazdy, OC, badanie techniczne, sprawność, zgoda właściciela).');
-  var oplaty = (d.oplaty === '' || d.oplaty === undefined || d.oplaty === null) ? '' : liczba_(d.oplaty, 'Opłaty');
-  var kwota = st.stawka === null ? '' : Math.round(km * st.stawka * 100) / 100;
-  var o = dodaj_('Prywatne', { id: nowyId_(), data: data, kierowca: wlasciciel, rodzaj: st.nazwa, marka: marka, rej: rej, pojemnosc: tekst_(d.pojemnosc),
-    skad: skad, dokad: dokad, cel: cel, km: km, tryb: tryb, stawka: st.stawka === null ? '' : st.stawka, kwota: kwota, oplaty: oplaty,
-    zgodaKto: tekst_(d.zgodaKto), zgodaForma: tekst_(d.zgodaForma), status: st.stawka === null ? 'Do potwierdzenia przez księgowość' : 'Złożone', dodano: teraz_() });
-  return { rozliczenie: o };
-};
-API.usunPrywatny = function (u, id) {
-  var o = null; wiersze_('Prywatne').forEach(function (p) { if (p.id === id) o = p; });
-  if (!o) throw new Error('Nie znaleziono wpisu.');
-  if (o.kierowca !== u.imie && !u.admin) throw new Error('Możesz usunąć tylko własny wpis.');
-  if (o.status === 'Zatwierdzone') throw new Error('Zatwierdzonego rozliczenia nie można usunąć.');
-  dziennik_(u.imie, o.id, 'usunięcie kilometrówki', o.data + ' ' + o.skad + '→' + o.dokad + ' ' + o.km + ' km', '', 'usunięte w aplikacji');
-  usunWiersz_('Prywatne', o);
-  return true;
-};
-
 API.zglosZdarzenie = function (u, d) {
   var typ = tekst_(d.typ);
   if (CONFIG.TYPY_ZDARZEN.indexOf(typ) < 0) throw new Error('Wybierz rodzaj zgłoszenia.');
@@ -444,26 +422,6 @@ API.zglosZdarzenie = function (u, d) {
   var opis = tekst_(d.opis); if (opis.length < 10) throw new Error('Opisz zdarzenie (co, gdzie, kiedy) w kilku słowach.');
   var o = dodaj_('Zdarzenia', { id: nowyId_(), data: dzis_(), kierowca: u.imie, rej: p.rej, typ: typ, opis: opis, status: 'Nowe', dodano: teraz_() });
   return { zdarzenie: o };
-};
-
-API.miesiac = function (u, mies, osoba, pojazd) {
-  if (!/^\d{4}-\d{2}$/.test(mies)) throw new Error('Zły miesiąc.');
-  var kto = u.admin && osoba ? osoba : u.imie;
-  var tr = wiersze_('Przejazdy').filter(function (p) { return p.data.slice(0, 7) === mies && p.kierowca === kto; })
-    .sort(function (a, b) { return (a.data + a.start) < (b.data + b.start) ? -1 : 1; });
-  var km = 0, dni = {}, wg = {};
-  tr.forEach(function (p) { if (p.status === 'Zakończony') { km += p.km; dni[p.data] = 1; wg[p.rej] = (wg[p.rej] || 0) + p.km; } });
-  var naj = ''; Object.keys(wg).forEach(function (r) { if (!naj || wg[r] > wg[naj]) naj = r; });
-  var ko = wiersze_('Koszty').filter(function (p) { return p.data.slice(0, 7) === mies && p.kierowca === kto; }).sort(function (a, b) { return a.data < b.data ? -1 : 1; });
-  var kSuma = 0; ko.forEach(function (k) { kSuma += k.kwota; });
-  var pr = wiersze_('Prywatne').filter(function (p) { return p.data.slice(0, 7) === mies && p.kierowca === kto; }).sort(function (a, b) { return a.data < b.data ? -1 : 1; });
-  var prKm = 0, prKw = 0, prOpl = 0; pr.forEach(function (p) { if (p.status !== 'Odrzucone') { prKm += p.km; prKw += (p.kwota === '' ? 0 : p.kwota); prOpl += (p.oplaty === '' ? 0 : p.oplaty); } });
-  var zatw = {}; wiersze_('Zatwierdzenia').forEach(function (z) { if (z.mies === mies) zatw[z.rej] = z.kto; });
-  var zd = wiersze_('Zdarzenia').filter(function (z) { return z.kierowca === kto && z.data.slice(0, 7) === mies; });
-  return { mies: mies, osoba: kto, przejazdy: tr, km: km, dniJazdy: Object.keys(dni).length, najczestszy: naj,
-    koszty: ko, kosztySuma: Math.round(kSuma * 100) / 100,
-    prywatne: pr, prywatneKm: Math.round(prKm * 10) / 10, prywatneKwota: Math.round(prKw * 100) / 100, prywatneOplaty: Math.round(prOpl * 100) / 100,
-    zatwierdzone: zatw, zdarzenia: zd };
 };
 
 /* ============ API: ADMIN ============ */
@@ -492,11 +450,6 @@ API.flota = function (u, mies) {
   var kier = wiersze_('Kierowcy').filter(function (k) { return k.aktywny.toLowerCase() !== 'nie'; });
   var lim = dodajDni_(t, CONFIG.ALERT_DNI), prawa = [];
   kier.forEach(function (k) { if (k.prawoJazdyDo && k.prawoJazdyDo <= lim) prawa.push({ imie: k.imie, do: k.prawoJazdyDo, po: k.prawoJazdyDo < t }); });
-  var prywatne = wiersze_('Prywatne').filter(function (p) { return p.status === 'Złożone' || p.status === 'Do potwierdzenia przez księgowość'; }).sort(function (a, b) { return a.data < b.data ? -1 : 1; })
-    .map(function (p) {
-      p.spozniony = (p.tryb === 'Jednorazowa podróż') && p.dodano.slice(0, 10) > dodajDni_(p.data, 14);
-      return p;
-    });
   var zd = wiersze_('Zdarzenia').filter(function (z) { return z.status !== 'Zamknięte'; }).sort(function (a, b) { return a.dodano < b.dodano ? 1 : -1; });
   var sumy = { km: 0, przejazdy: 0, koszty: 0 }, wgK = {};
   tr.forEach(function (r) {
@@ -507,7 +460,7 @@ API.flota = function (u, mies) {
   ko.forEach(function (k) { if (k.data.indexOf(mies) === 0) sumy.koszty += k.kwota; });
   sumy.koszty = Math.round(sumy.koszty * 100) / 100; sumy.aktywne = lista.length;
   sumy.kierowcy = Object.keys(wgK).map(function (n) { return wgK[n]; }).sort(function (a, b) { return b.km - a.km; });
-  return { mies: mies, sumy: sumy, pojazdy: poj, prawaJazdy: prawa, prywatneDoDecyzji: prywatne, zdarzenia: zd, osoby: kier.map(function (k) { return k.imie; }) };
+  return { mies: mies, sumy: sumy, pojazdy: poj, prawaJazdy: prawa, zdarzenia: zd, osoby: kier.map(function (k) { return k.imie; }) };
 };
 
 API.przejazdyPojazdu = function (u, mies, rej) {
@@ -543,26 +496,6 @@ API.zatwierdzMiesiac = function (u, mies, rej, cofnij) {
   return true;
 };
 
-API.decyzjaPrywatny = function (u, id, decyzja, stawka, uwaga) {
-  wymagajAdmina_(u);
-  var o = null; wiersze_('Prywatne').forEach(function (p) { if (p.id === id) o = p; });
-  if (!o) throw new Error('Nie znaleziono rozliczenia.');
-  if (o.kierowca === u.imie) throw new Error('Nie możesz zatwierdzać własnego rozliczenia. Zrobi to inny administrator.');
-  if (decyzja !== 'Zatwierdzone' && decyzja !== 'Odrzucone') throw new Error('Zła decyzja.');
-  if (decyzja === 'Odrzucone' && !tekst_(uwaga)) throw new Error('Przy odrzuceniu wpisz powód.');
-  var przed = o.status + ' ' + o.stawka + ' ' + o.kwota;
-  if (stawka !== undefined && stawka !== '' && stawka !== null) {
-    var s = liczba_(stawka, 'Stawka');
-    var max = null; stawki_().forEach(function (x) { if (x.nazwa === o.rodzaj) max = x.stawka; });
-    if (max !== null && s > max) throw new Error('Stawka nie może być wyższa niż maksymalna (' + max + ' zł/km).');
-    o.stawka = s; o.kwota = Math.round(o.km * s * 100) / 100;
-  } else if (o.kwota === '') throw new Error('Pojazd elektryczny / wodorowy: podaj stawkę potwierdzoną przez księgowość.');
-  o.status = decyzja; o.decyzjaKto = u.imie; o.decyzjaKiedy = teraz_(); o.decyzjaUwaga = tekst_(uwaga);
-  zapisz_('Prywatne', o);
-  dziennik_(u.imie, o.id, 'decyzja kilometrówki: ' + decyzja, przed, o.status + ' ' + o.stawka + ' ' + o.kwota, tekst_(uwaga));
-  return { rozliczenie: o };
-};
-
 API.zmienZdarzenie = function (u, id, status, komentarz) {
   wymagajAdmina_(u);
   if (['Nowe', 'W toku', 'Zamknięte'].indexOf(status) < 0) throw new Error('Zły status.');
@@ -580,6 +513,79 @@ API.wpisAdmin = function (u, d) {
 };
 
 
+
+
+/* ============ API: REZERWACJE ============ */
+function rezerwacjaNa_(rej, data, lista) {
+  var l = lista || wiersze_('Rezerwacje'), r = null;
+  l.forEach(function (x) { if (x.rej === rej && x.odData <= data && data <= x.doData) r = { kto: x.kierowca, od: x.odData, do: x.doData, cel: x.cel, id: x.id }; });
+  return r;
+}
+API.rezerwuj = function (u, d) {
+  var p = pojazd_(d.rej), od = dataOk_(d.od, 'Data zabrania'), do_ = dataOk_(d.do, 'Data zdania'), t = dzis_();
+  if (od > do_) throw new Error('Data zdania jest przed datą zabrania.');
+  if (od < t && !u.admin) throw new Error('Rezerwacja nie może zaczynać się w przeszłości.');
+  var cel = sprawdzCel_(d.cel), kto = tekst_(d.akceptowal);
+  if (CONFIG.AKCEPTUJACY.indexOf(kto) < 0) throw new Error('Wskaż, kto zaakceptował rezerwację.');
+  wiersze_('Rezerwacje').forEach(function (r) {
+    if (r.rej === p.rej && od <= r.doData && do_ >= r.odData) throw new Error('Pojazd jest już zarezerwowany: ' + r.kierowca + ' (' + pl_(r.odData) + '–' + pl_(r.doData) + ').');
+  });
+  var o = dodaj_('Rezerwacje', { id: nowyId_(), rej: p.rej, kierowca: u.imie, odData: od, doData: do_, cel: cel, akceptowal: kto, dodano: teraz_() });
+  return { rezerwacja: o };
+};
+API.rezerwacje = function (u) {
+  var t = dzis_();
+  return wiersze_('Rezerwacje').filter(function (r) { return r.doData >= t; }).sort(function (a, b) { return a.odData < b.odData ? -1 : 1; });
+};
+API.usunRezerwacje = function (u, id) {
+  var o = null; wiersze_('Rezerwacje').forEach(function (r) { if (r.id === id) o = r; });
+  if (!o) throw new Error('Nie znaleziono rezerwacji.');
+  if (o.kierowca !== u.imie && !u.admin) throw new Error('Możesz usunąć tylko własną rezerwację.');
+  dziennik_(u.imie, o.id, 'usunięcie rezerwacji', o.rej + ' ' + o.odData + '–' + o.doData + ' ' + o.kierowca, '', '');
+  usunWiersz_('Rezerwacje', o);
+  return true;
+};
+
+/* ============ API: UŻYTEK PRYWATNY (auto służbowe zabrane prywatnie) ============ */
+API.uzytekPrywatny = function (u, d) {
+  var p = pojazd_(d.rej), od = dataOk_(d.od, 'Data zabrania'), do_ = dataOk_(d.do, 'Data zdania');
+  if (od > do_) throw new Error('Data zdania jest przed datą zabrania.');
+  if (do_ > dzis_()) throw new Error('Data zdania z przyszłości. Zapisz użytek po zdaniu auta.');
+  var przed = Math.round(liczba_(d.licznikPrzed, 'Licznik przed')), po = Math.round(liczba_(d.licznikPo, 'Licznik po'));
+  if (po <= przed) throw new Error('Licznik po musi być większy niż przed.');
+  nakladanie_(p.rej, przed, po, '');
+  var paliwo = tekst_(d.paliwo).toLowerCase();
+  if (paliwo !== 'tak' && paliwo !== 'nie') throw new Error('Zaznacz, czy paliwo zostało uzupełnione do pełna.');
+  var kraj = tekst_(d.kraj); if (CONFIG.KRAJE.indexOf(kraj) < 0) throw new Error('Wybierz: PL czy zagranica.');
+  var kto = tekst_(d.zgoda); if (CONFIG.AKCEPTUJACY.indexOf(kto) < 0) throw new Error('Wskaż, kto wyraził zgodę na zabranie auta.');
+  var o = dodaj_('UzytekPrywatny', { id: nowyId_(), kierowca: u.imie, rej: p.rej, odData: od, doData: do_, licznikPrzed: przed, licznikPo: po, km: po - przed,
+    paliwoPelne: paliwo, kraj: kraj, zgoda: kto, dodano: teraz_() });
+  dziennik_(u.imie, o.id, 'użytek prywatny', '', p.rej + ' ' + od + '–' + do_ + ' ' + przed + '→' + po + ' (zgoda: ' + kto + ')', '');
+  return { uzytek: o };
+};
+API.uzytkiMoje = function (u) {
+  return wiersze_('UzytekPrywatny').filter(function (x) { return x.kierowca === u.imie; }).sort(function (a, b) { return a.odData < b.odData ? 1 : -1; }).slice(0, 8);
+};
+API.usunUzytek = function (u, id) {
+  var o = null; wiersze_('UzytekPrywatny').forEach(function (x) { if (x.id === id) o = x; });
+  if (!o) throw new Error('Nie znaleziono wpisu.');
+  if (o.kierowca !== u.imie && !u.admin) throw new Error('Możesz usunąć tylko własny wpis.');
+  dziennik_(u.imie, o.id, 'usunięcie użytku prywatnego', o.rej + ' ' + o.odData + '–' + o.doData + ' ' + o.licznikPrzed + '→' + o.licznikPo, '', '');
+  usunWiersz_('UzytekPrywatny', o);
+  return true;
+};
+
+/* ============ API: GDZIE SĄ AUTA TERAZ ============ */
+API.gdzieAuta = function (u) {
+  var t = dzis_(), tr = wiersze_('Przejazdy'), rez = wiersze_('Rezerwacje'), ost = ostatniePrzejazdy_();
+  return pojazdy_().map(function (p) {
+    var x = { rej: p.rej, nazwa: p.nazwa, licznik: p.licznik, ostrzezenia: ostrzezeniaPojazdu_(p), wTrasie: null, rezerwacja: rezerwacjaNa_(p.rej, t, rez), nastepna: null,
+              ostatni: ost[p.rej] ? { data: ost[p.rej].data, koniec: ost[p.rej].koniec, kierowca: ost[p.rej].kierowca, dokad: ost[p.rej].dokad, prywatnie: !!ost[p.rej].prywatnie } : null };
+    tr.forEach(function (r) { if (r.rej === p.rej && r.status === 'W trakcie') x.wTrasie = { kto: r.kierowca, od: r.start, data: r.data, skad: r.skad, cel: r.cel }; });
+    rez.forEach(function (r) { if (r.rej === p.rej && r.odData > t && (!x.nastepna || r.odData < x.nastepna.od)) x.nastepna = { kto: r.kierowca, od: r.odData, do: r.doData, cel: r.cel }; });
+    return x;
+  });
+};
 
 /* ============ API: WIDOKI ADMINA — per pojazd i per pracownik ============ */
 function okres_(o) { if (!/^\d{4}(-\d{2})?$/.test(String(o || ''))) throw new Error('Zły okres.'); return o; }
@@ -602,7 +608,8 @@ API.dziennikPojazdu = function (u, rej, okres) {
   wymagajAdmina_(u); okres_(okres);
   var tr = przejazdyOkresu_(okres, function (p) { return p.rej === rej; });
   var s = sumujPrzejazdy_(tr, 'kierowca');
-  return { rej: rej, okres: okres, przejazdy: tr, km: s.km, liczba: s.liczba,
+  var up = wiersze_('UzytekPrywatny').filter(function (x) { return x.rej === rej && x.odData.indexOf(okres) === 0; }).sort(function (a, b) { return a.odData < b.odData ? 1 : -1; });
+  return { rej: rej, okres: okres, przejazdy: tr, prywatne: up, km: s.km, liczba: s.liczba,
            kierowcy: s.grupy.map(function (x) { return { imie: x.klucz, km: x.km, przejazdy: x.przejazdy, ostatnio: x.ostatnio }; }) };
 };
 API.dziennikOsoby = function (u, imie, okres) {
@@ -610,7 +617,8 @@ API.dziennikOsoby = function (u, imie, okres) {
   var tr = przejazdyOkresu_(okres, function (p) { return p.kierowca === imie; });
   var s = sumujPrzejazdy_(tr, 'rej'), nazwy = {};
   wszystkiePojazdy_().forEach(function (p) { nazwy[p.rej] = p.nazwa; });
-  return { imie: imie, okres: okres, przejazdy: tr, km: s.km, liczba: s.liczba,
+  var up = wiersze_('UzytekPrywatny').filter(function (x) { return x.kierowca === imie && x.odData.indexOf(okres) === 0; }).sort(function (a, b) { return a.odData < b.odData ? 1 : -1; });
+  return { imie: imie, okres: okres, przejazdy: tr, prywatne: up, km: s.km, liczba: s.liczba,
            pojazdy: s.grupy.map(function (x) { return { rej: x.klucz, nazwa: nazwy[x.klucz] || '', km: x.km, przejazdy: x.przejazdy, ostatnio: x.ostatnio }; }) };
 };
 
@@ -696,7 +704,7 @@ function onOpen() {
     .addItem('Odśwież zakładkę Linki', 'odswiezLinki')
     .addItem('Unieważnij link osoby…', 'uniewaznKlucz')
     .addSeparator()
-    .addItem('Raport miesiąca: ewidencja przebiegu i kilometrówki…', 'raportMiesiaca')
+    .addItem('Raport miesiąca: ewidencja przebiegu i użytek prywatny…', 'raportMiesiaca')
     .addToUi();
 }
 function przygotuj() {
@@ -704,7 +712,6 @@ function przygotuj() {
   var us = tab_('Ustawienia');
   if (us.getLastRow() < 2) {
     var w = [['APP_URL', CONFIG.APP_URL, 'Adres aplikacji (kończy się na /pojazdy/)']];
-    CONFIG.STAWKI.forEach(function (s) { w.push(['STAWKA_' + s.id, s.stawka === null ? '' : s.stawka, 'Stawka zł/km: ' + s.nazwa + ' (Zarząd może ustalić niższą niż maksymalna)']); });
     us.getRange(2, 1, w.length, 3).setValues(w);
   }
   var kier = tab_('Kierowcy');
@@ -762,16 +769,11 @@ function raportMiesiaca() {
     s.getRange(wiersz, 1, dane.length, 12).setValues(dane); wiersz += dane.length;
     s.getRange(wiersz, 9, 1, 2).setValues([['Razem:', suma]]).setFontWeight('bold'); wiersz += 2;
   });
-  var pr = wiersze_('Prywatne').filter(function (p) { return p.data.slice(0, 7) === mies && p.status !== 'Odrzucone'; });
-  var wgOs = {}; pr.forEach(function (p) { (wgOs[p.kierowca] = wgOs[p.kierowca] || []).push(p); });
-  Object.keys(wgOs).sort().forEach(function (os) {
-    var l = wgOs[os].sort(function (a, b) { return a.data < b.data ? -1 : 1; }), km = 0, kw = 0;
-    s.getRange(wiersz, 1).setValue('KILOMETRÓWKA — ' + os + ' — ' + mies).setFontWeight('bold'); wiersz++;
-    s.getRange(wiersz, 1, 1, 11).setValues([['Lp.', 'Data', 'Pojazd (marka, nr rej., poj.)', 'Trasa (skąd–dokąd)', 'Cel wyjazdu', 'Km', 'Stawka zł/km', 'Wartość zł', 'Opłaty zł', 'Status', 'Zatwierdził']]).setFontWeight('bold'); wiersz++;
-    var dane = l.map(function (p, i) { km += p.km; kw += (p.kwota === '' ? 0 : p.kwota);
-      return [i + 1, p.data, p.marka + ', ' + p.rej + ', ' + p.pojemnosc, p.skad + ' – ' + p.dokad, p.cel, p.km, p.stawka, p.kwota, p.oplaty, p.status, p.decyzjaKto]; });
-    s.getRange(wiersz, 1, dane.length, 11).setValues(dane); wiersz += dane.length;
-    s.getRange(wiersz, 5, 1, 4).setValues([['Razem:', km, '', Math.round(kw * 100) / 100]]).setFontWeight('bold'); wiersz += 2;
-  });
+  var up = wiersze_('UzytekPrywatny').filter(function (p) { return p.odData.slice(0, 7) === mies; }).sort(function (a, b) { return a.odData < b.odData ? -1 : 1; });
+  if (up.length) {
+    s.getRange(wiersz, 1).setValue('UŻYTEK PRYWATNY POJAZDÓW — ' + mies).setFontWeight('bold'); wiersz++;
+    s.getRange(wiersz, 1, 1, 10).setValues([['Pojazd', 'Kto', 'Zabrano', 'Zdano', 'Licznik przed', 'Licznik po', 'Km', 'Paliwo do pełna', 'Kraj', 'Zgoda']]).setFontWeight('bold'); wiersz++;
+    s.getRange(wiersz, 1, up.length, 10).setValues(up.map(function (p) { return [p.rej, p.kierowca, p.odData, p.doData, p.licznikPrzed, p.licznikPo, p.km, p.paliwoPelne, p.kraj, p.zgoda]; }));
+  }
   ui.alert('Raport gotowy w zakładce „' + nazwa + '”.');
 }
