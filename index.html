@@ -769,7 +769,8 @@
     }
     var nad = roz.nadgodziny || 0;
     $('mNadg').textContent = nad > 0.01 ? '+' + fmtH(nad) : fmtH(0);
-    $('mNadgOpis').textContent = '';
+    var zb = roz.zmianaBanku || 0;
+    $('mNadgOpis').textContent = roz.bankPrzed > 0.01 || Math.abs(zb) > 0.01 ? 'start ' + fmtH(roz.bankPrzed || 0) + ' · ten mies. ' + (zb >= 0 ? '+' : '−') + fmtH(Math.abs(zb)) : '';
     var wolneDni = (m.urlop || 0) + (m.l4 || 0) + (m.wolne || 0) + (m.odbior || 0) + (m.inne || 0);
     $('mWolneDni').textContent = liczDni(wolneDni, 'dzień', 'dni', 'dni');
     var czesci = [];
