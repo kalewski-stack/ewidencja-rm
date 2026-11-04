@@ -1,6 +1,6 @@
 /* Strych — service worker. Trzyma powłokę aplikacji w pamięci, żeby ikona otwierała się od razu (także na strychu bez zasięgu).
    Dane zawsze idą do arkusza przez sieć. Po zmianie plików podbij WERSJA. */
-const WERSJA = 'strych-v1';
+const WERSJA = 'strych-v2';
 const POWLOKA = ['./', './index.html', './qrcode.js', './manifest.webmanifest', './ikony/icon-192.png', './ikony/icon-512.png', './ikony/apple-touch-icon.png'];
 
 self.addEventListener('install', function (e) {

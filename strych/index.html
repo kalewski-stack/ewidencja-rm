@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Strych</title>
 <meta name="description" content="Domowy bank garderoby: co jest w którym worku na strychu, dla kogo, gdzie leży i kiedy wymienić.">
-<meta name="theme-color" content="#383838">
+<meta name="theme-color" content="#FFFFFF">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
@@ -14,156 +14,176 @@
 <link rel="icon" href="ikony/favicon-64.png">
 <link rel="apple-touch-icon" href="ikony/apple-touch-icon.png">
 <style>
+  /* Jasny, czytelny wygląd dla całej rodziny: duże litery, duże przyciski, mocny kontrast */
   :root{
-    --grafit:#383838; --szary:#6A6A6A; --piasek:#E3DDD1; --bez:#F3F1EA; --jasna:#F8F8F8; --biel:#FFFFFF;
-    --pom:#FFA142; --pom2:#E87229; --pom-grad:linear-gradient(180deg,#FFA545 0%,#F38D36 100%);
-    --r-duze:32px; --r-karta:20px; --r-pole:12px;
+    --grafit:#14213D; --szary:#4A5568; --piasek:#D5DEEB; --bez:#F2F6FB; --jasna:#F7FAFD; --biel:#FFFFFF;
+    --pom:#1F6FEB; --pom-ciemny:#1558C0; --pom-jasny:#E7F0FF; --pom2:#B45309;
+    --ok:#12805C; --ok-jasny:#E1F5EC; --uwaga-jasny:#FFF1D6; --blad:#C62828; --blad-jasny:#FDEAEA; --znacznik:#F97316;
+    --r-duze:28px; --r-karta:22px; --r-pole:14px;
+    --cien:0 1px 2px rgba(20,33,61,.06),0 4px 14px rgba(20,33,61,.07);
   }
   *{box-sizing:border-box}
   html,body{margin:0;padding:0}
-  body{background:var(--bez);color:var(--grafit);font:16px/1.5 -apple-system,"Segoe UI",Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased;padding-bottom:96px}
-  header{background:var(--grafit);color:var(--biel);padding:12px 18px calc(12px + env(safe-area-inset-top))}
-  header .top{display:flex;align-items:center;justify-content:space-between;gap:12px}
-  header .marka{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:600;letter-spacing:.02em}
-  header .marka svg{width:30px;height:30px}
-  header .kto{font-size:14px;font-weight:600;text-align:right;line-height:1.25;background:none;border:0;color:var(--biel);font-family:inherit;cursor:pointer}
-  header .kto small{display:block;font-weight:300;font-size:12px;color:#C9C9C9}
-  nav{display:flex;gap:8px;margin-top:12px;overflow-x:auto;scrollbar-width:none}
-  nav::-webkit-scrollbar{display:none}
-  nav button{flex:1 0 auto;padding:10px 14px;border:1px solid #6A6A6A;background:transparent;color:#E6E6E6;border-radius:999px;font:inherit;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
-  nav button[aria-selected=true]{background:var(--pom);color:var(--grafit);border-color:var(--pom)}
-  main{max-width:520px;margin:0 auto;padding:16px}
+  body{background:var(--bez);color:var(--grafit);font:19px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased;padding-bottom:calc(150px + env(safe-area-inset-bottom))}
+  header{position:sticky;top:0;z-index:6;background:var(--biel);border-bottom:1px solid var(--piasek);padding:12px 18px 12px;padding-top:calc(12px + env(safe-area-inset-top));display:flex;align-items:center;justify-content:space-between;gap:12px}
+  header .marka{display:flex;align-items:center;gap:10px;font-size:26px;font-weight:800;letter-spacing:-.01em;color:var(--grafit)}
+  header .marka svg{width:36px;height:36px}
+  header .kto{min-height:48px;padding:6px 16px;border:2px solid var(--piasek);border-radius:999px;background:var(--biel);color:var(--grafit);font:inherit;font-size:17px;font-weight:700;text-align:center;line-height:1.15;cursor:pointer}
+  header .kto small{display:block;font-weight:500;font-size:13px;color:var(--pom)}
+  nav{position:fixed;left:0;right:0;bottom:0;z-index:7;display:flex;background:var(--biel);border-top:1px solid var(--piasek);padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -4px 16px rgba(20,33,61,.06)}
+  nav button{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:68px;padding:8px 2px;border:0;background:none;color:var(--szary);font:inherit;font-size:14px;font-weight:700;cursor:pointer;position:relative}
+  nav button svg{width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  nav button[aria-selected=true]{color:var(--pom)}
+  nav button[aria-selected=true]::before{content:"";position:absolute;top:0;left:22%;right:22%;height:4px;border-radius:0 0 4px 4px;background:var(--pom)}
+  main{max-width:560px;margin:0 auto;padding:18px 16px}
   .ekran{display:none} .ekran.on{display:block}
   .hidden{display:none !important}
-  .card{background:var(--biel);border-radius:var(--r-karta);padding:16px;margin-bottom:14px}
-  .card h3{margin:0 0 10px;font-size:15px;font-weight:600}
-  label{display:block;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--szary);margin:0 0 6px}
-  .field{margin-bottom:16px}
-  input[type=text],input[type=search],input[type=number],input[type=email],input[type=date],select,textarea{width:100%;padding:12px;border:1px solid var(--piasek);border-radius:var(--r-pole);background:var(--biel);color:var(--grafit);font:inherit;font-size:17px}
-  textarea{resize:vertical;min-height:64px}
-  input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid var(--pom2);outline-offset:1px}
-  .chips{display:flex;gap:8px;flex-wrap:wrap}
-  .chip{padding:9px 14px;border:1px solid var(--piasek);background:var(--biel);border-radius:999px;font:inherit;font-size:15px;color:var(--grafit);cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:7px}
-  .chip[aria-pressed=true]{background:var(--grafit);color:var(--biel);border-color:var(--grafit)}
-  .chip .kropka{width:10px;height:10px;border-radius:50%;flex:0 0 10px}
-  .chips.przewijane{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:0 -16px;padding:0 16px}
+  .card{background:var(--biel);border-radius:var(--r-karta);padding:18px;margin-bottom:16px;box-shadow:var(--cien)}
+  .card h3{margin:0 0 12px;font-size:21px;font-weight:800}
+  label{display:block;font-size:17px;font-weight:700;color:var(--grafit);margin:0 0 8px}
+  .field{margin-bottom:22px}
+  input[type=text],input[type=search],input[type=number],input[type=email],input[type=date],select,textarea{width:100%;min-height:58px;padding:13px 16px;border:2px solid var(--piasek);border-radius:var(--r-pole);background:var(--biel);color:var(--grafit);font:inherit;font-size:20px}
+  select{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%231F6FEB' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 16px center;padding-right:46px}
+  textarea{resize:vertical;min-height:90px}
+  input:focus,select:focus,textarea:focus,button:focus-visible{outline:3px solid var(--pom);outline-offset:2px}
+  ::placeholder{color:#7A8699}
+  .chips{display:flex;gap:10px;flex-wrap:wrap}
+  .chip{min-height:50px;padding:10px 18px;border:2px solid var(--piasek);background:var(--biel);border-radius:999px;font:inherit;font-size:18px;font-weight:600;color:var(--grafit);cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:8px}
+  .chip[aria-pressed=true]{background:var(--pom);color:#fff;border-color:var(--pom)}
+  .chip .kropka{width:12px;height:12px;border-radius:50%;flex:0 0 12px}
+  .chip[aria-pressed=true] .kropka{box-shadow:0 0 0 2px #fff}
+  .chips.przewijane{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:0 -16px;padding:2px 16px 4px}
   .chips.przewijane::-webkit-scrollbar{display:none}
-  .btn{width:100%;padding:13px 18px;border:1px solid var(--piasek);border-radius:999px;background:var(--biel);color:var(--grafit);font:inherit;font-size:15px;font-weight:600;cursor:pointer}
-  .btn.primary{background:var(--pom);border-color:var(--pom);text-transform:uppercase;letter-spacing:.04em}
-  .btn.dark{background:var(--grafit);border-color:var(--grafit);color:var(--biel)}
-  .btn.danger{color:var(--pom2)}
-  .btn.mala{width:auto;padding:8px 14px;font-size:13px}
-  .btn:disabled{opacity:.5}
-  .stack>*{margin-bottom:10px} .stack>*:last-child{margin-bottom:0}
-  .row{display:flex;gap:10px} .row>*{flex:1;min-width:0}
-  .hint{font-size:14px;color:var(--szary);margin:8px 0 0;font-weight:300}
-  .msg{margin:12px 0;padding:12px 16px;border-radius:var(--r-pole);font-size:15px;background:var(--biel);border-left:4px solid var(--pom)}
-  .msg.err{border-left-color:var(--pom2)}
-  .pill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap;border:1px solid transparent}
-  .pill.ok{background:var(--piasek)} .pill.cichy{background:var(--jasna);color:var(--szary)}
-  .pill.toku{background:var(--pom)} .pill.uwaga{background:var(--biel);color:var(--pom2);border-color:var(--pom2)}
-  .pill.blad{background:var(--pom2);color:var(--biel)} .pill.ciemny{background:var(--grafit);color:var(--biel)}
-  .fab{position:fixed;left:0;right:0;bottom:0;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(243,241,234,0),var(--bez) 40%);display:flex;gap:10px;max-width:520px;margin:0 auto;z-index:5}
-  .fab .btn{padding:16px;font-size:16px;box-shadow:0 4px 14px rgba(56,56,56,.18)}
-  .fab .btn.skan{flex:0 0 auto;width:auto;padding:16px 22px}
+  .btn{width:100%;min-height:62px;padding:14px 22px;border:2px solid var(--pom);border-radius:18px;background:var(--biel);color:var(--pom);font:inherit;font-size:20px;font-weight:800;cursor:pointer;display:block}
+  .btn:active{transform:scale(.99)}
+  .btn.primary{background:var(--pom);border-color:var(--pom);color:#fff;box-shadow:0 4px 14px rgba(31,111,235,.3)}
+  .btn.dark{background:var(--grafit);border-color:var(--grafit);color:#fff}
+  .btn.danger{color:var(--blad);border-color:#F0B5B5}
+  .btn.mala{width:auto;min-height:50px;padding:8px 20px;font-size:17px;display:inline-block}
+  .btn:disabled{opacity:.45;box-shadow:none}
+  .stack>*{margin-bottom:12px} .stack>*:last-child{margin-bottom:0}
+  .row{display:flex;gap:12px} .row>*{flex:1;min-width:0}
+  .hint{font-size:16.5px;color:var(--szary);margin:10px 0 0;font-weight:400;line-height:1.45}
+  .msg{margin:0 0 14px;padding:16px 18px;border-radius:var(--r-pole);font-size:18px;font-weight:600;background:var(--ok-jasny);border-left:6px solid var(--ok)}
+  .msg.err{background:var(--blad-jasny);border-left-color:var(--blad)}
+  .pill{display:inline-block;padding:5px 12px;border-radius:999px;font-size:14.5px;font-weight:700;white-space:nowrap;line-height:1.3}
+  .pill.ok{background:#E8EEF7;color:var(--grafit)} .pill.cichy{background:#EEF1F5;color:var(--szary)}
+  .pill.toku{background:var(--pom-jasny);color:var(--pom-ciemny)} .pill.uwaga{background:var(--uwaga-jasny);color:var(--pom2)}
+  .pill.blad{background:var(--blad);color:#fff} .pill.ciemny{background:var(--grafit);color:#fff}
+  .fab{position:fixed;left:0;right:0;bottom:calc(70px + env(safe-area-inset-bottom));padding:10px 16px;display:flex;gap:10px;max-width:560px;margin:0 auto;z-index:5;pointer-events:none}
+  .fab .btn{pointer-events:auto;min-height:66px;font-size:21px;box-shadow:0 6px 20px rgba(20,33,61,.22)}
+  .fab .btn.primary{box-shadow:0 6px 20px rgba(31,111,235,.45)}
+  .fab .btn.skan{flex:0 0 auto;width:auto;padding:14px 22px;background:var(--biel)}
 
-  /* lista worków */
-  .szukaj{margin-bottom:10px}
-  .filtry{margin-bottom:10px}
-  .baner{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--pom-grad);border-radius:var(--r-karta);padding:14px 18px;margin-bottom:14px;cursor:pointer;border:0;width:100%;font:inherit;color:var(--grafit);text-align:left}
-  .baner b{font-size:18px} .baner span{font-size:14px}
-  .worek{display:flex;gap:12px;background:var(--biel);border-radius:var(--r-karta);padding:10px;margin-bottom:10px;cursor:pointer;border:0;width:100%;text-align:left;font:inherit;color:inherit}
+  /* lista rzeczy */
+  .szukaj{margin-bottom:12px}
+  .szukaj input{min-height:62px;font-size:21px;border-radius:18px;border-color:#B9C7DB}
+  .filtry{margin-bottom:14px}
+  .filtry select{margin-top:2px}
+  .baner{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--uwaga-jasny);border-radius:var(--r-karta);padding:16px 18px;margin-bottom:14px;cursor:pointer;border:0;border-left:8px solid #F59E0B;width:100%;font:inherit;color:var(--grafit);text-align:left;box-shadow:var(--cien)}
+  .baner.info{background:var(--pom-jasny);border-left-color:var(--pom)}
+  .baner b{font-size:20px;font-weight:800} .baner span{font-size:16.5px;line-height:1.35}
+  .worek{display:flex;gap:14px;background:var(--biel);border-radius:var(--r-karta);padding:12px;margin-bottom:12px;cursor:pointer;border:0;width:100%;text-align:left;font:inherit;color:inherit;box-shadow:var(--cien)}
   .worek:active{background:var(--jasna)}
-  .worek .foto{flex:0 0 84px;height:84px;border-radius:12px;background:var(--piasek) center/cover no-repeat}
+  .worek .foto{flex:0 0 100px;height:100px;border-radius:16px;background:#DFE7F2 center/cover no-repeat}
   .worek .tresc{flex:1;min-width:0}
-  .worek .nr{font-size:12px;font-weight:600;letter-spacing:.06em;color:var(--szary)}
-  .worek .dla{font-size:17px;font-weight:600;line-height:1.25;margin:1px 0 2px}
-  .worek .meta{font-size:13px;color:var(--szary);line-height:1.35}
-  .worek .pills{margin-top:5px;display:flex;gap:5px;flex-wrap:wrap}
-  .worek.zdjety{opacity:.6}
-  .pusto{text-align:center;color:var(--szary);padding:32px 12px;font-weight:300}
+  .worek .nr{font-size:14.5px;font-weight:800;letter-spacing:.04em;color:var(--pom)}
+  .worek .dla{font-size:22px;font-weight:800;line-height:1.2;margin:2px 0 3px}
+  .worek .meta{font-size:16.5px;color:var(--szary);line-height:1.35}
+  .worek .pills{margin-top:7px;display:flex;gap:6px;flex-wrap:wrap}
+  .worek.zdjety{opacity:.65}
+  .pusto{text-align:center;color:var(--szary);padding:36px 12px;font-size:18px}
+  .worek .powod{font-size:16px;color:var(--grafit);margin-top:6px;line-height:1.35}
+  .worek .ranga{display:inline-block;background:var(--znacznik);color:#fff;border-radius:50%;width:26px;height:26px;line-height:26px;text-align:center;font-size:15px;font-weight:800;margin-right:8px}
+  .wyniki-info{font-size:17px;color:var(--szary);margin:0 4px 12px}
+  #e-gar.szuka #baner,#e-gar.szuka #fInne,#e-gar.szuka .wiecej{display:none}
 
   /* mapa strychu */
-  .mapa{position:relative;width:100%;background:var(--bez);border:2px solid var(--grafit);border-radius:10px;overflow:hidden;touch-action:pan-y;
-        background-image:linear-gradient(var(--piasek) 1px,transparent 1px),linear-gradient(90deg,var(--piasek) 1px,transparent 1px);background-size:10% 10%}
-  .mapa.edycja{touch-action:none;cursor:crosshair}
-  .mapa .strefa{position:absolute;border:2px solid var(--szary);background:rgba(106,106,106,.14);border-radius:6px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:11px;font-weight:600;line-height:1.1;padding:2px;overflow:hidden;color:var(--grafit);cursor:pointer;font-family:inherit}
-  .mapa .strefa.sel{border-color:var(--pom2);background:rgba(255,161,66,.45);z-index:2}
-  .mapa .strefa.sel::after{content:"";position:absolute;width:16px;height:16px;border-radius:50%;background:var(--pom2);box-shadow:0 0 0 0 rgba(232,114,41,.6);animation:puls 1.6s infinite;right:4px;top:4px}
-  .mapa .strefa .licz{position:absolute;left:4px;bottom:3px;background:var(--grafit);color:var(--biel);border-radius:999px;padding:0 6px;font-size:10px}
-  .mapa .szkic{position:absolute;border:2px dashed var(--pom2);background:rgba(255,161,66,.25);z-index:3;pointer-events:none}
+  .mapa{position:relative;width:100%;background:#fff;border:3px solid #7B8CA6;border-radius:14px;overflow:hidden;touch-action:pan-y;
+        background-image:linear-gradient(#E6ECF5 1px,transparent 1px),linear-gradient(90deg,#E6ECF5 1px,transparent 1px);background-size:10% 10%}
+  .mapa.edycja{touch-action:none;cursor:crosshair;border-color:var(--pom)}
+  .mapa .strefa{position:absolute;border:2.5px solid #5B8DEF;background:rgba(31,111,235,.1);border-radius:8px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:14px;font-weight:800;line-height:1.1;padding:2px;overflow:hidden;color:var(--grafit);cursor:pointer;font-family:inherit}
+  .mapa .strefa.sel{border-color:var(--znacznik);background:rgba(249,115,22,.28);z-index:2}
+  .mapa .strefa.sel::after{content:"";position:absolute;width:20px;height:20px;border-radius:50%;background:var(--znacznik);box-shadow:0 0 0 0 rgba(249,115,22,.6);animation:puls 1.6s infinite;right:5px;top:5px}
+  .mapa .strefa .licz{position:absolute;left:5px;bottom:4px;background:var(--grafit);color:#fff;border-radius:999px;padding:0 8px;font-size:13px;font-weight:700}
+  .mapa .strefa .numer{position:absolute;left:4px;top:4px;background:var(--znacznik);color:#fff;border-radius:50%;width:24px;height:24px;font-size:14px;line-height:24px;text-align:center}
+  .mapa .szkic{position:absolute;border:3px dashed var(--znacznik);background:rgba(249,115,22,.2);z-index:3;pointer-events:none}
+  .mapa .wlaz{position:absolute;right:8px;bottom:5px;font-size:12px;color:var(--szary);font-weight:700;letter-spacing:.04em;text-transform:uppercase}
   .mapa.zrzutem{background-image:none}
   .mapa .rzut{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;pointer-events:none;user-select:none;-webkit-user-drag:none}
-  .mapa.zrzutem .strefa{background:rgba(56,56,56,.16);border-color:var(--grafit)}
-  .mapa.zrzutem .strefa.sel{background:rgba(255,161,66,.5);border-color:var(--pom2)}
-  .kropka{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
-  .tab-roz{width:100%;font-size:14px}
-  .tab-roz tr.biez td{background:var(--bez);font-weight:600}
-  .tab-roz td,.tab-roz th{padding:7px 6px;border-bottom:1px solid var(--piasek);text-align:left}
-  .tab-roz th{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--szary)}
-  details summary{cursor:pointer;font-weight:600;font-size:15px}
-  .mapa .wlaz{position:absolute;right:6px;bottom:4px;font-size:10px;color:var(--szary);font-weight:600;letter-spacing:.06em;text-transform:uppercase}
-  @keyframes puls{70%{box-shadow:0 0 0 12px rgba(232,114,41,0)}100%{box-shadow:0 0 0 0 rgba(232,114,41,0)}}
+  .mapa.zrzutem .strefa{background:rgba(255,255,255,.35);border-color:var(--pom)}
+  .mapa.zrzutem .strefa.sel{background:rgba(249,115,22,.4);border-color:var(--znacznik)}
+  @keyframes puls{70%{box-shadow:0 0 0 14px rgba(249,115,22,0)}100%{box-shadow:0 0 0 0 rgba(249,115,22,0)}}
   @media (prefers-reduced-motion:reduce){.mapa .strefa.sel::after{animation:none}}
-  .wiersz-strefy{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--piasek)}
-  .wiersz-strefy span{flex:1}
+  .wiersz-strefy{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--piasek)}
+  .wiersz-strefy span{flex:1;font-size:18px;font-weight:700}
 
-  /* modal pełnoekranowy */
-  .modal-bg{position:fixed;inset:0;background:rgba(56,56,56,.6);display:none;align-items:flex-end;justify-content:center;z-index:20}
+  /* okna (arkusze od dołu) */
+  .modal-bg{position:fixed;inset:0;background:rgba(20,33,61,.55);display:none;align-items:flex-end;justify-content:center;z-index:20}
   #modal2Bg{z-index:30}
   .modal-bg.on{display:flex}
-  .modal{background:var(--bez);border-radius:var(--r-duze) var(--r-duze) 0 0;padding:20px 16px calc(24px + env(safe-area-inset-bottom));width:100%;max-width:520px;max-height:94vh;overflow:auto}
+  .modal{background:var(--bez);border-radius:var(--r-duze) var(--r-duze) 0 0;padding:22px 16px calc(28px + env(safe-area-inset-bottom));width:100%;max-width:560px;max-height:95vh;overflow:auto}
   .modal.maly{background:var(--biel)}
-  .modal h2{margin:0 0 12px;font-size:20px;font-weight:600}
-  .modal .glowa{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+  .modal h2{margin:0 0 14px;font-size:26px;font-weight:800;line-height:1.2}
+  .modal .glowa{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px}
   .modal .glowa h2{margin:0}
-  .zamknij{border:1px solid var(--piasek);background:var(--biel);border-radius:50%;width:40px;height:40px;font-size:20px;cursor:pointer;color:var(--grafit);flex:0 0 40px}
-  .zdjecia{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;margin:0 -16px 14px;padding:0 16px}
-  .zdjecia img{flex:0 0 88%;width:88%;max-height:60vh;object-fit:contain;background:var(--piasek);border-radius:16px;scroll-snap-align:center}
-  .zdjecia.edycja img,.zdjecia.edycja .dod{flex:0 0 96px;width:96px;height:96px;object-fit:cover}
-  .zdjecia .miniatura{position:relative;flex:0 0 96px}
-  .zdjecia .miniatura button{position:absolute;right:4px;top:4px;width:26px;height:26px;border-radius:50%;border:0;background:var(--grafit);color:#fff;font-size:15px;cursor:pointer;line-height:1}
-  .foto-przyciski{display:flex;gap:8px;margin-bottom:6px}
-  .foto-przyciski .btn{padding:16px 10px}
-  .info{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:15px;margin-bottom:14px}
-  .info dt{color:var(--szary);font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding-top:3px}
-  .info dd{margin:0}
-  .duzy-nr{font-size:13px;font-weight:600;letter-spacing:.08em;color:var(--szary)}
-  .qr-box{background:#fff;border-radius:16px;padding:14px;display:flex;justify-content:center}
-  .qr-box svg{width:200px;height:200px}
+  .zamknij{border:2px solid var(--piasek);background:var(--biel);border-radius:50%;width:52px;height:52px;font-size:28px;line-height:1;cursor:pointer;color:var(--grafit);flex:0 0 52px}
+  #modal.formn{counter-reset:krok}
+  #modal.formn label.k::before{counter-increment:krok;content:counter(krok) ". ";color:var(--pom)}
+  .zdjecia{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;margin:0 -16px 16px;padding:0 16px}
+  .zdjecia img{flex:0 0 90%;width:90%;max-height:62vh;object-fit:contain;background:#DFE7F2;border-radius:18px;scroll-snap-align:center}
+  .zdjecia.edycja img,.zdjecia.edycja .dod{flex:0 0 110px;width:110px;height:110px;object-fit:cover}
+  .zdjecia .miniatura{position:relative;flex:0 0 110px}
+  .zdjecia .miniatura button{position:absolute;right:4px;top:4px;width:34px;height:34px;border-radius:50%;border:0;background:var(--grafit);color:#fff;font-size:20px;cursor:pointer;line-height:1}
+  .foto-przyciski{display:flex;gap:10px;margin-bottom:6px}
+  .foto-przyciski .btn{padding:14px 10px;font-size:18px}
+  .info{display:grid;grid-template-columns:auto 1fr;gap:10px 16px;font-size:18px;margin-bottom:16px;background:var(--biel);border-radius:var(--r-karta);padding:16px;box-shadow:var(--cien)}
+  .info dt{color:var(--szary);font-size:15px;font-weight:700;padding-top:3px}
+  .info dd{margin:0;font-weight:600}
+  .duzy-nr{font-size:15px;font-weight:800;letter-spacing:.06em;color:var(--pom)}
+  .qr-box{background:#fff;border-radius:16px;padding:14px;display:flex;justify-content:center;border:2px solid var(--piasek)}
+  .qr-box svg{width:210px;height:210px}
   video#kamera{width:100%;border-radius:16px;background:#000}
-
-  /* arkusz etykiet: podgląd na ekranie i druk */
-  .etykieta.op svg{width:25mm;height:25mm;flex:0 0 25mm}
-  .etykieta.op{gap:3mm;padding:3mm}
-  .etykieta .txt{min-width:0;flex:1;line-height:1.15;overflow:hidden;max-height:31mm}
-  .etykieta .txt .n{font-size:2.6mm;color:#555;font-weight:700;letter-spacing:.05em}
-  .etykieta .txt .wl{font-weight:700;word-break:break-word}
-  .etykieta .txt .wl.d1{font-size:5.4mm} .etykieta .txt .wl.d2{font-size:4.2mm} .etykieta .txt .wl.d3{font-size:3.3mm}
-  .etykieta .txt .sz{font-size:3.4mm;font-weight:700;margin-top:.6mm}
-  .etykieta .txt .rd{font-size:2.7mm;margin-top:.4mm}
-  .etykieta .txt .dd{font-size:2.4mm;color:#555;margin-top:.8mm}
-  .mapa .strefa .numer{position:absolute;left:3px;top:3px;background:var(--pom2);color:#fff;border-radius:50%;width:19px;height:19px;font-size:11px;line-height:19px;text-align:center}
-  .worek .powod{font-size:13px;color:var(--grafit);margin-top:5px;line-height:1.3}
-  .worek .ranga{display:inline-block;background:var(--pom2);color:#fff;border-radius:50%;width:22px;height:22px;line-height:22px;text-align:center;font-size:12px;font-weight:700;margin-right:6px}
-  #e-gar.szuka #baner,#e-gar.szuka #fInne,#e-gar.szuka #fRodzaj,#e-gar.szuka #fRozm{display:none}
-  .wyniki-info{font-size:14px;color:var(--szary);margin:0 4px 10px}
-  .et-wiersz{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--piasek);font-size:15px}
-  .et-wiersz input{width:20px;height:20px;flex:0 0 20px}
-  .arkusz{background:#fff;width:210mm;height:297mm;display:grid;grid-template-columns:repeat(3,70mm);grid-template-rows:repeat(8,37mm);transform-origin:top left}
-  .etykieta{width:70mm;height:37mm;display:flex;align-items:center;padding:3mm 3.5mm;gap:3.5mm;overflow:hidden}
-  .etykieta.ramka{outline:.15mm dashed #bbb;outline-offset:-.15mm}
-  .etykieta svg{width:29mm;height:29mm;flex:0 0 29mm}
-  .etykieta .nr{font-size:12mm;font-weight:700;line-height:1;letter-spacing:.01em}
-  .etykieta .podpis{font-size:3mm;line-height:1.25;color:#444;margin-top:1.5mm}
+  .et-wiersz{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--piasek);font-size:18px}
+  .et-wiersz input{width:26px;height:26px;flex:0 0 26px;accent-color:var(--pom)}
+  .kropka{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:8px}
+  .tab-roz{width:100%;font-size:17px;border-collapse:collapse}
+  .tab-roz tr.biez td{background:var(--pom-jasny);font-weight:800}
+  .tab-roz td,.tab-roz th{padding:9px 8px;border-bottom:1px solid var(--piasek);text-align:left}
+  .tab-roz th{font-size:14px;color:var(--szary)}
+  details.wiecej summary{color:var(--pom);font-size:18px}
+  details summary{cursor:pointer;font-weight:800;font-size:19px;min-height:48px;display:flex;align-items:center}
   .podglad-wrap{overflow:hidden;border-radius:12px;border:1px solid var(--piasek);background:#fff}
+  /* kartki A5 (dwie na arkuszu A4), druk czarno-biały */
+  .strona{width:210mm;height:297mm;background:#fff;color:#000;position:relative;break-after:page;page-break-after:always;font-family:Arial,Helvetica,sans-serif}
+  .strona:last-child{break-after:auto;page-break-after:auto}
+  .strona::after{content:"";position:absolute;left:0;right:0;top:148.5mm;border-top:.25mm dashed #999}
+  .et5{position:absolute;left:0;width:210mm;height:148.5mm;padding:7mm 9mm 7mm;display:flex;flex-direction:column;overflow:hidden}
+  .et5.g{top:0} .et5.d{top:148.5mm}
+  .et5::before{content:"";position:absolute;inset:3.5mm;border:.9mm solid #000;border-radius:4mm;pointer-events:none}
+  .et5 .gora{display:flex;align-items:flex-start;justify-content:space-between;gap:6mm;padding:0 3mm}
+  .et5 .wl{font-weight:900;line-height:1.02;min-width:0;word-break:break-word}
+  .et5 .wl.w1{font-size:23mm} .et5 .wl.w2{font-size:18mm} .et5 .wl.w3{font-size:14mm} .et5 .wl.w4{font-size:11.5mm} .et5 .wl.w5{font-size:9mm}
+  .et5 .nrb{font-weight:900;font-size:15mm;line-height:1;white-space:nowrap;border:.9mm solid #000;border-radius:3mm;padding:1.5mm 3mm}
+  .et5 .sez{font-size:11mm;font-weight:900;line-height:1.1;padding:1mm 3mm 0}
+  .et5 .rod{font-size:7.5mm;font-weight:700;line-height:1.15;padding:0 3mm}
+  .et5 .dat{font-size:5.5mm;color:#222;padding:.8mm 3mm 0}
+  .et5 .dol{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;gap:5mm;padding:1mm 3mm 0}
+  .et5 .dol svg{height:100%;width:auto;max-height:98mm;aspect-ratio:1/1;flex:0 0 auto}
+  .et5 .bok{flex:1;min-width:0;text-align:center;line-height:1.15}
+  .et5 .bok .k{font-size:5mm;font-weight:800;letter-spacing:.12em}
+  .et5 .bok .v{font-size:14mm;font-weight:900;margin-top:1mm;word-break:break-word}
+  .et5 .bok .v.s{font-size:10.5mm;white-space:nowrap} .et5 .bok .v.m{font-size:8mm}
+  .et5 .bok.r{font-size:5.6mm;font-weight:700}
+  .et5 .linia{border-bottom:.5mm solid #000;height:10mm;margin:0 3mm;position:relative;font-size:5mm;color:#444}
+  .podglad-wrap{overflow:hidden;border-radius:12px;border:1px solid var(--piasek);background:#fff;margin-bottom:6px}
   @media print{
-    @page{size:A4;margin:0}
+    @page{size:A4 portrait;margin:0}
     body.druk > *:not(#arkuszDruk){display:none !important}
     body.druk{background:#fff;padding:0}
     body.druk #arkuszDruk{display:block !important;position:static}
-    body.druk .arkusz{transform:none !important}
-    body.druk .etykieta.ramka{outline:none}
+    body.druk .strona{transform:none !important}
+    body.druk .strona::after{border-top-color:#bbb}
   }
   #arkuszDruk{display:none}
 </style>
@@ -171,21 +191,19 @@
 <body>
 
 <header>
-  <div class="top">
-    <div class="marka">
-      <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M3 15 16 4l13 11" fill="none" stroke="#FFA142" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M7 14v13h18V14" fill="none" stroke="#fff" stroke-width="2.4" stroke-linejoin="round"/><rect x="12" y="17" width="3.6" height="3.6" fill="#FFA142"/><rect x="16.8" y="17" width="3.6" height="3.6" fill="#fff"/><rect x="12" y="21.8" width="3.6" height="3.6" fill="#fff"/></svg>
-      Strych
-    </div>
-    <button class="kto" id="kto" type="button"></button>
+  <div class="marka">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M3 15 16 4l13 11" fill="none" stroke="#1F6FEB" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M7 14v13h18V14" fill="none" stroke="#14213D" stroke-width="2.6" stroke-linejoin="round"/><rect x="12" y="17" width="3.6" height="3.6" fill="#F97316"/><rect x="16.8" y="17" width="3.6" height="3.6" fill="#1F6FEB"/><rect x="12" y="21.8" width="3.6" height="3.6" fill="#1F6FEB"/></svg>
+    Strych
   </div>
-  <nav id="nav" class="hidden">
-    <button data-e="gar" aria-selected="true">Garderoba</button>
-    <button data-e="strych" aria-selected="false">Strych</button>
-    <button data-e="roz" aria-selected="false">Rozmiary</button>
-    <button data-e="etykiety" aria-selected="false">Etykiety</button>
-    <button data-e="ust" aria-selected="false">Ustawienia</button>
-  </nav>
+  <button class="kto" id="kto" type="button"></button>
 </header>
+<nav id="nav" class="hidden">
+  <button data-e="gar" aria-selected="true"><svg viewBox="0 0 24 24"><path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.5z"/><path d="m3 7.5 9 4.5 9-4.5M12 12v9"/></svg>Rzeczy</button>
+  <button data-e="strych" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>Strych</button>
+  <button data-e="roz" aria-selected="false"><svg viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="8" rx="1.5"/><path d="M7 8v3M11 8v4M15 8v3M19 8v4"/></svg>Rozmiary</button>
+  <button data-e="etykiety" aria-selected="false"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6"/><rect x="14" y="4" width="6" height="6"/><rect x="4" y="14" width="6" height="6"/><path d="M14 14h2v2h-2zM18 18h2v2h-2zM14 18h2M18 14h2"/></svg>Kartki</button>
+  <button data-e="ust" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>Więcej</button>
+</nav>
 
 <main>
   <div id="komunikat"></div>
@@ -201,19 +219,20 @@
 
   <section id="e-gar" class="ekran">
     <div id="baner"></div>
-    <div class="szukaj"><input type="search" id="szukaj" placeholder="Szukaj: np. czarne kozaki Ani, firany, 128, numer worka" autocomplete="off"></div>
+    <div class="szukaj"><input type="search" id="szukaj" placeholder="Szukaj, np. kozaki Ani" autocomplete="off"></div>
     <div class="filtry stack">
       <div class="chips przewijane" id="fOsoby"></div>
       <div class="chips przewijane" id="fInne"></div>
-      <div class="chips przewijane" id="fRodzaj"></div>
-      <select id="fRozm" aria-label="Filtr rozmiaru"></select>
+      <details class="wiecej"><summary>Więcej filtrów</summary>
+        <div class="stack" style="margin-top:6px"><div class="chips przewijane" id="fRodzaj"></div><select id="fRozm" aria-label="Filtr rozmiaru"></select></div>
+      </details>
     </div>
     <div id="lista"></div>
   </section>
 
   <section id="e-strych" class="ekran">
     <div class="card">
-      <div class="row" style="align-items:center;margin-bottom:10px"><h3 style="margin:0">Plan strychu</h3><div style="text-align:right"><button class="btn mala" id="planEdytuj">Edytuj plan</button></div></div>
+      <div class="row" style="align-items:center;margin-bottom:10px"><h3 style="margin:0">Plan strychu</h3><div style="text-align:right"><button class="btn mala" id="planEdytuj">Zmień plan</button></div></div>
       <div id="planBox"></div>
       <p class="hint" id="planHint"></p>
     </div>
@@ -228,24 +247,24 @@
 
   <section id="e-etykiety" class="ekran">
     <div class="card stack">
-      <h3>Etykiety z kodem QR</h3>
+      <h3>Kartki z kodem QR (format A5)</h3>
       <div class="chips" id="etTryb"></div>
       <div id="etOpis">
-        <p class="hint" style="margin-top:0">Etykieta ma kod QR, numer, właściciela, sezon z rokiem, rodzaj rzeczy i datę założenia lub edycji. Resztę zobaczysz po zeskanowaniu. Zaznacz worki do wydruku (nowe i zmienione są zaznaczone same).</p>
+        <p class="hint" style="margin-top:0">Na kartce jest duży kod QR, a nad nim właściciel, sezon z rokiem, rodzaj rzeczy i data. Zaznacz worki do wydrukowania (nowe i zmienione są zaznaczone same).</p>
         <div id="etLista"></div>
-        <button class="btn mala" id="etNic" type="button" style="margin-top:8px">Odznacz wszystkie</button>
+        <button class="btn mala" id="etNic" type="button" style="margin-top:10px">Odznacz wszystkie</button>
       </div>
       <div id="etPuste" class="hidden">
-        <p class="hint" style="margin-top:0">Puste naklejki z samym numerem, do przyklejenia na zapas. Skan takiej etykiety otwiera formularz „nowy worek”. Opis wydrukujesz po zapisaniu worka.</p>
+        <p class="hint" style="margin-top:0">Kartki tylko z numerem i liniami do ręcznego wpisania. Opis wydrukujesz po zapisaniu worka.</p>
         <div class="row">
           <div class="field" style="margin:0"><label for="etOd">Od numeru</label><input type="number" id="etOd" min="1" max="9999" inputmode="numeric"></div>
-          <div class="field" style="margin:0"><label for="etIle">Ile sztuk</label><input type="number" id="etIle" min="1" max="24" inputmode="numeric" value="24"></div>
+          <div class="field" style="margin:0"><label for="etIle">Ile kartek</label><input type="number" id="etIle" min="1" max="20" inputmode="numeric" value="4"></div>
         </div>
       </div>
-      <div class="field" style="margin:0"><label for="etPoz">Zacznij od pola arkusza (1–24)</label><input type="number" id="etPoz" min="1" max="24" inputmode="numeric" value="1"></div>
-      <div class="podglad-wrap" id="etPodglad"></div>
-      <button class="btn primary" id="etDrukuj">Drukuj arkusz</button>
-      <p class="hint">Format: A4, 3 × 8 naklejek 70 × 37 mm (powszechny rozmiar arkuszy samoprzylepnych). W oknie drukowania wybierz skalę 100% i brak marginesów. Po wydruku aplikacja zapamiętuje, od którego pola zacząć następny raz.</p>
+      <div class="field" style="margin:0"><label for="etPoz">Zacznij od</label><select id="etPoz"><option value="1">górnej połowy kartki</option><option value="2">dolnej połowy kartki</option></select></div>
+      <div id="etPodglad"></div>
+      <button class="btn primary" id="etDrukuj">Wydrukuj</button>
+      <p class="hint">Drukujesz na zwykłym papierze A4, bez marginesów, skala 100%. Na jednej kartce A4 mieszczą się dwie kartki A5 (górna i dolna połowa), przetnij wzdłuż linii przerywanej. Kartkę przyklej taśmą, przypnij albo włóż w folię na worku lub kartonie. Aplikacja zapamiętuje, którą połowę zacząć następnym razem.</p>
     </div>
   </section>
 
@@ -253,7 +272,7 @@
     <div class="card stack"><h3>Domownicy</h3><p class="hint" style="margin-top:0">Rok urodzenia pozwala liczyć wiek automatycznie co roku. „Wspólne (dom)” to pozycja na firany, pościel i materiały, które nie należą do nikogo.</p><div id="ustDom"></div></div>
     <div class="card stack"><h3>Standardowe pojemniki</h3><p class="hint" style="margin-top:0">Trzy rozmiary pudełek i worków. Opis pomaga kupować takie same.</p><div id="ustPoj"></div></div>
     <div class="card stack" id="kartaPlan">
-      <h3>Strych: proporcje planu (bez rzutu)</h3>
+      <h3>Wymiary strychu (jeśli nie ma rzutu)</h3>
       <div class="row">
         <div><label for="planSzer">Szerokość (m)</label><input type="number" id="planSzer" inputmode="decimal" step="0.5"></div>
         <div><label for="planDl">Długość (m)</label><input type="number" id="planDl" inputmode="decimal" step="0.5"></div>
@@ -439,10 +458,10 @@
   function pillsWorka(w) {
     var o = ocena(w), p = '';
     if (w.status !== 'strych') return '<span class="pill cichy">Zdjęty ' + pl(w.zdjeto) + '</span>';
-    if (o.przeglad) p += '<span class="pill blad">Do przeglądu</span>';
+    if (o.przeglad) p += '<span class="pill blad">Do sprawdzenia</span>';
     else if (o.wkrotce) p += '<span class="pill toku">Wkrótce: ' + pl(w.przegladDo) + '</span>';
     if (o.przegapione.length) p += '<span class="pill blad">Minął sezon: ' + e(o.przegapione.join(', ')) + '</span>';
-    if (o.zalega) p += '<span class="pill uwaga">Zalega ' + Math.round(o.dni / 30) + ' mies.</span>';
+    if (o.zalega) p += '<span class="pill uwaga">Leży ' + Math.round(o.dni / 30) + ' mies.</span>';
     var r = o.rozm;
     if (r) { var pre = r.nazwa ? e(r.nazwa) + ': ' : '';
       p += r.t === 'pasuje' ? '<span class="pill toku">' + pre + 'pasuje teraz</span>' : r.t === 'zamale' ? '<span class="pill uwaga">' + pre + 'za małe</span>' : '<span class="pill ok">' + pre + 'pasuje od ok. ' + r.rok + '</span>'; }
@@ -542,7 +561,7 @@
     S.ekran = n;
     Array.prototype.forEach.call(document.querySelectorAll('.ekran'), function (x) { x.classList.toggle('on', x.id === 'e-' + n); });
     Array.prototype.forEach.call(document.querySelectorAll('#nav button'), function (b) { b.setAttribute('aria-selected', b.dataset.e === n ? 'true' : 'false'); });
-    $('fab').classList.toggle('hidden', n === 'login');
+    $('fab').classList.toggle('hidden', n !== 'gar' && n !== 'strych');
     if (n === 'gar') renderGar(); if (n === 'strych') renderStrych(); if (n === 'roz') renderRoz(); if (n === 'etykiety') renderEtykiety(); if (n === 'ust') renderUst();
   }
   function renderWszystko() {
@@ -581,18 +600,18 @@
     var os = d.domownicy.slice().sort(function (a, b) { return (a.id === S.kto ? -1 : 0) - (b.id === S.kto ? -1 : 0); });
     os.forEach(function (o) { h += chip('data-os="' + e(o.id) + '"', o.id === S.kto ? 'Moje (' + o.imie + ')' : o.imie, f.osoba === o.id, o.kolor); });
     $('fOsoby').innerHTML = h;
-    h = chip('data-ns="1"', 'Na ten sezon (' + sezonyAkt().join(' + ') + ')', f.naSezon);
+    h = chip('data-ns="1"', 'Na teraz: ' + sezonyAkt().join(' + '), f.naSezon);
     SEZ4.forEach(function (n) { h += chip('data-sez="' + n + '"', n, f.sezon === n); });
-    h += chip('data-rz="pasuje"', 'Pasuje teraz', f.rozm === 'pasuje') + chip('data-rz="zamale"', 'Za małe', f.rozm === 'zamale') + chip('data-uw="1"', 'Alerty', f.uwaga) + chip('data-zd="1"', 'Zdjęte', f.zdjete);
+    h += chip('data-rz="pasuje"', 'Pasuje teraz', f.rozm === 'pasuje') + chip('data-rz="zamale"', 'Za małe', f.rozm === 'zamale') + chip('data-uw="1"', 'Wymaga uwagi', f.uwaga) + chip('data-zd="1"', 'Zabrane ze strychu', f.zdjete);
     $('fInne').innerHTML = h;
-    $('fRodzaj').innerHTML = RODZAJE.map(function (r) { return chip('data-rod="' + r + '"', r === 'Dom' ? 'Dom (firany, pościel…)' : r, f.rodzaj === r); }).join('');
+    $('fRodzaj').innerHTML = RODZAJE.map(function (r) { return chip('data-rod="' + r + '"', r === 'Dom' ? 'Dom: firany, pościel' : r, f.rodzaj === r); }).join('');
     $('fRozm').innerHTML = opcjeRozmiarow();
 
     var wszystkie = d.worki.filter(function (w) { return w.status === 'strych'; });
     var ile = wszystkie.filter(wymagaUwagi).length, stare = rozmiaryStare();
     var b = '';
-    if (stare.length) b += '<button class="baner" id="banerRoz" type="button" style="background:var(--biel);border:2px solid var(--pom)"><span><b>Rozmiary do aktualizacji</b><br><span>' + e(stare.map(function (o) { return o.imie; }).join(', ')) + ': sprawdź, czy dziecko nie wyrosło</span></span><b>›</b></button>';
-    if (ile) b += '<button class="baner" id="banerBtn" type="button"><span><b>' + ile + ' ' + (ile === 1 ? 'alert' : ile < 5 ? 'alerty' : 'alertów') + ' do rozpatrzenia</b><br><span>minął sezon bez ruszania worka, termin przeglądu, zaleganie albo zmiana rozmiaru</span></span><b>›</b></button>';
+    if (stare.length) b += '<button class="baner info" id="banerRoz" type="button"><span><b>Sprawdź rozmiary dzieci</b><br><span>' + e(stare.map(function (o) { return o.imie; }).join(', ')) + ' — czy nie wyrosły?</span></span><b>›</b></button>';
+    if (ile) b += '<button class="baner" id="banerBtn" type="button"><span><b>' + ile + ' ' + (ile === 1 ? 'worek wymaga uwagi' : ile < 5 ? 'worki wymagają uwagi' : 'worków wymaga uwagi') + '</b><br><span>Dotknij, żeby zobaczyć, co trzeba sprawdzić.</span></span><b>›</b></button>';
     $('baner').innerHTML = b;
 
     var q = f.q.trim(), akt = sezonyAkt();
@@ -683,10 +702,10 @@
   function renderStrych() {
     if (!S.dane) return;
     var d = S.dane, ed = S.edytujPlan, rzut = d.ust.RZUT_ID;
-    $('planEdytuj').textContent = ed ? 'Gotowe' : 'Edytuj plan';
+    $('planEdytuj').textContent = ed ? 'Gotowe' : 'Zmień plan';
     $('planBox').innerHTML = mapa({ sel: S.wybranaStrefa, licz: !ed, edycja: ed, id: 'mapaGlowna' });
     $('planHint').textContent = ed ? 'Przeciągnij palcem po planie, aby narysować strefę (regał, półkę, kąt). Dotknij strefy, aby zmienić nazwę i liczbę półek.' :
-      (d.strefy.length ? 'Dotknij strefy, aby zobaczyć worki, które tam leżą. Liczba na strefie = worki na strychu.' : 'Plan jest pusty. Dotknij „Edytuj plan”, wgraj rzut strychu i narysuj regały albo miejsca.');
+      (d.strefy.length ? 'Dotknij strefy, aby zobaczyć worki, które tam leżą. Liczba na strefie = worki na strychu.' : 'Plan jest pusty. Dotknij „Zmień plan”, wgraj rzut strychu i narysuj regały albo miejsca.');
     var dod = '';
     if (ed) dod += '<div class="card stack"><h3>Rzut strychu</h3><p class="hint" style="margin-top:0">Wgraj zdjęcie lub skan rzutu (plan z projektu domu, szkic odręczny, zdjęcie z góry). Strefy rysujesz na nim palcem.</p><button class="btn" id="rzutWgraj" type="button">' + (rzut ? 'Zmień rzut' : 'Wgraj rzut') + '</button>' + (rzut ? '<button class="btn danger" id="rzutUsun" type="button">Usuń rzut</button>' : '') + '<input type="file" id="inRzut" accept="image/*" class="hidden"></div>';
     if (ed && !d.strefy.length) dod += '<div class="card"><button class="btn" id="szybkiStart">Wstaw przykładowy układ (2 regały, środek, przy włazie)</button></div>';
@@ -770,30 +789,45 @@
     var z = String(w.zmieniono || '').slice(0, 10), t = 'zał. ' + pl(w.wstawiono);
     return z && z > w.wstawiono ? t + ' · edyt. ' + pl(z) : t;
   }
-  function etykietaPusta(id, ramka) {
-    return '<div class="etykieta' + (ramka ? ' ramka' : '') + '">' + svgQr(linkWorka(id)) + '<div><div class="nr">' + e(id) + '</div><div class="podpis">STRYCH<br>zeskanuj aparatem telefonu</div></div></div>';
+  function rodzajA5(w) {
+    var sz = sezonyWorka(w), adj = sz.map(function (n) { return PRZYM[n]; }).join(' / ');
+    if (w.rodzaj === 'Dom') return (w.tagi.filter(function (t) { return DOMOWE.indexOf(t) >= 0; }).join(', ').toLowerCase() || 'tekstylia domowe') + (adj ? ' · ' + adj : '');
+    return (w.rodzaj === 'Obuwie' ? 'obuwie' : 'ciuchy') + (adj ? ' ' + adj : '');
   }
-  function etykietaOpis(w, ramka) {
-    var wl = imionaDla(w), kl = wl.length > 18 ? 'd3' : wl.length > 10 ? 'd2' : 'd1';
-    return '<div class="etykieta op' + (ramka ? ' ramka' : '') + '">' + svgQr(linkWorka(w.id)) + '<div class="txt"><div class="n">#' + e(w.id) + '</div><div class="wl ' + kl + '">' + e(wl) + '</div><div class="sz">' + e(sezonTxt(w)) + '</div><div class="rd">' + e(rodzajTxt(w)) + '</div><div class="dd">' + e(dataTxt(w)) + '</div></div></div>';
+  function klasaImienia(t) { var n = t.length; return n <= 6 ? 'w1' : n <= 10 ? 'w2' : n <= 16 ? 'w3' : n <= 22 ? 'w4' : 'w5'; }
+  function kartkaPusta(id, g) {
+    return '<div class="et5 ' + (g ? 'g' : 'd') + '"><div class="gora"><div class="wl w2">STRYCH</div><div class="nrb">#' + e(id) + '</div></div>' +
+      '<div class="linia" style="margin-top:4mm">Dla kogo:</div><div class="linia" style="margin-top:2mm">Sezon i rodzaj:</div><div class="linia" style="margin-top:2mm">Data:</div>' +
+      '<div class="dol">' + svgQr(linkWorka(id)) + '</div></div>';
   }
-  function arkuszHtml(items, poz, ramka) {
-    var h = '<div class="arkusz">', i;
-    for (i = 1; i < poz; i++) h += '<div class="etykieta"></div>';
-    items.forEach(function (x) { h += typeof x === 'string' ? etykietaPusta(x, ramka) : etykietaOpis(x, ramka); });
-    return h + '</div>';
+  function kartkaOpis(w, g) {
+    var wl = imionaDla(w), rozm = rozmiarTxt(w), lewy = w.rodzaj === 'Dom' ? ['DOM', (w.tagi.filter(function (t) { return DOMOWE.indexOf(t) >= 0; }).join(', ') || '—'), true] : [w.rodzaj === 'Obuwie' ? 'BUTY' : 'ROZMIAR', (w.rozmiarOd ? (w.rozmiarOd === w.rozmiarDo ? w.rozmiarOd : w.rozmiarOd + '–' + w.rozmiarDo) : '—'), false];
+    return '<div class="et5 ' + (g ? 'g' : 'd') + '"><div class="gora"><div class="wl ' + klasaImienia(wl) + '">' + e(wl) + '</div><div class="nrb">#' + e(w.id) + '</div></div>' +
+      '<div class="sez">' + e(sezonTxt(w) || rodzajA5(w)) + '</div><div class="rod">' + e(sezonTxt(w) ? rodzajA5(w) : '') + '</div><div class="dat">' + e(dataTxt(w)) + '</div>' +
+      '<div class="dol"><div class="bok"><div class="k">' + e(lewy[0]) + '</div><div class="v' + (lewy[2] || lewy[1].length > 7 ? ' m' : lewy[1].length > 4 ? ' s' : '') + '">' + e(lewy[1]) + '</div></div>' + svgQr(linkWorka(w.id)) + '<div class="bok r">Zeskanuj aparatem telefonu:<br>zdjęcie i zawartość</div></div></div>';
+  }
+  function arkuszHtml(items, poz) {       // items: id (tekst) albo worek; dwie kartki A5 na stronę A4
+    var sloty = [], i; for (i = 1; i < poz; i++) sloty.push(null);
+    items.forEach(function (x) { sloty.push(x); });
+    var h = '';
+    for (i = 0; i < sloty.length; i += 2) {
+      h += '<div class="strona">';
+      [sloty[i], sloty[i + 1]].forEach(function (x, k) { if (x) h += typeof x === 'string' ? kartkaPusta(x, k === 0) : kartkaOpis(x, k === 0); });
+      h += '</div>';
+    }
+    return h;
   }
   function drukStan() { try { return JSON.parse(odczytaj('strych.druk') || '{}'); } catch (x) { return {}; } }
   function doWydruku(w) { return w.status === 'strych' && drukStan()[w.id] !== w.zmieniono; }
   function elementyEtykiet() {
-    var poz = Math.max(1, Math.min(24, parseInt($('etPoz').value, 10) || 1)), items = [];
+    var poz = parseInt($('etPoz').value, 10) === 2 ? 2 : 1, items = [];
     if (S.etTryb === 'puste') {
-      var od = Math.max(1, parseInt($('etOd').value, 10) || 1), ile = Math.max(1, Math.min(24, parseInt($('etIle').value, 10) || 1));
+      var od = Math.max(1, parseInt($('etOd').value, 10) || 1), ile = Math.max(1, Math.min(20, parseInt($('etIle').value, 10) || 1));
       for (var i = 0; i < ile; i++) items.push(normId(String(od + i)));
     } else {
       (S.etWybrane || []).forEach(function (id) { var w = worek(id); if (w && w.status === 'strych') items.push(w); });
     }
-    return { items: items.slice(0, 25 - poz), poz: poz, ucieto: Math.max(0, items.length - (25 - poz)) };
+    return { items: items, poz: poz };
   }
   function renderEtykiety() {
     if (!S.dane) return;
@@ -801,22 +835,21 @@
     if (!S.etTryb) S.etTryb = akt.length ? 'opis' : 'puste';
     if (!S.etWybrane) S.etWybrane = akt.filter(doWydruku).map(function (w) { return w.id; });
     if (!$('etOd').value) $('etOd').value = nastepnyWolny();
-    if (!$('etPoz').dataset.init) { $('etPoz').dataset.init = '1'; $('etPoz').value = odczytaj('strych.poz') || 1; }
-    $('etTryb').innerHTML = chip('data-ettryb="opis"', 'Z opisem (worki)', S.etTryb === 'opis') + chip('data-ettryb="puste"', 'Puste (same numery)', S.etTryb === 'puste');
+    if (!$('etPoz').dataset.init) { $('etPoz').dataset.init = '1'; $('etPoz').value = odczytaj('strych.poz') === '2' ? '2' : '1'; }
+    $('etTryb').innerHTML = chip('data-ettryb="opis"', 'Z opisem (worki)', S.etTryb === 'opis') + chip('data-ettryb="puste"', 'Puste (numer i linie)', S.etTryb === 'puste');
     $('etOpis').classList.toggle('hidden', S.etTryb !== 'opis'); $('etPuste').classList.toggle('hidden', S.etTryb !== 'puste');
     var sorted = akt.slice().sort(function (a, b) { return (doWydruku(b) ? 1 : 0) - (doWydruku(a) ? 1 : 0) || a.id.localeCompare(b.id); });
     $('etLista').innerHTML = sorted.length ? sorted.map(function (w) {
-      return '<label class="et-wiersz"><input type="checkbox" data-et="' + e(w.id) + '"' + (S.etWybrane.indexOf(w.id) >= 0 ? ' checked' : '') + '><span><b>#' + e(w.id) + '</b> ' + e(imionaDla(w)) + ' · ' + e(sezonTxt(w) || rodzajTxt(w)) + '</span>' + (doWydruku(w) ? ' <span class="pill toku">do wydruku</span>' : '') + '</label>'; }).join('') : '<div class="pusto">Nie ma jeszcze zapisanych worków.</div>';
-    var z = elementyEtykiet(), wrap = $('etPodglad'), szer = wrap.clientWidth || 340, skala = szer / (210 * 3.7795);
-    wrap.innerHTML = '<div style="height:' + (297 * 3.7795 * skala) + 'px"><div style="transform:scale(' + skala + ');transform-origin:top left;width:210mm">' + arkuszHtml(z.items, z.poz, true) + '</div></div>';
+      return '<label class="et-wiersz" style="margin:0"><input type="checkbox" data-et="' + e(w.id) + '"' + (S.etWybrane.indexOf(w.id) >= 0 ? ' checked' : '') + '><span><b>#' + e(w.id) + '</b> ' + e(imionaDla(w)) + ' · ' + e(sezonTxt(w) || rodzajA5(w)) + '</span>' + (doWydruku(w) ? ' <span class="pill toku">do wydruku</span>' : '') + '</label>'; }).join('') : '<div class="pusto">Nie ma jeszcze zapisanych worków.</div>';
+    var z = elementyEtykiet(), wrap = $('etPodglad'), szer = wrap.clientWidth || 340, skala = szer / (210 * 3.7795), liczStron = Math.ceil((z.items.length + z.poz - 1) / 2);
+    wrap.innerHTML = z.items.length ? '<div class="podglad-wrap"><div style="height:' + (297 * 3.7795 * skala) + 'px"><div style="transform:scale(' + skala + ');transform-origin:top left;width:210mm">' + arkuszHtml(z.items.slice(0, 2 - (z.poz - 1)), z.poz) + '</div></div></div><p class="hint" style="margin:0 0 10px">Podgląd pierwszej kartki A4. Do wydrukowania: ' + z.items.length + ' ' + (z.items.length === 1 ? 'kartka A5' : 'kartek A5') + ' na ' + liczStron + ' ' + (liczStron === 1 ? 'arkuszu' : 'arkuszach') + ' A4.</p>' : '';
     $('etDrukuj').disabled = !z.items.length;
-    $('etDrukuj').textContent = z.items.length ? 'Drukuj arkusz (' + z.items.length + ' ' + (z.items.length === 1 ? 'etykieta' : 'etykiet') + ')' : 'Zaznacz worki do wydruku';
-    if (z.ucieto) komunikat('Arkusz mieści 24 etykiety. ' + z.ucieto + ' zaznaczonych nie zmieści się od pola ' + z.poz + '.', true);
+    $('etDrukuj').textContent = z.items.length ? 'Wydrukuj (' + z.items.length + ')' : 'Zaznacz worki do wydruku';
   }
   function drukuj() {
     var z = elementyEtykiet(); if (!z.items.length) return;
     S.druk = { worki: z.items.filter(function (x) { return typeof x !== 'string'; }), n: z.items.length, poz: z.poz };
-    $('arkuszDruk').innerHTML = arkuszHtml(z.items, z.poz, false);
+    $('arkuszDruk').innerHTML = arkuszHtml(z.items, z.poz);
     document.body.classList.add('druk');
     setTimeout(function () { window.print(); }, 50);
   }
@@ -824,7 +857,7 @@
     document.body.classList.remove('druk'); $('arkuszDruk').innerHTML = '';
     if (!S.druk) return;
     var st = drukStan(); S.druk.worki.forEach(function (w) { st[w.id] = w.zmieniono; }); zapamietaj('strych.druk', JSON.stringify(st));
-    var nast = S.druk.poz + S.druk.n; if (nast > 24) nast = 1;
+    var nast = ((S.druk.poz - 1 + S.druk.n) % 2) + 1;
     zapamietaj('strych.poz', String(nast)); $('etPoz').value = nast;
     S.etWybrane = null; S.druk = null; if (S.ekran === 'etykiety') renderEtykiety();
   });
@@ -850,7 +883,7 @@
   }
 
   /* ---------- szczegóły worka ---------- */
-  function otworzModal(html) { $('modal').innerHTML = html; $('modalBg').classList.add('on'); $('modal').scrollTop = 0; }
+  function otworzModal(html) { $('modal').className = 'modal'; $('modal').innerHTML = html; $('modalBg').classList.add('on'); $('modal').scrollTop = 0; }
   function zamknijModal() {
     $('modalBg').classList.remove('on'); $('modal').innerHTML = ''; F = null; zatrzymajKamere();
     if (/^#\/w\//.test(location.hash)) history.replaceState(null, '', bazaUrl());
@@ -865,7 +898,7 @@
     var o = ocena(w), z = strefa(w.strefa), h = '', ust = S.dane.ust;
     h += '<div class="glowa"><div><div class="duzy-nr">WOREK #' + e(w.id) + ' · ' + e(w.rodzaj).toUpperCase() + '</div><h2>' + e(imionaDla(w)) + '</h2></div><button class="zamknij" data-zamknij aria-label="Zamknij">×</button></div>';
     h += '<div class="zdjecia">' + w.zdjecia.map(function (i) { return '<img src="' + foto(i, 900) + '" alt="Zawartość worka" loading="lazy">'; }).join('') + '</div>';
-    if (S.swiezo === w.id) { h += '<div class="msg">Zapisano. Wydrukuj etykietę z opisem i przyklej ją na worek.</div>'; S.swiezo = null; w._swiezo = true; }
+    if (S.swiezo === w.id) { h += '<div class="msg">Zapisane. Teraz wydrukuj kartkę A5 i przyklej ją na worek.</div>'; S.swiezo = null; w._swiezo = true; }
     h += '<div class="pills" style="margin-bottom:12px;display:flex;gap:5px;flex-wrap:wrap">' + pillsWorka(w) + '</div>';
     h += '<dl class="info">';
     if (rozmiarTxt(w)) h += '<dt>Rozmiar</dt><dd>' + e(rozmiarTxt(w)) + '</dd>';
@@ -873,21 +906,21 @@
     if (w.opis) h += '<dt>W środku</dt><dd>' + e(w.opis) + '</dd>';
     if (w.pojemnik) h += '<dt>Pojemnik</dt><dd>' + e(w.pojemnik) + (ust.POJEMNIKI[w.pojemnik] ? ' <span style="color:var(--szary)">(' + e(ust.POJEMNIKI[w.pojemnik]) + ')</span>' : '') + '</dd>';
     h += '<dt>Gdzie</dt><dd>' + (miejsceTekst(w) ? e(miejsceTekst(w)) : '<span style="color:var(--szary)">nie ustawiono</span>') + '</dd>';
-    h += '<dt>Wstawiony</dt><dd>' + pl(w.wstawiono) + (w.dodal ? ' (' + e(w.dodal) + ')' : '') + '</dd>';
+    h += '<dt>Włożony</dt><dd>' + pl(w.wstawiono) + (w.dodal ? ' (' + e(w.dodal) + ')' : '') + '</dd>';
     if (w.status === 'strych') {
-      h += '<dt>Ostatni przegląd</dt><dd>' + (w.przejrzano ? pl(w.przejrzano) : 'jeszcze nie było') + '</dd>';
+      h += '<dt>Ostatnio sprawdzony</dt><dd>' + (w.przejrzano ? pl(w.przejrzano) : 'jeszcze nie') + '</dd>';
       h += '<dt>Przypomnienie</dt><dd>' + (w.przegladDo ? pl(w.przegladDo) : 'brak') + '</dd>';
     }
     h += '</dl>';
     if (w.status === 'strych' && z) h += '<div style="margin-bottom:14px">' + mapa({ sel: z.id, id: 'mapaSzcz' }) + '</div>';
     h += '<div class="stack">';
     if (w.status === 'strych') {
-      if (w._swiezo) h += '<button class="btn primary" data-akcja="etykieta">Drukuj etykietę</button>';
-      else h += '<button class="btn primary" data-akcja="przejrzane">Przejrzane, zostaje na strychu</button>';
-      h += '<button class="btn dark" data-akcja="zdejmij">Zdjąłem ze strychu</button>';
-      h += '<div class="row"><button class="btn" data-akcja="edytuj">Edytuj</button>' + (w._swiezo ? '<button class="btn" data-akcja="przejrzane">Przejrzane</button>' : '<button class="btn" data-akcja="etykieta">Etykieta</button>') + '</div>';
+      if (w._swiezo) h += '<button class="btn primary" data-akcja="etykieta">Wydrukuj kartkę A5</button>';
+      else h += '<button class="btn primary" data-akcja="przejrzane">Sprawdziłem, zostaje na strychu</button>';
+      h += '<button class="btn dark" data-akcja="zdejmij">Zabrałem ze strychu</button>';
+      h += '<div class="row"><button class="btn" data-akcja="edytuj">Zmień</button>' + (w._swiezo ? '<button class="btn" data-akcja="przejrzane">Sprawdziłem</button>' : '<button class="btn" data-akcja="etykieta">Kartka A5</button>') + '</div>';
     } else {
-      h += '<button class="btn primary" data-akcja="wstaw">Wstaw nowy worek pod tym numerem</button>';
+      h += '<button class="btn primary" data-akcja="wstaw">Nowy worek z tym numerem</button>';
     }
     h += '<button class="btn danger" data-akcja="usun">Usuń wpis</button></div>';
     S.biezacy = w.id;
@@ -946,29 +979,29 @@
     var d = S.dane, h = '';
     h += '<div class="glowa"><div><div class="duzy-nr">' + (edycja ? 'EDYCJA' : 'NOWY WOREK') + '</div><h2>#' + e(F.id) + '</h2></div><button class="zamknij" data-zamknij aria-label="Zamknij">×</button></div>';
     h += '<div id="fMsg"></div>';
-    h += '<div class="field"><label>Zdjęcie wszystkich rzeczy z worka</label><div class="zdjecia edycja" id="fZdj"></div>' +
-         '<div class="foto-przyciski"><button class="btn dark" type="button" id="fAparat">Aparat</button><button class="btn" type="button" id="fGaleria">Z galerii</button></div>' +
+    h += '<div class="field"><label class="k">Zrób zdjęcie rzeczy z worka</label><div class="zdjecia edycja" id="fZdj"></div>' +
+         '<div class="foto-przyciski"><button class="btn dark" type="button" id="fAparat">Zrób zdjęcie</button><button class="btn" type="button" id="fGaleria">Wybierz z telefonu</button></div>' +
          '<input type="file" accept="image/*" capture="environment" id="inAparat" class="hidden"><input type="file" accept="image/*" id="inGaleria" class="hidden" multiple>' +
          '<p class="hint">Rozłóż rzeczy na podłodze i zrób jedno zdjęcie (maks. ' + d.ust.MAX_ZDJEC + '). Ułatwi to potem szukanie.</p></div>';
-    h += '<div class="field"><label>Co to jest</label><div class="chips" id="fRodzajF">' + RODZAJE.map(function (r) { return chip('data-rodzaj="' + r + '"', r === 'Dom' ? 'Dom (firany, pościel…)' : r, F.rodzaj === r); }).join('') + '</div></div>';
-    h += '<div class="field" id="sDla"><label>Dla kogo</label><div class="chips" id="fDla"></div></div>';
-    h += '<div class="field" id="sRozmiar"><label>Rozmiar (od – do)</label><div class="row"><select id="fOd" aria-label="Rozmiar od"></select><select id="fDo" aria-label="Rozmiar do"></select></div><p class="hint" id="fHint"></p></div>';
-    h += '<div class="field"><label>Sezon (można zaznaczyć kilka)</label><div class="chips" id="fSezon">' + SEZ4.concat(['Cały rok']).map(function (t) { return chip('data-tag="' + t + '"', t, F.tagi.indexOf(t) >= 0); }).join('') + '</div></div>';
-    h += '<div class="field" id="sDomTagi"><label>Co dokładnie</label><div class="chips">' + DOMOWE.map(function (t) { return chip('data-tag="' + t + '"', t, F.tagi.indexOf(t) >= 0); }).join('') + '</div></div>';
-    h += '<div class="field"><label>Status</label><div class="chips">' + STATUSY.map(function (t) { return chip('data-tag="' + t + '"', t, F.tagi.indexOf(t) >= 0); }).join('') + '</div>' +
-         '<div id="sCzeka" style="margin-top:10px"><label for="fCzeka">Czeka na kogoś (np. młodsze rodzeństwo)</label><select id="fCzeka"><option value="">nikt</option>' + d.domownicy.filter(function (p) { return p.rola !== 'wspolne'; }).map(function (p) { return '<option value="' + e(p.id) + '"' + (F.czekaNa === p.id ? ' selected' : '') + '>' + e(p.imie) + '</option>'; }).join('') + '</select></div></div>';
-    h += '<div class="field"><label>Pojemnik</label><div class="chips" id="fPoj">' + POJ.map(function (p) { return chip('data-poj="' + p + '"', p, F.pojemnik === p); }).join('') + '</div><p class="hint">' + POJ.map(function (p) { return e(p) + ' = ' + e(d.ust.POJEMNIKI[p] || ''); }).join(' · ') + '</p></div>';
-    h += '<div class="field"><label>Gdzie leży na strychu</label>';
+    h += '<div class="field"><label class="k">Co to jest?</label><div class="chips" id="fRodzajF">' + RODZAJE.map(function (r) { return chip('data-rodzaj="' + r + '"', r === 'Dom' ? 'Dom: firany, pościel' : r, F.rodzaj === r); }).join('') + '</div></div>';
+    h += '<div class="field" id="sDla"><label class="k">Dla kogo?</label><div class="chips" id="fDla"></div></div>';
+    h += '<div class="field" id="sRozmiar"><label class="k">Jaki rozmiar? (od – do)</label><div class="row"><select id="fOd" aria-label="Rozmiar od"></select><select id="fDo" aria-label="Rozmiar do"></select></div><p class="hint" id="fHint"></p></div>';
+    h += '<div class="field"><label class="k">Na jaki sezon? (można kilka)</label><div class="chips" id="fSezon">' + SEZ4.concat(['Cały rok']).map(function (t) { return chip('data-tag="' + t + '"', t, F.tagi.indexOf(t) >= 0); }).join('') + '</div></div>';
+    h += '<div class="field" id="sDomTagi"><label class="k">Co dokładnie?</label><div class="chips">' + DOMOWE.map(function (t) { return chip('data-tag="' + t + '"', t, F.tagi.indexOf(t) >= 0); }).join('') + '</div></div>';
+    h += '<div class="field"><label>Czy to już do oddania?</label><div class="chips">' + STATUSY.map(function (t) { return chip('data-tag="' + t + '"', t, F.tagi.indexOf(t) >= 0); }).join('') + '</div>' +
+         '<div id="sCzeka" style="margin-top:10px"><label for="fCzeka">Czeka na kogoś (np. młodsze rodzeństwo)?</label><select id="fCzeka"><option value="">nie, na nikogo</option>' + d.domownicy.filter(function (p) { return p.rola !== 'wspolne'; }).map(function (p) { return '<option value="' + e(p.id) + '"' + (F.czekaNa === p.id ? ' selected' : '') + '>' + e(p.imie) + '</option>'; }).join('') + '</select></div></div>';
+    h += '<div class="field"><label class="k">Jakie pudełko?</label><div class="chips" id="fPoj">' + POJ.map(function (p) { return chip('data-poj="' + p + '"', p, F.pojemnik === p); }).join('') + '</div><p class="hint">' + POJ.map(function (p) { return e(p) + ' = ' + e(d.ust.POJEMNIKI[p] || ''); }).join(' · ') + '</p></div>';
+    h += '<div class="field"><label class="k">Gdzie leży na strychu?</label>';
     if (d.strefy.length) h += '<div id="fMapa"></div><p class="hint" id="fMiejsce" style="margin-bottom:8px"></p><div class="chips" id="fPolka"></div>';
     else h += '<p class="hint" style="margin:0">Plan strychu jest pusty. Zapisz worek teraz, a plan narysuj w zakładce „Strych”. Potem uzupełnisz lokalizację w edycji.</p>';
     h += '</div>';
-    h += '<div class="field"><label for="fRzecz">Pojedyncze rzeczy do szukania (opcjonalnie)</label><div style="display:flex;gap:8px"><input type="text" id="fRzecz" maxlength="60" placeholder="np. czarne kozaki" enterkeyhint="done" style="flex:1"><button class="btn mala" type="button" id="fRzeczDodaj" style="flex:0 0 auto;padding:0 18px">Dodaj</button></div><div class="chips" id="fRzeczy" style="margin-top:10px"></div><p class="hint">Wpisz to, czego możesz szukać osobno (kozaki, kurtka puchowa, strój kąpielowy). Wyszukiwarka znajdzie to po nazwie i właścicielu.</p></div>';
-    h += '<div class="field"><label for="fOpis">Co jest w środku (opcjonalnie)</label><textarea id="fOpis" maxlength="400" placeholder="np. 6 bluz, 3 spodnie, kurtka przeciwdeszczowa">' + e(F.opis) + '</textarea></div>';
-    h += '<div class="field"><label>Kiedy przypomnieć o wymianie</label><div id="fDaty"></div></div>';
+    h += '<div class="field"><label for="fRzecz">Pojedyncze rzeczy do szukania (nieobowiązkowe)</label><div style="display:flex;gap:8px"><input type="text" id="fRzecz" maxlength="60" placeholder="np. czarne kozaki" enterkeyhint="done" style="flex:1"><button class="btn mala" type="button" id="fRzeczDodaj" style="flex:0 0 auto;padding:0 18px">Dodaj</button></div><div class="chips" id="fRzeczy" style="margin-top:10px"></div><p class="hint">Wpisz to, czego możesz szukać osobno (kozaki, kurtka puchowa, strój kąpielowy). Wyszukiwarka znajdzie to po nazwie i właścicielu.</p></div>';
+    h += '<div class="field"><label for="fOpis">Dopisek (nieobowiązkowe)</label><textarea id="fOpis" maxlength="400" placeholder="np. 6 bluz, 3 spodnie, kurtka przeciwdeszczowa">' + e(F.opis) + '</textarea></div>';
+    h += '<div class="field"><label class="k">Kiedy przypomnieć?</label><div id="fDaty"></div></div>';
     h += '<button class="btn primary" id="fZapisz" type="button">Zapisz worek</button>';
     otworzModal(h);
     var root = $('modal');
-    renderZdjec(root); renderRzeczy(root); if (d.strefy.length) renderMapyForm(root); odswiezForm(root);
+    root.classList.add('formn'); renderZdjec(root); renderRzeczy(root); if (d.strefy.length) renderMapyForm(root); odswiezForm(root);
   }
   function renderRzeczy(root) {
     root.querySelector('#fRzeczy').innerHTML = F.rzeczy.map(function (x, i) { return '<button type="button" class="chip" data-rzusun="' + i + '" aria-label="Usuń ' + e(x) + '">' + e(x) + ' ×</button>'; }).join('');
@@ -1079,7 +1112,7 @@
   /* ---------- akcje na worku ---------- */
   function przypomnienieModal(w) {
     F = { tagi: w.tagi, rodzaj: w.rodzaj, od: w.rozmiarOd, do: w.rozmiarDo, dla: w.dla, czekaNa: w.czekaNa, reczny: false, tryb: '', dataWl: '' };
-    var h = '<h2>Kiedy następny przegląd?</h2><div id="fDaty"></div><div class="row" style="margin-top:14px"><button class="btn" id="przAnuluj">Anuluj</button><button class="btn primary" id="przOk">Zapisz</button></div>';
+    var h = '<h2>Kiedy przypomnieć następnym razem?</h2><div id="fDaty"></div><div class="row" style="margin-top:14px"><button class="btn" id="przAnuluj">Anuluj</button><button class="btn primary" id="przOk">Zapisz</button></div>';
     $('modal2').innerHTML = h; $('modal2Bg').classList.add('on');
     var root = $('modal2'); renderDaty(root);
     root.onclick = function (ev) { var b = ev.target.closest('[data-tryb]'); if (!b) return; F.tryb = b.dataset.tryb; F.reczny = true; renderDaty(root); };

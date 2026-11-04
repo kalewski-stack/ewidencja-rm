@@ -29,8 +29,8 @@ Link zawiera kod domu, więc wystarczy go otworzyć raz, potem „Dodaj do ekran
 ## Krok 5. Plan strychu i etykiety
 
 1. Zakładka **Strych → Edytuj plan**: przeciągnij palcem po planie, żeby narysować regały i miejsca (albo „Wstaw przykładowy układ”). Wymiary strychu ustawisz w Ustawieniach (liczą się proporcje).
-2. Zakładka **Etykiety → Drukuj arkusz** (A4, naklejki 70 × 37 mm, 3 × 8; skala 100%, bez marginesów). Naklejka na worek albo na plastikową zawieszkę przy worku.
-3. Zeskanuj pustą etykietę zwykłym aparatem telefonu: otworzy się formularz nowego worka z tym numerem.
+2. Po dodaniu worka zakładka **Kartki → Wydrukuj** (A4, skala 100%, bez marginesów, dwie kartki A5 na arkusz). Kartkę przyklej albo przypnij do worka lub kartonu.
+3. Zeskanuj kod zwykłym aparatem telefonu: otworzy się karta worka. Pusty numer otwiera formularz nowego worka.
 
 ## Rodzina, rozmiary i sezony
 
@@ -44,8 +44,9 @@ Link zawiera kod domu, więc wystarczy go otworzyć raz, potem „Dodaj do ekran
 
 ## Etykiety, wyszukiwanie i alerty
 
-- **Etykieta z opisem**: po zapisaniu worka aplikacja proponuje „Drukuj etykietę”. Na naklejce jest kod QR, numer, właściciel (np. Ania), sezon z rokiem (np. Lato 2026), rodzaj (ciuchy letnie, rozmiar) oraz data założenia lub edycji. Reszta jest pod kodem. Zmieniony worek dostaje znacznik „do wydruku”, żeby nowa naklejka nie została zapomniana.
-  Arkusz drukujesz od wybranego pola (aplikacja pamięta, gdzie skończyłeś). Zakładka Etykiety → „Puste (same numery)” drukuje naklejki z samym numerem na zapas.
+- **Kartka A5 z opisem**: po zapisaniu worka aplikacja proponuje „Wydrukuj kartkę A5”. Na kartce jest duży kod QR (ok. 70% wysokości), nad nim wielkim drukiem właściciel, sezon z rokiem (np. Lato 2026), rodzaj (ciuchy letnie) i data założenia lub edycji, a obok numer i rozmiar. Resztę widać po zeskanowaniu. Zmieniony worek dostaje znacznik „do wydruku”, żeby nowa kartka nie została zapomniana.
+  Drukujesz na zwykłym papierze **A4**: na jednej kartce mieszczą się dwie kartki A5 (górna i dolna połowa), przecinasz wzdłuż linii. Aplikacja pamięta, którą połowę zacząć następnym razem (można dokończyć częściowo zużyty arkusz). Wydruk jest czarno-biały, z grubą ramką i dużym drukiem, żeby było czytelne w ciemnym strychu. Kartkę przyklej taśmą, przypnij albo włóż w folię na worku lub kartonie.
+  Zakładka Kartki → „Puste (numer i linie)” drukuje kartki z samym numerem i miejscem na ręczny opis.
 - **Szukanie**: pole wyszukiwania w Garderobie rozumie zwykłe zdania, np. „czarne kozaki Ani”. Rozpoznaje właściciela (Ani, Ania), rodzaj rzeczy (kozaki = obuwie na jesień i zimę) i słowa z listy pojedynczych rzeczy oraz opisu. Pokazuje do trzech najbardziej prawdopodobnych worków, powód podpowiedzi i zaznacza te miejsca na planie strychu (numery 1–3). Dalej są filtry po osobie, sezonie, rodzaju i rozmiarze.
 - **Pojedyncze rzeczy**: w formularzu worka dodajesz „czarne kozaki”, „kurtka puchowa” itp. Jeśli rzecz jest zapisana, wyszukiwarka wskaże dokładny worek. Jeśli nie, podpowie najbardziej prawdopodobne.
 - **Alerty**: oznaczenie „Minął sezon” pojawia się, gdy w całości minął sezon z tagów worka (np. lato), a worek nie był ruszany od wstawienia albo ostatniego przeglądu. Do tego „Do przeglądu” (termin), „Zalega” (rok bez ruchu) oraz zmiany rozmiaru. Wszystko trafia też do poniedziałkowego e-maila.
