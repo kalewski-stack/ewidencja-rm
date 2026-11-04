@@ -134,6 +134,22 @@
   video#kamera{width:100%;border-radius:16px;background:#000}
 
   /* arkusz etykiet: podgląd na ekranie i druk */
+  .etykieta.op svg{width:25mm;height:25mm;flex:0 0 25mm}
+  .etykieta.op{gap:3mm;padding:3mm}
+  .etykieta .txt{min-width:0;flex:1;line-height:1.15;overflow:hidden;max-height:31mm}
+  .etykieta .txt .n{font-size:2.6mm;color:#555;font-weight:700;letter-spacing:.05em}
+  .etykieta .txt .wl{font-weight:700;word-break:break-word}
+  .etykieta .txt .wl.d1{font-size:5.4mm} .etykieta .txt .wl.d2{font-size:4.2mm} .etykieta .txt .wl.d3{font-size:3.3mm}
+  .etykieta .txt .sz{font-size:3.4mm;font-weight:700;margin-top:.6mm}
+  .etykieta .txt .rd{font-size:2.7mm;margin-top:.4mm}
+  .etykieta .txt .dd{font-size:2.4mm;color:#555;margin-top:.8mm}
+  .mapa .strefa .numer{position:absolute;left:3px;top:3px;background:var(--pom2);color:#fff;border-radius:50%;width:19px;height:19px;font-size:11px;line-height:19px;text-align:center}
+  .worek .powod{font-size:13px;color:var(--grafit);margin-top:5px;line-height:1.3}
+  .worek .ranga{display:inline-block;background:var(--pom2);color:#fff;border-radius:50%;width:22px;height:22px;line-height:22px;text-align:center;font-size:12px;font-weight:700;margin-right:6px}
+  #e-gar.szuka #baner,#e-gar.szuka #fInne,#e-gar.szuka #fRodzaj,#e-gar.szuka #fRozm{display:none}
+  .wyniki-info{font-size:14px;color:var(--szary);margin:0 4px 10px}
+  .et-wiersz{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--piasek);font-size:15px}
+  .et-wiersz input{width:20px;height:20px;flex:0 0 20px}
   .arkusz{background:#fff;width:210mm;height:297mm;display:grid;grid-template-columns:repeat(3,70mm);grid-template-rows:repeat(8,37mm);transform-origin:top left}
   .etykieta{width:70mm;height:37mm;display:flex;align-items:center;padding:3mm 3.5mm;gap:3.5mm;overflow:hidden}
   .etykieta.ramka{outline:.15mm dashed #bbb;outline-offset:-.15mm}
@@ -185,11 +201,12 @@
 
   <section id="e-gar" class="ekran">
     <div id="baner"></div>
-    <div class="szukaj"><input type="search" id="szukaj" placeholder="Szukaj: numer, osoba, rozmiar, co jest w środku" autocomplete="off"></div>
+    <div class="szukaj"><input type="search" id="szukaj" placeholder="Szukaj: np. czarne kozaki Ani, firany, 128, numer worka" autocomplete="off"></div>
     <div class="filtry stack">
       <div class="chips przewijane" id="fOsoby"></div>
       <div class="chips przewijane" id="fInne"></div>
       <div class="chips przewijane" id="fRodzaj"></div>
+      <select id="fRozm" aria-label="Filtr rozmiaru"></select>
     </div>
     <div id="lista"></div>
   </section>
@@ -212,15 +229,23 @@
   <section id="e-etykiety" class="ekran">
     <div class="card stack">
       <h3>Etykiety z kodem QR</h3>
-      <p class="hint" style="margin-top:0">Wydrukuj arkusz naklejek, przyklej po jednej na każdy worek lub karton (albo na plastikową zawieszkę przy worku). Pusta etykieta po zeskanowaniu od razu otwiera formularz „nowy worek”.</p>
-      <div class="row">
-        <div class="field" style="margin:0"><label for="etOd">Od numeru</label><input type="number" id="etOd" min="1" max="9999" inputmode="numeric"></div>
-        <div class="field" style="margin:0"><label for="etIle">Ile sztuk</label><input type="number" id="etIle" min="1" max="24" inputmode="numeric" value="24"></div>
-        <div class="field" style="margin:0"><label for="etPoz">Zacznij od pola</label><input type="number" id="etPoz" min="1" max="24" inputmode="numeric" value="1"></div>
+      <div class="chips" id="etTryb"></div>
+      <div id="etOpis">
+        <p class="hint" style="margin-top:0">Etykieta ma kod QR, numer, właściciela, sezon z rokiem, rodzaj rzeczy i datę założenia lub edycji. Resztę zobaczysz po zeskanowaniu. Zaznacz worki do wydruku (nowe i zmienione są zaznaczone same).</p>
+        <div id="etLista"></div>
+        <button class="btn mala" id="etNic" type="button" style="margin-top:8px">Odznacz wszystkie</button>
       </div>
+      <div id="etPuste" class="hidden">
+        <p class="hint" style="margin-top:0">Puste naklejki z samym numerem, do przyklejenia na zapas. Skan takiej etykiety otwiera formularz „nowy worek”. Opis wydrukujesz po zapisaniu worka.</p>
+        <div class="row">
+          <div class="field" style="margin:0"><label for="etOd">Od numeru</label><input type="number" id="etOd" min="1" max="9999" inputmode="numeric"></div>
+          <div class="field" style="margin:0"><label for="etIle">Ile sztuk</label><input type="number" id="etIle" min="1" max="24" inputmode="numeric" value="24"></div>
+        </div>
+      </div>
+      <div class="field" style="margin:0"><label for="etPoz">Zacznij od pola arkusza (1–24)</label><input type="number" id="etPoz" min="1" max="24" inputmode="numeric" value="1"></div>
       <div class="podglad-wrap" id="etPodglad"></div>
       <button class="btn primary" id="etDrukuj">Drukuj arkusz</button>
-      <p class="hint">Format: A4, 3 × 8 naklejek 70 × 37 mm (powszechny rozmiar arkuszy samoprzylepnych). W oknie drukowania wybierz skalę 100% i brak marginesów. „Zacznij od pola” pozwala dokończyć częściowo zużyty arkusz.</p>
+      <p class="hint">Format: A4, 3 × 8 naklejek 70 × 37 mm (powszechny rozmiar arkuszy samoprzylepnych). W oknie drukowania wybierz skalę 100% i brak marginesów. Po wydruku aplikacja zapamiętuje, od którego pola zacząć następny raz.</p>
     </div>
   </section>
 
@@ -278,7 +303,7 @@
     [2, '2 lata', '92', '23–24'], [3, '3 lata', '98', '25–26'], [4, '4 lata', '104', '27–28'], [5, '5 lat', '110', '29–30'], [6, '6 lat', '116', '30–31'], [7, '7 lat', '122', '32–33'], [8, '8 lat', '128', '33–34'],
     [9, '9 lat', '134', '34–35'], [10, '10 lat', '140', '35–36'], [11, '11 lat', '146', '36–37'], [12, '12 lat', '152', '37–38'], [13, '13 lat', '158', '38–39'], [14, '14 lat', '164', '39–40'], [15, '15 lat', '170', '40–41']];
   var S = { k: null, kto: null, dane: null, ekran: 'gar', edytujPlan: false, wybranaStrefa: '', offline: false,
-            f: { osoba: '', sezon: '', rodzaj: '', rozm: '', naSezon: false, uwaga: false, zdjete: false, q: '' } };
+            f: { osoba: '', sezon: '', rodzaj: '', rozmiar: '', rozm: '', naSezon: false, uwaga: false, zdjete: false, q: '' } };
   var F = null;          // stan formularza worka
 
   /* ---------- narzędzia ---------- */
@@ -386,22 +411,37 @@
     });
     return naj;
   }
+  var SEZ_OKNA = { 'Wiosna': ['03-01', '05-31'], 'Lato': ['06-01', '08-31'], 'Jesień': ['09-01', '11-30'], 'Zima': ['12-01', '02-end'] };
+  function przegapione(w) {     // sezony z tagów, które w całości minęły od ostatniego ruchu: worek nie został podjęty
+    var ost = w.przejrzano || w.wstawiono, t = dzis(), wyn = [];
+    if (!ost || w.status !== 'strych') return wyn;
+    SEZ4.forEach(function (n) {
+      if (w.tagi.indexOf(n) < 0) return;
+      for (var y = +t.slice(0, 4); y >= +ost.slice(0, 4) - 1; y--) {
+        var a = y + '-' + SEZ_OKNA[n][0], ry = n === 'Zima' ? y + 1 : y;
+        var b = SEZ_OKNA[n][1] === '02-end' ? ry + '-02-' + new Date(ry, 2, 0).getDate() : ry + '-' + SEZ_OKNA[n][1];
+        if (a >= ost && b < t) { wyn.push(n + ' ' + (n === 'Zima' ? y + '/' + String(ry).slice(2) : y)); return; }
+      }
+    });
+    return wyn;
+  }
   function ocena(w) {
-    var o = { przeglad: false, wkrotce: false, zalega: false, dni: 0, rozm: null };
+    var o = { przeglad: false, wkrotce: false, zalega: false, dni: 0, rozm: null, przegapione: [] };
     if (w.status !== 'strych') return o;
     var d = dzis(), ust = S.dane.ust;
     if (w.przegladDo) { if (w.przegladDo <= d) o.przeglad = true; else if (w.przegladDo <= plusDni(d, ust.PRZEGLAD_DNI)) o.wkrotce = true; }
     var ost = w.przejrzano || w.wstawiono;
     if (ost) { if (ost < plusMies(d, -ust.ZALEGA_MIES)) o.zalega = true; o.dni = Math.round((dt(d) - dt(ost)) / 864e5); }
-    o.rozm = dopasowanie(w);
+    o.rozm = dopasowanie(w); o.przegapione = przegapione(w);
     return o;
   }
-  function wymagaUwagi(w) { var o = ocena(w); return o.przeglad || o.zalega || !!(o.rozm && (o.rozm.t === 'pasuje' || o.rozm.t === 'zamale')); }
+  function wymagaUwagi(w) { var o = ocena(w); return o.przeglad || o.zalega || o.przegapione.length > 0 || !!(o.rozm && (o.rozm.t === 'pasuje' || o.rozm.t === 'zamale')); }
   function pillsWorka(w) {
     var o = ocena(w), p = '';
     if (w.status !== 'strych') return '<span class="pill cichy">Zdjęty ' + pl(w.zdjeto) + '</span>';
     if (o.przeglad) p += '<span class="pill blad">Do przeglądu</span>';
     else if (o.wkrotce) p += '<span class="pill toku">Wkrótce: ' + pl(w.przegladDo) + '</span>';
+    if (o.przegapione.length) p += '<span class="pill blad">Minął sezon: ' + e(o.przegapione.join(', ')) + '</span>';
     if (o.zalega) p += '<span class="pill uwaga">Zalega ' + Math.round(o.dni / 30) + ' mies.</span>';
     var r = o.rozm;
     if (r) { var pre = r.nazwa ? e(r.nazwa) + ': ' : '';
@@ -416,6 +456,85 @@
     var z = strefa(w.strefa), t = z ? z.nazwa : '';
     if (w.polka) t += (t ? ', ' : '') + (w.polka === 'Podłoga' ? 'podłoga' : 'półka ' + w.polka);
     return t;
+  }
+
+  /* ---------- inteligentne wyszukiwanie ---------- */
+  var STOP = ['i', 'w', 'na', 'do', 'po', 'dla', 'od', 'z', 'ze', 'szukam', 'gdzie', 'mam', 'moje', 'moja', 'moj', 'czy', 'jest', 'sa', 'nasze'];
+  var KAT = [
+    { p: ['kozak'], r: 'Obuwie', s: ['Jesień', 'Zima'] }, { p: ['snieg'], r: 'Obuwie', s: ['Zima'] },
+    { p: ['botk', 'botek', 'botko'], r: 'Obuwie', s: ['Wiosna', 'Jesień', 'Zima'] }, { p: ['kalos', 'gumiak', 'gumow'], r: 'Obuwie', s: ['Wiosna', 'Jesień'] },
+    { p: ['sandal', 'klapk', 'japon', 'baletk'], r: 'Obuwie', s: ['Lato', 'Wiosna'] }, { p: ['tramp', 'adida', 'sneak', 'polbu', 'mokas'], r: 'Obuwie', s: ['Wiosna', 'Lato', 'Jesień'] },
+    { x: ['buty', 'butow', 'butem', 'obuwie', 'obuwia', 'but'], r: 'Obuwie', s: [] },
+    { p: ['kurtk', 'kurtc'], r: 'Odzież', s: ['Wiosna', 'Jesień', 'Zima'] }, { p: ['puchow', 'kombinez'], r: 'Odzież', s: ['Zima'] },
+    { p: ['wiatrow', 'przeciwdesz', 'softsh'], r: 'Odzież', s: ['Wiosna', 'Jesień'] }, { p: ['plasz'], r: 'Odzież', s: ['Wiosna', 'Jesień', 'Zima'] },
+    { p: ['swet', 'bluz', 'polar', 'golf', 'kardig'], r: 'Odzież', s: ['Wiosna', 'Jesień', 'Zima'] }, { p: ['czapk', 'szalik', 'rekaw', 'kominiar'], r: 'Odzież', s: ['Zima', 'Jesień'] },
+    { p: ['daszk', 'kapelusz', 'okular'], r: null, s: ['Lato'] },
+    { p: ['szort', 'spodenk', 'koszulk', 'tshirt', 'podkosz', 'bezrekaw'], r: 'Odzież', s: ['Lato'] }, { p: ['sukien', 'spodnic', 'tunik'], r: 'Odzież', s: ['Wiosna', 'Lato'] },
+    { p: ['kapiel', 'bikini', 'plywa', 'plaz'], r: 'Odzież', s: ['Lato'] },
+    { p: ['poscie', 'pocielk', 'koldr', 'przescier', 'poduszk', 'recznik', 'firan', 'zaslon', 'narzut', 'obrus', 'material', 'tkanin'], r: 'Dom', s: [] },
+    { x: ['koc', 'koce', 'kocy', 'kocow'], r: 'Dom', s: ['Jesień', 'Zima'] },
+    { p: ['zim'], r: null, s: ['Zima'] }, { p: ['letn', 'lato', 'latem'], r: null, s: ['Lato'] }, { p: ['jesie'], r: null, s: ['Jesień'] }, { p: ['wiosn', 'wiosen'], r: null, s: ['Wiosna'] }
+  ];
+  function norm(x) { return String(x || '').toLowerCase().replace(/ł/g, 'l').normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+  function slowa(x) { return norm(x).split(/[^a-z0-9]+/).filter(Boolean); }
+  function rdzen(x) { return x.length > 5 ? x.slice(0, 5) : x; }
+  function trafiaKat(t, en) { return (en.p && en.p.some(function (pr) { return t.indexOf(pr) === 0; })) || (en.x && en.x.indexOf(t) >= 0); }
+  function czyImie(t, o) { var n = norm(o.imie), pr = n.slice(0, Math.max(3, n.length - 2)); return t.length >= 3 && t.indexOf(pr) === 0 && t.length <= n.length + 3; }
+  function rozmiarWZakresie(w, val) {     // val: "Odzież:92" albo "Obuwie:37"
+    var c = val.split(':'), x = c[1];
+    if (w.rodzaj !== c[0] || !w.rozmiarOd) return false;
+    var a = numr(w.rozmiarOd), b = numr(w.rozmiarDo || w.rozmiarOd), n = numr(x);
+    if (a !== null && b !== null && n !== null) return n >= Math.min(a, b) && n <= Math.max(a, b);
+    var ia = UBR.indexOf(w.rozmiarOd), ib = UBR.indexOf(w.rozmiarDo || w.rozmiarOd), ix = UBR.indexOf(x);
+    return ia >= 0 && ix >= Math.min(ia, ib) && ix <= Math.max(ia, ib);
+  }
+  function szukajSmart(q, lista) {
+    var tokeny = slowa(q).filter(function (t) { return STOP.indexOf(t) < 0; }), osoby = [], tresc = [], rod = {}, sez = {}, info = [];
+    tokeny.forEach(function (t) {
+      var os = S.dane.domownicy.filter(function (o) { return o.rola !== 'wspolne' && czyImie(t, o); });
+      if (os.length) { os.forEach(function (o) { if (osoby.indexOf(o) < 0) osoby.push(o); }); return; }
+      KAT.forEach(function (en) { if (trafiaKat(t, en)) { if (en.r) rod[en.r] = 1; (en.s || []).forEach(function (x) { sez[x] = 1; }); } });
+      tresc.push(t);
+    });
+    if (osoby.length) info.push('właściciel: ' + osoby.map(function (o) { return o.imie; }).join(', '));
+    if (Object.keys(rod).length) info.push(Object.keys(rod).map(function (r) { return r === 'Obuwie' ? 'obuwie' : r === 'Dom' ? 'tekstylia domowe' : 'ubrania'; }).join(', '));
+    if (Object.keys(sez).length) info.push('sezon: ' + Object.keys(sez).join(' / '));
+    var wyn = [];
+    lista.forEach(function (w) {
+      if (w.status !== 'strych') return;
+      var sc = 0, pow = [], pewne = false, z = strefa(w.strefa);
+      function dod(t) { if (pow.indexOf(t) < 0) pow.push(t); }
+      tresc.forEach(function (t) {
+        var rt = rdzen(t);
+        if (/^\d+$/.test(t) && w.id === normId(t)) { sc += 100; dod('numer worka'); return; }
+        var traf = w.rzeczy.filter(function (it) { return slowa(it).some(function (x) { return rdzen(x) === rt; }); });
+        if (traf.length) { sc += 40; pewne = true; dod('zapisane w worku: ' + traf.join(', ')); return; }
+        if (slowa(w.opis).some(function (x) { return rdzen(x) === rt; })) { sc += 15; dod('w opisie: „' + t + '”'); return; }
+        if (/^\d+$/.test(t) && (rozmiarWZakresie(w, 'Odzież:' + t) || rozmiarWZakresie(w, 'Obuwie:' + t))) { sc += 20; dod('rozmiar ' + t); return; }
+        if (w.tagi.some(function (g) { return rdzen(norm(g)) === rt; })) { sc += 15; dod('tag ' + t); return; }
+        if (z && slowa(z.nazwa).some(function (x) { return rdzen(x) === rt; })) { sc += 8; dod('strefa ' + z.nazwa); }
+      });
+      var wlasc = !osoby.length;
+      if (osoby.length) {
+        var wl = osoby.filter(function (o) { return w.dla.indexOf(o.id) >= 0; });
+        if (wl.length) { wlasc = true; sc += 25; dod('dla: ' + wl.map(function (o) { return o.imie; }).join(', ')); }
+        else if (osoby.some(function (o) { return w.czekaNa === o.id; })) { wlasc = true; sc += 10; dod('czeka na: ' + osoba(w.czekaNa).imie); }
+        else sc -= 30;
+      }
+      if (Object.keys(rod).length) {
+        if (rod[w.rodzaj]) { sc += 20; dod(w.rodzaj === 'Obuwie' ? 'obuwie' : w.rodzaj === 'Dom' ? 'tekstylia domowe' : 'ubrania'); } else sc -= 20;
+      }
+      if (Object.keys(sez).length) {
+        var ov = w.tagi.filter(function (g) { return sez[g]; });
+        if (ov.length) { sc += 15; dod('sezon: ' + ov.join(' / ')); }
+        else if (w.tagi.indexOf('Cały rok') >= 0) sc += 5;
+        else if (w.tagi.some(function (g) { return SEZ4.indexOf(g) >= 0; })) sc -= 10;
+      }
+      if (osoby.length && wlasc && w.rodzaj !== 'Dom') { var dp = dopasowanie(w); if (dp && dp.t === 'pasuje') { sc += 10; dod('rozmiar pasuje teraz'); } }
+      if (sc > 0 && pow.length && (wlasc || pewne)) wyn.push({ w: w, sc: sc, pow: pow, pewne: pewne, wlasc: wlasc });
+    });
+    wyn.sort(function (a, b) { return b.sc - a.sc || b.w.zmieniono.localeCompare(a.w.zmieniono); });
+    return { wyniki: wyn, info: info, rzecz: tresc.some(function (t) { return !/^\d+$/.test(t); }) };
   }
 
   /* ---------- nawigacja ---------- */
@@ -442,8 +561,18 @@
     var gr = plusMies(dzis(), -10);
     return S.dane.domownicy.filter(function (o) { var w = wiek(o); return o.rola !== 'wspolne' && w !== null && w < 18 && (!o.rozmiarData || o.rozmiarData < gr); });
   }
-  function kartaWorka(w) {
-    return '<button class="worek' + (w.status !== 'strych' ? ' zdjety' : '') + '" type="button" data-id="' + e(w.id) + '"><div class="foto" style="background-image:url(\'' + foto(w.zdjecia[0], 240) + '\')"></div><div class="tresc"><div class="nr">#' + e(w.id) + (w.rodzaj !== 'Odzież' ? ' · ' + e(w.rodzaj) : '') + '</div><div class="dla">' + e(imionaDla(w)) + '</div><div class="meta">' + e([rozmiarTxt(w), w.pojemnik, miejsceTekst(w)].filter(Boolean).join(' · ') || 'bez lokalizacji') + '</div><div class="pills">' + pillsWorka(w) + '</div></div></button>';
+  function kartaWorka(w, wyn, nr) {
+    return '<button class="worek' + (w.status !== 'strych' ? ' zdjety' : '') + '" type="button" data-id="' + e(w.id) + '"><div class="foto" style="background-image:url(\'' + foto(w.zdjecia[0], 240) + '\')"></div><div class="tresc"><div class="nr">' + (nr ? '<span class="ranga">' + nr + '</span>' : '') + '#' + e(w.id) + (w.rodzaj !== 'Odzież' ? ' · ' + e(w.rodzaj) : '') + (wyn ? (wyn.pewne ? (wyn.wlasc ? ' · zapisane w worku' : ' · zapisane u innej osoby') : ' · prawdopodobne') : '') + '</div><div class="dla">' + e(imionaDla(w)) + '</div><div class="meta">' + e([rozmiarTxt(w), w.pojemnik, miejsceTekst(w) || 'lokalizacja nieustawiona'].filter(Boolean).join(' · ')) + '</div>' + (wyn ? '<div class="powod">' + e(wyn.pow.join(' · ')) + '</div>' : '') + '<div class="pills">' + pillsWorka(w) + '</div></div></button>';
+  }
+  function opcjeRozmiarow() {
+    var m = {};
+    S.dane.worki.forEach(function (w) { if (w.status !== 'strych' || w.rodzaj === 'Dom' || !w.rozmiarOd) return; m[w.rodzaj + ':' + w.rozmiarOd] = 1; m[w.rodzaj + ':' + (w.rozmiarDo || w.rozmiarOd)] = 1; });
+    var k = Object.keys(m).sort(function (a, b) {
+      var x = a.split(':'), y = b.split(':');
+      if (x[0] !== y[0]) return x[0] === 'Odzież' ? -1 : 1;
+      return x[0] === 'Obuwie' ? numr(x[1]) - numr(y[1]) : UBR.indexOf(x[1]) - UBR.indexOf(y[1]);
+    });
+    return '<option value="">Rozmiar: wszystkie</option>' + k.map(function (v) { var c = v.split(':'); return '<option value="' + e(v) + '"' + (S.f.rozmiar === v ? ' selected' : '') + '>' + (c[0] === 'Obuwie' ? 'buty ' : 'ubrania ') + e(c[1]) + '</option>'; }).join('');
   }
   function renderGar() {
     if (!S.dane) return;
@@ -454,38 +583,48 @@
     $('fOsoby').innerHTML = h;
     h = chip('data-ns="1"', 'Na ten sezon (' + sezonyAkt().join(' + ') + ')', f.naSezon);
     SEZ4.forEach(function (n) { h += chip('data-sez="' + n + '"', n, f.sezon === n); });
-    h += chip('data-rz="pasuje"', 'Pasuje teraz', f.rozm === 'pasuje') + chip('data-rz="zamale"', 'Za małe', f.rozm === 'zamale') + chip('data-uw="1"', 'Wymaga uwagi', f.uwaga) + chip('data-zd="1"', 'Zdjęte', f.zdjete);
+    h += chip('data-rz="pasuje"', 'Pasuje teraz', f.rozm === 'pasuje') + chip('data-rz="zamale"', 'Za małe', f.rozm === 'zamale') + chip('data-uw="1"', 'Alerty', f.uwaga) + chip('data-zd="1"', 'Zdjęte', f.zdjete);
     $('fInne').innerHTML = h;
     $('fRodzaj').innerHTML = RODZAJE.map(function (r) { return chip('data-rod="' + r + '"', r === 'Dom' ? 'Dom (firany, pościel…)' : r, f.rodzaj === r); }).join('');
+    $('fRozm').innerHTML = opcjeRozmiarow();
 
     var wszystkie = d.worki.filter(function (w) { return w.status === 'strych'; });
     var ile = wszystkie.filter(wymagaUwagi).length, stare = rozmiaryStare();
     var b = '';
     if (stare.length) b += '<button class="baner" id="banerRoz" type="button" style="background:var(--biel);border:2px solid var(--pom)"><span><b>Rozmiary do aktualizacji</b><br><span>' + e(stare.map(function (o) { return o.imie; }).join(', ')) + ': sprawdź, czy dziecko nie wyrosło</span></span><b>›</b></button>';
-    if (ile) b += '<button class="baner" id="banerBtn" type="button"><span><b>' + ile + ' ' + (ile === 1 ? 'worek czeka' : ile < 5 ? 'worki czekają' : 'worków czeka') + ' na decyzję</b><br><span>termin minął, zalega, pasuje na obecny rozmiar albo jest za małe</span></span><b>›</b></button>';
+    if (ile) b += '<button class="baner" id="banerBtn" type="button"><span><b>' + ile + ' ' + (ile === 1 ? 'alert' : ile < 5 ? 'alerty' : 'alertów') + ' do rozpatrzenia</b><br><span>minął sezon bez ruszania worka, termin przeglądu, zaleganie albo zmiana rozmiaru</span></span><b>›</b></button>';
     $('baner').innerHTML = b;
 
-    var q = f.q.trim().toLowerCase(), akt = sezonyAkt();
+    var q = f.q.trim(), akt = sezonyAkt();
+    $('e-gar').classList.toggle('szuka', !!q && !f.zdjete);
     var lista = d.worki.filter(function (w) {
       if (f.zdjete ? w.status === 'strych' : w.status !== 'strych') return false;
       if (f.osoba && w.dla.indexOf(f.osoba) < 0 && w.czekaNa !== f.osoba) return false;
       if (f.sezon && w.tagi.indexOf(f.sezon) < 0) return false;
       if (f.naSezon && !w.tagi.some(function (t) { return akt.indexOf(t) >= 0; })) return false;
       if (f.rodzaj && w.rodzaj !== f.rodzaj) return false;
+      if (f.rozmiar && !rozmiarWZakresie(w, f.rozmiar)) return false;
       if (f.rozm) { var r = ocena(w).rozm; if (!r || r.t !== f.rozm) return false; }
       if (f.uwaga && !wymagaUwagi(w)) return false;
-      if (q) {
-        var z = strefa(w.strefa);
-        var t = [w.id, imionaDla(w), rozmiarTxt(w), w.opis, w.tagi.join(' '), w.rodzaj, w.pojemnik, z ? z.nazwa : ''].join(' ').toLowerCase();
-        if (t.indexOf(q) < 0) return false;
-      }
       return true;
     }).sort(function (a, b) {
       var pa = wymagaUwagi(a) ? 0 : 1, pb = wymagaUwagi(b) ? 0 : 1;
       return pa - pb || (a.przegladDo || '9999').localeCompare(b.przegladDo || '9999') || a.id.localeCompare(b.id);
     });
+    if (q && !f.zdjete) {
+      var sm = szukajSmart(q, lista), top = sm.wyniki.slice(0, 3), reszta = sm.wyniki.slice(3, 23), hh = '';
+      if (!sm.wyniki.length) { $('lista').innerHTML = '<div class="pusto">Nic nie pasuje do „' + e(q) + '”.<br>Spróbuj samej nazwy rzeczy (np. „kozaki”) albo imienia właściciela.</div>'; return; }
+      hh += '<p class="wyniki-info">' + (sm.info.length ? 'Rozpoznano: ' + e(sm.info.join(' · ')) + '. ' : '') + (!sm.rzecz ? '' : top.some(function (x) { return x.pewne && x.wlasc; }) ? 'Jest wpis o tej rzeczy.' : 'Nie ma wpisu o tej rzeczy, więc to najbardziej prawdopodobne miejsca.') + '</p>';
+      var nrMap = {}, sels = [];
+      top.forEach(function (x, i) { if (x.w.strefa && !nrMap[x.w.strefa]) { nrMap[x.w.strefa] = i + 1; sels.push(x.w.strefa); } });
+      if (sels.length) hh += '<div class="card" style="padding:10px">' + mapa({ sels: sels, nr: nrMap, id: 'mapaWyniki' }) + '</div>';
+      hh += top.map(function (x, i) { return kartaWorka(x.w, x, i + 1); }).join('');
+      if (reszta.length) hh += '<h3 style="margin:14px 4px 10px;font-size:15px">Dalsze możliwości</h3>' + reszta.map(function (x) { return kartaWorka(x.w, x); }).join('');
+      $('lista').innerHTML = hh; return;
+    }
+    if (q) lista = lista.filter(function (w) { return norm([w.id, imionaDla(w), rozmiarTxt(w), w.opis, w.rzeczy.join(' '), w.tagi.join(' ')].join(' ')).indexOf(norm(q)) >= 0; });
     if (!lista.length) { $('lista').innerHTML = '<div class="pusto">' + (d.worki.length ? 'Nic nie pasuje do filtrów.' : 'Strych jest pusty w aplikacji.<br>Przyklej etykietę na pierwszy worek, zeskanuj ją aparatem i dodaj zawartość, albo dotknij „+ Dodaj worek”.') + '</div>'; return; }
-    $('lista').innerHTML = lista.map(kartaWorka).join('');
+    $('lista').innerHTML = lista.map(function (w) { return kartaWorka(w); }).join('');
   }
 
   /* ---------- rozmiary ---------- */
@@ -530,10 +669,11 @@
     var prop = (rzut ? Math.max(0.3, Math.min(3, ust.RZUT_PROP)) : Math.max(0.55, Math.min(1.5, ust.PLAN_DL / ust.PLAN_SZER))) * 100;
     var licz = {};
     if (o.licz) d.worki.forEach(function (w) { if (w.status === 'strych' && w.strefa) licz[w.strefa] = (licz[w.strefa] || 0) + 1; });
+    var sels = o.sels || (o.sel ? [o.sel] : []);
     var h = '<div class="mapa' + (o.edycja ? ' edycja' : '') + (rzut ? ' zrzutem' : '') + '" id="' + (o.id || 'mapa') + '" style="padding-top:' + prop + '%">';
     if (rzut) h += '<img class="rzut" src="' + foto(ust.RZUT_ID, 1600) + '" alt="Rzut strychu" draggable="false">';
     d.strefy.forEach(function (z) {
-      h += '<button type="button" class="strefa' + (o.sel === z.id ? ' sel' : '') + '" data-z="' + e(z.id) + '" style="left:' + z.x + '%;top:' + z.y + '%;width:' + z.w + '%;height:' + z.h + '%"' + (o.edycja ? ' tabindex="-1"' : '') + '>' + e(z.nazwa) + (licz[z.id] ? '<span class="licz">' + licz[z.id] + '</span>' : '') + '</button>';
+      h += '<button type="button" class="strefa' + (sels.indexOf(z.id) >= 0 ? ' sel' : '') + '" data-z="' + e(z.id) + '" style="left:' + z.x + '%;top:' + z.y + '%;width:' + z.w + '%;height:' + z.h + '%"' + (o.edycja ? ' tabindex="-1"' : '') + '>' + (o.nr && o.nr[z.id] ? '<span class="numer">' + o.nr[z.id] + '</span>' : '') + e(z.nazwa) + (licz[z.id] ? '<span class="licz">' + licz[z.id] + '</span>' : '') + '</button>';
     });
     return h + '<span class="wlaz">' + (rzut ? '' : 'wejście na strych') + '</span></div>';
   }
@@ -615,33 +755,79 @@
     var q = qrcode(0, 'M'); q.addData(tekst); q.make();
     return q.createSvgTag({ cellSize: 4, margin: 0, scalable: true });
   }
-  function etykietaHtml(id, ramka) {
+  var PRZYM = { 'Wiosna': 'wiosenne', 'Lato': 'letnie', 'Jesień': 'jesienne', 'Zima': 'zimowe', 'Cały rok': 'całoroczne' };
+  function sezonyWorka(w) { return SEZ4.concat(['Cały rok']).filter(function (n) { return w.tagi.indexOf(n) >= 0; }); }
+  function sezonTxt(w) {      // np. „Lato 2026”
+    var sz = sezonyWorka(w), rok = String(w.zmieniono || w.wstawiono).slice(0, 4);
+    return sz.length ? (sz.indexOf('Cały rok') >= 0 ? 'Cały rok' : sz.join(' / ')) + ' ' + rok : '';
+  }
+  function rodzajTxt(w) {     // np. „ciuchy letnie · 104–110”
+    var sz = sezonyWorka(w), adj = sz.map(function (n) { return PRZYM[n]; }).join(' / ');
+    if (w.rodzaj === 'Dom') return (w.tagi.filter(function (t) { return DOMOWE.indexOf(t) >= 0; }).join(', ').toLowerCase() || 'tekstylia domowe') + (adj ? ' · ' + adj : '');
+    return (w.rodzaj === 'Obuwie' ? 'obuwie' : 'ciuchy') + (adj ? ' ' + adj : '') + (rozmiarTxt(w) && w.rodzaj !== 'Obuwie' ? ' · ' + rozmiarTxt(w) : '') + (w.rodzaj === 'Obuwie' && w.rozmiarOd ? ' · ' + rozmiarTxt(w) : '');
+  }
+  function dataTxt(w) {
+    var z = String(w.zmieniono || '').slice(0, 10), t = 'zał. ' + pl(w.wstawiono);
+    return z && z > w.wstawiono ? t + ' · edyt. ' + pl(z) : t;
+  }
+  function etykietaPusta(id, ramka) {
     return '<div class="etykieta' + (ramka ? ' ramka' : '') + '">' + svgQr(linkWorka(id)) + '<div><div class="nr">' + e(id) + '</div><div class="podpis">STRYCH<br>zeskanuj aparatem telefonu</div></div></div>';
   }
-  function arkuszHtml(ids, poz, ramka) {
+  function etykietaOpis(w, ramka) {
+    var wl = imionaDla(w), kl = wl.length > 18 ? 'd3' : wl.length > 10 ? 'd2' : 'd1';
+    return '<div class="etykieta op' + (ramka ? ' ramka' : '') + '">' + svgQr(linkWorka(w.id)) + '<div class="txt"><div class="n">#' + e(w.id) + '</div><div class="wl ' + kl + '">' + e(wl) + '</div><div class="sz">' + e(sezonTxt(w)) + '</div><div class="rd">' + e(rodzajTxt(w)) + '</div><div class="dd">' + e(dataTxt(w)) + '</div></div></div>';
+  }
+  function arkuszHtml(items, poz, ramka) {
     var h = '<div class="arkusz">', i;
     for (i = 1; i < poz; i++) h += '<div class="etykieta"></div>';
-    ids.forEach(function (id) { h += etykietaHtml(id, ramka); });
+    items.forEach(function (x) { h += typeof x === 'string' ? etykietaPusta(x, ramka) : etykietaOpis(x, ramka); });
     return h + '</div>';
   }
-  function zakresEtykiet() {
-    var od = Math.max(1, parseInt($('etOd').value, 10) || 1), ile = Math.max(1, Math.min(24, parseInt($('etIle').value, 10) || 1)), poz = Math.max(1, Math.min(24, parseInt($('etPoz').value, 10) || 1));
-    ile = Math.min(ile, 25 - poz);
-    var ids = []; for (var i = 0; i < ile; i++) ids.push(normId(String(od + i)));
-    return { ids: ids, poz: poz };
+  function drukStan() { try { return JSON.parse(odczytaj('strych.druk') || '{}'); } catch (x) { return {}; } }
+  function doWydruku(w) { return w.status === 'strych' && drukStan()[w.id] !== w.zmieniono; }
+  function elementyEtykiet() {
+    var poz = Math.max(1, Math.min(24, parseInt($('etPoz').value, 10) || 1)), items = [];
+    if (S.etTryb === 'puste') {
+      var od = Math.max(1, parseInt($('etOd').value, 10) || 1), ile = Math.max(1, Math.min(24, parseInt($('etIle').value, 10) || 1));
+      for (var i = 0; i < ile; i++) items.push(normId(String(od + i)));
+    } else {
+      (S.etWybrane || []).forEach(function (id) { var w = worek(id); if (w && w.status === 'strych') items.push(w); });
+    }
+    return { items: items.slice(0, 25 - poz), poz: poz, ucieto: Math.max(0, items.length - (25 - poz)) };
   }
   function renderEtykiety() {
     if (!S.dane) return;
+    var akt = S.dane.worki.filter(function (w) { return w.status === 'strych'; });
+    if (!S.etTryb) S.etTryb = akt.length ? 'opis' : 'puste';
+    if (!S.etWybrane) S.etWybrane = akt.filter(doWydruku).map(function (w) { return w.id; });
     if (!$('etOd').value) $('etOd').value = nastepnyWolny();
-    var z = zakresEtykiet(), wrap = $('etPodglad'), szer = wrap.clientWidth || 340, skala = szer / (210 * 3.7795);
-    wrap.innerHTML = '<div style="height:' + (297 * 3.7795 * skala) + 'px"><div style="transform:scale(' + skala + ');transform-origin:top left;width:210mm">' + arkuszHtml(z.ids, z.poz, true) + '</div></div>';
+    if (!$('etPoz').dataset.init) { $('etPoz').dataset.init = '1'; $('etPoz').value = odczytaj('strych.poz') || 1; }
+    $('etTryb').innerHTML = chip('data-ettryb="opis"', 'Z opisem (worki)', S.etTryb === 'opis') + chip('data-ettryb="puste"', 'Puste (same numery)', S.etTryb === 'puste');
+    $('etOpis').classList.toggle('hidden', S.etTryb !== 'opis'); $('etPuste').classList.toggle('hidden', S.etTryb !== 'puste');
+    var sorted = akt.slice().sort(function (a, b) { return (doWydruku(b) ? 1 : 0) - (doWydruku(a) ? 1 : 0) || a.id.localeCompare(b.id); });
+    $('etLista').innerHTML = sorted.length ? sorted.map(function (w) {
+      return '<label class="et-wiersz"><input type="checkbox" data-et="' + e(w.id) + '"' + (S.etWybrane.indexOf(w.id) >= 0 ? ' checked' : '') + '><span><b>#' + e(w.id) + '</b> ' + e(imionaDla(w)) + ' · ' + e(sezonTxt(w) || rodzajTxt(w)) + '</span>' + (doWydruku(w) ? ' <span class="pill toku">do wydruku</span>' : '') + '</label>'; }).join('') : '<div class="pusto">Nie ma jeszcze zapisanych worków.</div>';
+    var z = elementyEtykiet(), wrap = $('etPodglad'), szer = wrap.clientWidth || 340, skala = szer / (210 * 3.7795);
+    wrap.innerHTML = '<div style="height:' + (297 * 3.7795 * skala) + 'px"><div style="transform:scale(' + skala + ');transform-origin:top left;width:210mm">' + arkuszHtml(z.items, z.poz, true) + '</div></div>';
+    $('etDrukuj').disabled = !z.items.length;
+    $('etDrukuj').textContent = z.items.length ? 'Drukuj arkusz (' + z.items.length + ' ' + (z.items.length === 1 ? 'etykieta' : 'etykiet') + ')' : 'Zaznacz worki do wydruku';
+    if (z.ucieto) komunikat('Arkusz mieści 24 etykiety. ' + z.ucieto + ' zaznaczonych nie zmieści się od pola ' + z.poz + '.', true);
   }
-  function drukuj(ids, poz) {
-    $('arkuszDruk').innerHTML = arkuszHtml(ids, poz, false);
+  function drukuj() {
+    var z = elementyEtykiet(); if (!z.items.length) return;
+    S.druk = { worki: z.items.filter(function (x) { return typeof x !== 'string'; }), n: z.items.length, poz: z.poz };
+    $('arkuszDruk').innerHTML = arkuszHtml(z.items, z.poz, false);
     document.body.classList.add('druk');
     setTimeout(function () { window.print(); }, 50);
   }
-  window.addEventListener('afterprint', function () { document.body.classList.remove('druk'); $('arkuszDruk').innerHTML = ''; });
+  window.addEventListener('afterprint', function () {
+    document.body.classList.remove('druk'); $('arkuszDruk').innerHTML = '';
+    if (!S.druk) return;
+    var st = drukStan(); S.druk.worki.forEach(function (w) { st[w.id] = w.zmieniono; }); zapamietaj('strych.druk', JSON.stringify(st));
+    var nast = S.druk.poz + S.druk.n; if (nast > 24) nast = 1;
+    zapamietaj('strych.poz', String(nast)); $('etPoz').value = nast;
+    S.etWybrane = null; S.druk = null; if (S.ekran === 'etykiety') renderEtykiety();
+  });
 
   /* ---------- ustawienia ---------- */
   function renderUst() {
@@ -679,9 +865,11 @@
     var o = ocena(w), z = strefa(w.strefa), h = '', ust = S.dane.ust;
     h += '<div class="glowa"><div><div class="duzy-nr">WOREK #' + e(w.id) + ' · ' + e(w.rodzaj).toUpperCase() + '</div><h2>' + e(imionaDla(w)) + '</h2></div><button class="zamknij" data-zamknij aria-label="Zamknij">×</button></div>';
     h += '<div class="zdjecia">' + w.zdjecia.map(function (i) { return '<img src="' + foto(i, 900) + '" alt="Zawartość worka" loading="lazy">'; }).join('') + '</div>';
+    if (S.swiezo === w.id) { h += '<div class="msg">Zapisano. Wydrukuj etykietę z opisem i przyklej ją na worek.</div>'; S.swiezo = null; w._swiezo = true; }
     h += '<div class="pills" style="margin-bottom:12px;display:flex;gap:5px;flex-wrap:wrap">' + pillsWorka(w) + '</div>';
     h += '<dl class="info">';
     if (rozmiarTxt(w)) h += '<dt>Rozmiar</dt><dd>' + e(rozmiarTxt(w)) + '</dd>';
+    if (w.rzeczy.length) h += '<dt>Rzeczy</dt><dd>' + e(w.rzeczy.join(' · ')) + '</dd>';
     if (w.opis) h += '<dt>W środku</dt><dd>' + e(w.opis) + '</dd>';
     if (w.pojemnik) h += '<dt>Pojemnik</dt><dd>' + e(w.pojemnik) + (ust.POJEMNIKI[w.pojemnik] ? ' <span style="color:var(--szary)">(' + e(ust.POJEMNIKI[w.pojemnik]) + ')</span>' : '') + '</dd>';
     h += '<dt>Gdzie</dt><dd>' + (miejsceTekst(w) ? e(miejsceTekst(w)) : '<span style="color:var(--szary)">nie ustawiono</span>') + '</dd>';
@@ -694,9 +882,10 @@
     if (w.status === 'strych' && z) h += '<div style="margin-bottom:14px">' + mapa({ sel: z.id, id: 'mapaSzcz' }) + '</div>';
     h += '<div class="stack">';
     if (w.status === 'strych') {
-      h += '<button class="btn primary" data-akcja="przejrzane">Przejrzane, zostaje na strychu</button>';
+      if (w._swiezo) h += '<button class="btn primary" data-akcja="etykieta">Drukuj etykietę</button>';
+      else h += '<button class="btn primary" data-akcja="przejrzane">Przejrzane, zostaje na strychu</button>';
       h += '<button class="btn dark" data-akcja="zdejmij">Zdjąłem ze strychu</button>';
-      h += '<div class="row"><button class="btn" data-akcja="edytuj">Edytuj</button><button class="btn" data-akcja="etykieta">Etykieta</button></div>';
+      h += '<div class="row"><button class="btn" data-akcja="edytuj">Edytuj</button>' + (w._swiezo ? '<button class="btn" data-akcja="przejrzane">Przejrzane</button>' : '<button class="btn" data-akcja="etykieta">Etykieta</button>') + '</div>';
     } else {
       h += '<button class="btn primary" data-akcja="wstaw">Wstaw nowy worek pod tym numerem</button>';
     }
@@ -747,7 +936,7 @@
       rodzaj: edycja ? w.rodzaj : (ostatnie.rodzaj || 'Odzież'),
       dla: edycja ? w.dla.slice() : (ostatnie.dla ? ostatnie.dla.filter(osoba) : []),
       od: edycja ? w.rozmiarOd : '', do: edycja ? w.rozmiarDo : '',
-      opis: edycja ? w.opis : '', pojemnik: edycja ? w.pojemnik : (ostatnie.pojemnik || ''),
+      rzeczy: edycja ? w.rzeczy.slice() : [], opis: edycja ? w.opis : '', pojemnik: edycja ? w.pojemnik : (ostatnie.pojemnik || ''),
       tagi: edycja ? w.tagi.slice() : [], czekaNa: edycja ? w.czekaNa : '',
       strefa: edycja ? w.strefa : (ostatnie.strefa && strefa(ostatnie.strefa) ? ostatnie.strefa : ''), polka: edycja ? w.polka : (ostatnie.polka || ''),
       zdjecia: edycja ? w.zdjecia.map(function (i) { return { id: i, url: foto(i, 300) }; }) : [],
@@ -773,12 +962,21 @@
     if (d.strefy.length) h += '<div id="fMapa"></div><p class="hint" id="fMiejsce" style="margin-bottom:8px"></p><div class="chips" id="fPolka"></div>';
     else h += '<p class="hint" style="margin:0">Plan strychu jest pusty. Zapisz worek teraz, a plan narysuj w zakładce „Strych”. Potem uzupełnisz lokalizację w edycji.</p>';
     h += '</div>';
+    h += '<div class="field"><label for="fRzecz">Pojedyncze rzeczy do szukania (opcjonalnie)</label><div style="display:flex;gap:8px"><input type="text" id="fRzecz" maxlength="60" placeholder="np. czarne kozaki" enterkeyhint="done" style="flex:1"><button class="btn mala" type="button" id="fRzeczDodaj" style="flex:0 0 auto;padding:0 18px">Dodaj</button></div><div class="chips" id="fRzeczy" style="margin-top:10px"></div><p class="hint">Wpisz to, czego możesz szukać osobno (kozaki, kurtka puchowa, strój kąpielowy). Wyszukiwarka znajdzie to po nazwie i właścicielu.</p></div>';
     h += '<div class="field"><label for="fOpis">Co jest w środku (opcjonalnie)</label><textarea id="fOpis" maxlength="400" placeholder="np. 6 bluz, 3 spodnie, kurtka przeciwdeszczowa">' + e(F.opis) + '</textarea></div>';
     h += '<div class="field"><label>Kiedy przypomnieć o wymianie</label><div id="fDaty"></div></div>';
     h += '<button class="btn primary" id="fZapisz" type="button">Zapisz worek</button>';
     otworzModal(h);
     var root = $('modal');
-    renderZdjec(root); if (d.strefy.length) renderMapyForm(root); odswiezForm(root);
+    renderZdjec(root); renderRzeczy(root); if (d.strefy.length) renderMapyForm(root); odswiezForm(root);
+  }
+  function renderRzeczy(root) {
+    root.querySelector('#fRzeczy').innerHTML = F.rzeczy.map(function (x, i) { return '<button type="button" class="chip" data-rzusun="' + i + '" aria-label="Usuń ' + e(x) + '">' + e(x) + ' ×</button>'; }).join('');
+  }
+  function dodajRzecz(root) {
+    var inp = root.querySelector('#fRzecz');
+    inp.value.split(',').forEach(function (x) { x = x.trim(); if (x && F.rzeczy.indexOf(x) < 0 && F.rzeczy.length < 40) F.rzeczy.push(x); });
+    inp.value = ''; renderRzeczy(root); inp.focus();
   }
   function odswiezForm(root) {
     var dom = F.rodzaj === 'Dom', ws = wspolna();
@@ -841,7 +1039,7 @@
   function zapiszFormularz(root) {
     var btn = root.querySelector('#fZapisz'), msg = root.querySelector('#fMsg'), dom = F.rodzaj === 'Dom', ws = wspolna();
     function blad(t) { msg.innerHTML = '<div class="msg err" role="alert">' + e(t) + '</div>'; root.scrollTop = 0; }
-    F.opis = root.querySelector('#fOpis').value; F.czekaNa = dom ? '' : root.querySelector('#fCzeka').value;
+    dodajRzecz(root); F.opis = root.querySelector('#fOpis').value; F.czekaNa = dom ? '' : root.querySelector('#fCzeka').value;
     F.od = root.querySelector('#fOd').value; F.do = root.querySelector('#fDo').value;
     if (dom) { F.od = ''; F.do = ''; if (ws) F.dla = [ws.id]; }
     else if (ws) F.dla = F.dla.filter(function (x) { return x !== ws.id; });
@@ -866,12 +1064,12 @@
     });
     p.then(function () {
       btn.textContent = 'Zapisuję…';
-      return api('zapiszWorek', [{ id: F.id, rodzaj: F.rodzaj, dla: F.dla, rozmiarOd: F.od, rozmiarDo: F.do, pojemnik: F.pojemnik, tagi: F.tagi, czekaNa: F.czekaNa, strefa: F.strefa, polka: F.polka, opis: F.opis, zdjecia: ids, przegladDo: data }]);
+      return api('zapiszWorek', [{ id: F.id, rodzaj: F.rodzaj, dla: F.dla, rozmiarOd: F.od, rozmiarDo: F.do, pojemnik: F.pojemnik, rzeczy: F.rzeczy, tagi: F.tagi, czekaNa: F.czekaNa, strefa: F.strefa, polka: F.polka, opis: F.opis, zdjecia: ids, przegladDo: data }]);
     }).then(function (w) {
       podmien(w);
       zapamietaj('strych.ostatnie', JSON.stringify({ rodzaj: F.rodzaj, dla: dom ? [] : F.dla, strefa: F.strefa, polka: F.polka, pojemnik: F.pojemnik }));
       zapamietaj('strych.dane', JSON.stringify({ t: Date.now(), d: S.dane }));
-      zamknijModal(); komunikat('Zapisano worek #' + w.id + '.'); pokazEkran(S.ekran);
+      zamknijModal(); S.swiezo = w.id; S.etWybrane = null; pokazEkran(S.ekran); szczegoly(w);
     }).catch(function (er) {
       if (er.sesja) return wyloguj(er.message);
       btn.disabled = false; btn.textContent = 'Zapisz worek'; blad(er.message);
@@ -899,7 +1097,7 @@
     if (a === 'przejrzane') return przypomnienieModal(w);
     if (a === 'edytuj') return formularz({ id: w.id });
     if (a === 'wstaw') return formularz({ id: w.id });
-    if (a === 'etykieta') { zamknijModal(); S.ekran = 'etykiety'; pokazEkran('etykiety'); $('etOd').value = parseInt(w.id, 10) || 1; $('etIle').value = 1; renderEtykiety(); return; }
+    if (a === 'etykieta') { zamknijModal(); S.etTryb = 'opis'; S.etWybrane = [w.id]; return pokazEkran('etykiety'); }
     if (a === 'zdejmij') { if (!confirm('Potwierdź: worek #' + w.id + ' został zdjęty ze strychu. Wpis zostanie w archiwum, a etykietę można użyć ponownie.')) return;
       return api('zdejmij', [w.id]).then(function (nw) { podmien(nw); zamknijModal(); komunikat('Worek #' + w.id + ' zdjęty ze strychu.'); pokazEkran(S.ekran); }).catch(function (er) { komunikat(er.message, true); }); }
     if (a === 'usun') { if (!confirm('Usunąć wpis worka #' + w.id + ' na stałe? Zdjęcia zostają w folderze na Dysku.')) return;
@@ -993,7 +1191,9 @@
     if ((b = t.closest('#mapaGlowna .strefa')) && !S.edytujPlan) { S.wybranaStrefa = S.wybranaStrefa === b.dataset.z ? '' : b.dataset.z; return renderStrych(); }
     if ((b = t.closest('#mapaGlowna .strefa')) && S.edytujPlan) { var zs = strefa(b.dataset.z); return pytajStrefe('Strefa', zs.nazwa, zs.polek, function (n, pk) { zapiszStrefy(S.dane.strefy.map(function (x) { return x.id === zs.id ? strefaZ(x, { nazwa: n, polek: pk }) : x; })); }); }
     // etykiety
-    if (t.closest('#etDrukuj')) { var zr = zakresEtykiet(); return drukuj(zr.ids, zr.poz); }
+    if (t.closest('#etDrukuj')) return drukuj();
+    if ((b = t.closest('[data-ettryb]'))) { S.etTryb = b.dataset.ettryb; return renderEtykiety(); }
+    if (t.closest('#etNic')) { S.etWybrane = []; return renderEtykiety(); }
     // ustawienia
     if (t.closest('#domDodaj')) { S.edytowani.push({ id: '', imie: 'Nowa osoba', kolor: PALETA[S.edytowani.length % PALETA.length], email: '', rokUr: '', rola: 'osoba', rozmiarUbr: '', rozmiarButy: '', rozmiarData: '' }); return renderUstZEdycji(); }
     if ((b = t.closest('[data-kolor]'))) { S.edytowani[+b.dataset.di].kolor = b.dataset.kolor; return renderUstZEdycji(); }
@@ -1021,6 +1221,8 @@
       if ((b = t.closest('[data-tryb]'))) { F.tryb = b.dataset.tryb; F.reczny = true; return renderDaty(root); }
       if ((b = t.closest('[data-polka]'))) { F.polka = F.polka === b.dataset.polka ? '' : b.dataset.polka; return renderPolki(root); }
       if ((b = t.closest('#mapaForm .strefa'))) { F.strefa = F.strefa === b.dataset.z ? '' : b.dataset.z; return renderMapyForm(root); }
+      if ((b = t.closest('[data-rzusun]'))) { F.rzeczy.splice(+b.dataset.rzusun, 1); return renderRzeczy(root); }
+      if (t.closest('#fRzeczDodaj')) return dodajRzecz(root);
       if ((b = t.closest('[data-fusun]'))) { F.zdjecia.splice(+b.dataset.fusun, 1); return renderZdjec(root); }
       if (t.closest('#fAparat')) return root.querySelector('#inAparat').click();
       if (t.closest('#fGaleria')) return root.querySelector('#inGaleria').click();
@@ -1040,6 +1242,8 @@
   document.addEventListener('change', function (ev) {
     var t = ev.target;
     if (t.id === 'inAparat' || t.id === 'inGaleria') { dodajPliki(t.files, $('modal')); t.value = ''; }
+    if (t.dataset && t.dataset.et) { var id = t.dataset.et, i = (S.etWybrane = S.etWybrane || []).indexOf(id); if (t.checked && i < 0) S.etWybrane.push(id); if (!t.checked && i >= 0) S.etWybrane.splice(i, 1); renderEtykiety(); }
+    if (t.id === 'fRozm') { S.f.rozmiar = t.value; renderGar(); }
     if (t.id === 'inRzut') { if (t.files[0]) wgrajRzut(t.files[0]); t.value = ''; }
     if (F && F.zdjecia && $('modal').contains(t)) {
       if (t.id === 'fOd') { F.od = t.value; odswiezHint($('modal')); renderDaty($('modal')); }
@@ -1049,6 +1253,7 @@
   });
   $('modalBg').addEventListener('click', function (ev) { if (ev.target === $('modalBg') && !F) zamknijModal(); });
   window.addEventListener('hashchange', obsluzHash);
+  document.addEventListener('keydown', function (ev) { if (ev.key === 'Enter' && ev.target.id === 'fRzecz') { ev.preventDefault(); dodajRzecz($('modal')); } });
   $('kod').addEventListener('keydown', function (ev) { if (ev.key === 'Enter') $('loginOk').click(); });
 
   if ('BarcodeDetector' in window && navigator.mediaDevices) $('skan').classList.remove('hidden');

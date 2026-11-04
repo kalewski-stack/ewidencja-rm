@@ -23,7 +23,7 @@ var CONFIG = {
 };
 
 var TAB = {
-  Worki:      [['id','t'],['status','t'],['dla','t'],['rozmiar','t'],['tagi','t'],['czekaNa','t'],['strefa','t'],['polka','t'],['opis','t'],['zdjecia','t'],['wstawiono','t'],['przegladDo','t'],['przejrzano','t'],['zdjeto','t'],['dodal','t'],['zmieniono','t'],['rodzaj','t'],['rozmiarOd','t'],['rozmiarDo','t'],['pojemnik','t']],
+  Worki:      [['id','t'],['status','t'],['dla','t'],['rozmiar','t'],['tagi','t'],['czekaNa','t'],['strefa','t'],['polka','t'],['opis','t'],['zdjecia','t'],['wstawiono','t'],['przegladDo','t'],['przejrzano','t'],['zdjeto','t'],['dodal','t'],['zmieniono','t'],['rodzaj','t'],['rozmiarOd','t'],['rozmiarDo','t'],['pojemnik','t'],['rzeczy','t']],
   Domownicy:  [['id','t'],['imie','t'],['kolor','t'],['email','t'],['rokUr','t'],['rola','t'],['rozmiarUbr','t'],['rozmiarButy','t'],['rozmiarData','t']],
   Strefy:     [['id','t'],['nazwa','t'],['x','n'],['y','n'],['w','n'],['h','n'],['polek','n']],
   Ustawienia: [['klucz','t'],['wartosc','t'],['opis','t']],
@@ -133,7 +133,7 @@ function pojemniki_() {
 }
 function worekOut_(w) {
   return { id: w.id, status: w.status, dla: lista_(w.dla), rozmiar: w.rozmiar, tagi: lista_(w.tagi), czekaNa: w.czekaNa, strefa: w.strefa,
-           polka: w.polka, opis: w.opis, zdjecia: lista_(w.zdjecia), rodzaj: w.rodzaj || 'Odzież', rozmiarOd: w.rozmiarOd, rozmiarDo: w.rozmiarDo, pojemnik: w.pojemnik, wstawiono: w.wstawiono, przegladDo: w.przegladDo,
+           polka: w.polka, opis: w.opis, zdjecia: lista_(w.zdjecia), rodzaj: w.rodzaj || 'Odzież', rozmiarOd: w.rozmiarOd, rozmiarDo: w.rozmiarDo, pojemnik: w.pojemnik, rzeczy: String(w.rzeczy || '').split('|').filter(Boolean), wstawiono: w.wstawiono, przegladDo: w.przegladDo,
            przejrzano: w.przejrzano, zdjeto: w.zdjeto, dodal: w.dodal, zmieniono: w.zmieniono };
 }
 function znajdz_(id) {
@@ -181,12 +181,15 @@ var API = {
     var pojemnik = CONFIG.POJEMNIKI.indexOf(o.pojemnik) >= 0 ? o.pojemnik : '';
     var od = tekst_(o.rozmiarOd, 8), doo = tekst_(o.rozmiarDo, 8);
     if (od && !doo) doo = od; if (doo && !od) od = doo;
+    var rzeczy = [];
+    (o.rzeczy || []).forEach(function (x) { x = tekst_(String(x).replace(/\|/g, ' '), 60); if (x && rzeczy.indexOf(x) < 0) rzeczy.push(x); });
+    if (rzeczy.length > 40) throw new Error('Maksymalnie 40 pojedynczych rzeczy w worku.');
     var strefa = o.strefa ? String(o.strefa) : '';
     if (strefa && strefy_().filter(function (z) { return z.id === strefa; }).length === 0) throw new Error('Nieznana strefa strychu.');
     var przegladDo = o.przegladDo ? dataOk_(o.przegladDo, 'Przypomnienie') : '';
 
     var w = znajdz_(id), nowy = !w || w.status !== 'strych';
-    var pola = { id: id, status: 'strych', dla: dla.join(','), rozmiar: od ? (od === doo ? od : od + '–' + doo) : '', rodzaj: rodzaj, rozmiarOd: od, rozmiarDo: doo, pojemnik: pojemnik, tagi: tagi.join(','), czekaNa: czekaNa,
+    var pola = { id: id, status: 'strych', dla: dla.join(','), rozmiar: od ? (od === doo ? od : od + '–' + doo) : '', rodzaj: rodzaj, rozmiarOd: od, rozmiarDo: doo, pojemnik: pojemnik, rzeczy: rzeczy.join('|'), tagi: tagi.join(','), czekaNa: czekaNa,
                  strefa: strefa, polka: tekst_(o.polka, 20), opis: tekst_(o.opis, 400), zdjecia: zdj.join(','), przegladDo: przegladDo,
                  dodal: u.imie, zmieniono: teraz_() };
     if (!w) {
@@ -359,6 +362,21 @@ function nowyKod() {
 }
 
 /* ============ PRZYPOMNIENIA E-MAIL ============ */
+var SEZONY_OKNA = { 'Wiosna': ['03-01', '05-31'], 'Lato': ['06-01', '08-31'], 'Jesień': ['09-01', '11-30'], 'Zima': ['12-01', '02-end'] };
+// Sezony z tagów worka, które w całości minęły od ostatniego ruchu (wstawienia albo przeglądu): worek nie został podjęty.
+function przegapione_(w, d) {
+  var ost = w.przejrzano || w.wstawiono, wyn = [];
+  if (!ost) return wyn;
+  Object.keys(SEZONY_OKNA).forEach(function (n) {
+    if (lista_(w.tagi).indexOf(n) < 0) return;
+    for (var y = Number(d.slice(0, 4)); y >= Number(ost.slice(0, 4)) - 1; y--) {
+      var a = y + '-' + SEZONY_OKNA[n][0], ry = n === 'Zima' ? y + 1 : y;
+      var b = SEZONY_OKNA[n][1] === '02-end' ? ry + '-02-' + new Date(ry, 2, 0).getDate() : ry + '-' + SEZONY_OKNA[n][1];
+      if (a >= ost && b < d) { wyn.push(n + ' ' + (n === 'Zima' ? y + '/' + String(ry).slice(2) : y)); return; }
+    }
+  });
+  return wyn;
+}
 function przypomnijTydzien() {
   var d = dzis_(), prog = dodajDni_(d, CONFIG.PRZEGLAD_DNI_PRZED), zalega = dodajMies_(d, -CONFIG.ZALEGA_MIES);
   var osoby = {}; domownicy_().forEach(function (x) { osoby[x.id] = x; });
@@ -372,6 +390,7 @@ function przypomnijTydzien() {
     else if (w.przegladDo && w.przegladDo <= prog) powody.push('termin ' + pl_(w.przegladDo));
     var ost = w.przejrzano || w.wstawiono;
     if (ost && ost < zalega) powody.push('nikt nie zaglądał od ' + pl_(ost));
+    przegapione_(w, d).forEach(function (x) { powody.push('minął sezon ' + x + ', a worek nie był ruszany'); });
     if (!powody.length) return;
     var dla = lista_(w.dla).map(function (x) { return osoby[x] ? osoby[x].imie : '?'; }).join(', ');
     wiersze.push('<li><a href="' + url + '#/w/' + w.id + '"><b>#' + w.id + '</b></a> — ' + dla + (w.rozmiar ? ', ' + w.rozmiar : '') + ' (' + powody.join('; ') + ')</li>');

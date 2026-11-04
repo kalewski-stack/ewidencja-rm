@@ -42,6 +42,14 @@ Link zawiera kod domu, więc wystarczy go otworzyć raz, potem „Dodaj do ekran
 - **Pojemniki**: małe, średnie i duże. Ich opisy (np. „pudełko ok. 60 l”) edytujesz w Ustawieniach.
 - **Rzut strychu**: w zakładce Strych → Edytuj plan → Wgraj rzut. Na nim rysujesz palcem strefy (regały, skosy, kąty), każdej nadajesz nazwę i liczbę półek. Przy worku wybierasz strefę i półkę (liczone od dołu), a w szczegółach pulsuje punkt w tym miejscu.
 
+## Etykiety, wyszukiwanie i alerty
+
+- **Etykieta z opisem**: po zapisaniu worka aplikacja proponuje „Drukuj etykietę”. Na naklejce jest kod QR, numer, właściciel (np. Ania), sezon z rokiem (np. Lato 2026), rodzaj (ciuchy letnie, rozmiar) oraz data założenia lub edycji. Reszta jest pod kodem. Zmieniony worek dostaje znacznik „do wydruku”, żeby nowa naklejka nie została zapomniana.
+  Arkusz drukujesz od wybranego pola (aplikacja pamięta, gdzie skończyłeś). Zakładka Etykiety → „Puste (same numery)” drukuje naklejki z samym numerem na zapas.
+- **Szukanie**: pole wyszukiwania w Garderobie rozumie zwykłe zdania, np. „czarne kozaki Ani”. Rozpoznaje właściciela (Ani, Ania), rodzaj rzeczy (kozaki = obuwie na jesień i zimę) i słowa z listy pojedynczych rzeczy oraz opisu. Pokazuje do trzech najbardziej prawdopodobnych worków, powód podpowiedzi i zaznacza te miejsca na planie strychu (numery 1–3). Dalej są filtry po osobie, sezonie, rodzaju i rozmiarze.
+- **Pojedyncze rzeczy**: w formularzu worka dodajesz „czarne kozaki”, „kurtka puchowa” itp. Jeśli rzecz jest zapisana, wyszukiwarka wskaże dokładny worek. Jeśli nie, podpowie najbardziej prawdopodobne.
+- **Alerty**: oznaczenie „Minął sezon” pojawia się, gdy w całości minął sezon z tagów worka (np. lato), a worek nie był ruszany od wstawienia albo ostatniego przeglądu. Do tego „Do przeglądu” (termin), „Zalega” (rok bez ruchu) oraz zmiany rozmiaru. Wszystko trafia też do poniedziałkowego e-maila.
+
 ## Przypomnienia e-mail
 
 W zakładce **Domownicy** (albo w aplikacji, Ustawienia) wpisz adresy e-mail, potem w arkuszu **Strych → Włącz przypomnienia e-mail**.
