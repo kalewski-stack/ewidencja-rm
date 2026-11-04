@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Strych</title>
+<meta name="description" content="Domowy bank garderoby: co jest w którym worku na strychu, dla kogo, gdzie leży i kiedy wymienić.">
+<meta name="theme-color" content="#383838">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Strych">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="ikony/favicon-64.png">
+<link rel="apple-touch-icon" href="ikony/apple-touch-icon.png">
+<style>
+  :root{
+    --grafit:#383838; --szary:#6A6A6A; --piasek:#E3DDD1; --bez:#F3F1EA; --jasna:#F8F8F8; --biel:#FFFFFF;
+    --pom:#FFA142; --pom2:#E87229; --pom-grad:linear-gradient(180deg,#FFA545 0%,#F38D36 100%);
+    --r-duze:32px; --r-karta:20px; --r-pole:12px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--bez);color:var(--grafit);font:16px/1.5 -apple-system,"Segoe UI",Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased;padding-bottom:96px}
+  header{background:var(--grafit);color:var(--biel);padding:12px 18px calc(12px + env(safe-area-inset-top))}
+  header .top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  header .marka{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:600;letter-spacing:.02em}
+  header .marka svg{width:30px;height:30px}
+  header .kto{font-size:14px;font-weight:600;text-align:right;line-height:1.25;background:none;border:0;color:var(--biel);font-family:inherit;cursor:pointer}
+  header .kto small{display:block;font-weight:300;font-size:12px;color:#C9C9C9}
+  nav{display:flex;gap:8px;margin-top:12px;overflow-x:auto;scrollbar-width:none}
+  nav::-webkit-scrollbar{display:none}
+  nav button{flex:1 0 auto;padding:10px 14px;border:1px solid #6A6A6A;background:transparent;color:#E6E6E6;border-radius:999px;font:inherit;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
+  nav button[aria-selected=true]{background:var(--pom);color:var(--grafit);border-color:var(--pom)}
+  main{max-width:520px;margin:0 auto;padding:16px}
+  .ekran{display:none} .ekran.on{display:block}
+  .hidden{display:none !important}
+  .card{background:var(--biel);border-radius:var(--r-karta);padding:16px;margin-bottom:14px}
+  .card h3{margin:0 0 10px;font-size:15px;font-weight:600}
+  label{display:block;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--szary);margin:0 0 6px}
+  .field{margin-bottom:16px}
+  input[type=text],input[type=search],input[type=number],input[type=email],input[type=date],select,textarea{width:100%;padding:12px;border:1px solid var(--piasek);border-radius:var(--r-pole);background:var(--biel);color:var(--grafit);font:inherit;font-size:17px}
+  textarea{resize:vertical;min-height:64px}
+  input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid var(--pom2);outline-offset:1px}
+  .chips{display:flex;gap:8px;flex-wrap:wrap}
+  .chip{padding:9px 14px;border:1px solid var(--piasek);background:var(--biel);border-radius:999px;font:inherit;font-size:15px;color:var(--grafit);cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:7px}
+  .chip[aria-pressed=true]{background:var(--grafit);color:var(--biel);border-color:var(--grafit)}
+  .chip .kropka{width:10px;height:10px;border-radius:50%;flex:0 0 10px}
+  .chips.przewijane{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:0 -16px;padding:0 16px}
+  .chips.przewijane::-webkit-scrollbar{display:none}
+  .btn{width:100%;padding:13px 18px;border:1px solid var(--piasek);border-radius:999px;background:var(--biel);color:var(--grafit);font:inherit;font-size:15px;font-weight:600;cursor:pointer}
+  .btn.primary{background:var(--pom);border-color:var(--pom);text-transform:uppercase;letter-spacing:.04em}
+  .btn.dark{background:var(--grafit);border-color:var(--grafit);color:var(--biel)}
+  .btn.danger{color:var(--pom2)}
+  .btn.mala{width:auto;padding:8px 14px;font-size:13px}
+  .btn:disabled{opacity:.5}
+  .stack>*{margin-bottom:10px} .stack>*:last-child{margin-bottom:0}
+  .row{display:flex;gap:10px} .row>*{flex:1;min-width:0}
+  .hint{font-size:14px;color:var(--szary);margin:8px 0 0;font-weight:300}
+  .msg{margin:12px 0;padding:12px 16px;border-radius:var(--r-pole);font-size:15px;background:var(--biel);border-left:4px solid var(--pom)}
+  .msg.err{border-left-color:var(--pom2)}
+  .pill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap;border:1px solid transparent}
+  .pill.ok{background:var(--piasek)} .pill.cichy{background:var(--jasna);color:var(--szary)}
+  .pill.toku{background:var(--pom)} .pill.uwaga{background:var(--biel);color:var(--pom2);border-color:var(--pom2)}
+  .pill.blad{background:var(--pom2);color:var(--biel)} .pill.ciemny{background:var(--grafit);color:var(--biel)}
+  .fab{position:fixed;left:0;right:0;bottom:0;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(243,241,234,0),var(--bez) 40%);display:flex;gap:10px;max-width:520px;margin:0 auto;z-index:5}
+  .fab .btn{padding:16px;font-size:16px;box-shadow:0 4px 14px rgba(56,56,56,.18)}
+  .fab .btn.skan{flex:0 0 auto;width:auto;padding:16px 22px}
+
+  /* lista worków */
+  .szukaj{margin-bottom:10px}
+  .filtry{margin-bottom:10px}
+  .baner{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--pom-grad);border-radius:var(--r-karta);padding:14px 18px;margin-bottom:14px;cursor:pointer;border:0;width:100%;font:inherit;color:var(--grafit);text-align:left}
+  .baner b{font-size:18px} .baner span{font-size:14px}
+  .worek{display:flex;gap:12px;background:var(--biel);border-radius:var(--r-karta);padding:10px;margin-bottom:10px;cursor:pointer;border:0;width:100%;text-align:left;font:inherit;color:inherit}
+  .worek:active{background:var(--jasna)}
+  .worek .foto{flex:0 0 84px;height:84px;border-radius:12px;background:var(--piasek) center/cover no-repeat}
+  .worek .tresc{flex:1;min-width:0}
+  .worek .nr{font-size:12px;font-weight:600;letter-spacing:.06em;color:var(--szary)}
+  .worek .dla{font-size:17px;font-weight:600;line-height:1.25;margin:1px 0 2px}
+  .worek .meta{font-size:13px;color:var(--szary);line-height:1.35}
+  .worek .pills{margin-top:5px;display:flex;gap:5px;flex-wrap:wrap}
+  .worek.zdjety{opacity:.6}
+  .pusto{text-align:center;color:var(--szary);padding:32px 12px;font-weight:300}
+
+  /* mapa strychu */
+  .mapa{position:relative;width:100%;background:var(--bez);border:2px solid var(--grafit);border-radius:10px;overflow:hidden;touch-action:pan-y;
+        background-image:linear-gradient(var(--piasek) 1px,transparent 1px),linear-gradient(90deg,var(--piasek) 1px,transparent 1px);background-size:10% 10%}
+  .mapa.edycja{touch-action:none;cursor:crosshair}
+  .mapa .strefa{position:absolute;border:2px solid var(--szary);background:rgba(106,106,106,.14);border-radius:6px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:11px;font-weight:600;line-height:1.1;padding:2px;overflow:hidden;color:var(--grafit);cursor:pointer;font-family:inherit}
+  .mapa .strefa.sel{border-color:var(--pom2);background:rgba(255,161,66,.45);z-index:2}
+  .mapa .strefa.sel::after{content:"";position:absolute;width:16px;height:16px;border-radius:50%;background:var(--pom2);box-shadow:0 0 0 0 rgba(232,114,41,.6);animation:puls 1.6s infinite;right:4px;top:4px}
+  .mapa .strefa .licz{position:absolute;left:4px;bottom:3px;background:var(--grafit);color:var(--biel);border-radius:999px;padding:0 6px;font-size:10px}
+  .mapa .szkic{position:absolute;border:2px dashed var(--pom2);background:rgba(255,161,66,.25);z-index:3;pointer-events:none}
+  .mapa .wlaz{position:absolute;right:6px;bottom:4px;font-size:10px;color:var(--szary);font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+  @keyframes puls{70%{box-shadow:0 0 0 12px rgba(232,114,41,0)}100%{box-shadow:0 0 0 0 rgba(232,114,41,0)}}
+  @media (prefers-reduced-motion:reduce){.mapa .strefa.sel::after{animation:none}}
+  .wiersz-strefy{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--piasek)}
+  .wiersz-strefy span{flex:1}
+
+  /* modal pełnoekranowy */
+  .modal-bg{position:fixed;inset:0;background:rgba(56,56,56,.6);display:none;align-items:flex-end;justify-content:center;z-index:20}
+  #modal2Bg{z-index:30}
+  .modal-bg.on{display:flex}
+  .modal{background:var(--bez);border-radius:var(--r-duze) var(--r-duze) 0 0;padding:20px 16px calc(24px + env(safe-area-inset-bottom));width:100%;max-width:520px;max-height:94vh;overflow:auto}
+  .modal.maly{background:var(--biel)}
+  .modal h2{margin:0 0 12px;font-size:20px;font-weight:600}
+  .modal .glowa{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+  .modal .glowa h2{margin:0}
+  .zamknij{border:1px solid var(--piasek);background:var(--biel);border-radius:50%;width:40px;height:40px;font-size:20px;cursor:pointer;color:var(--grafit);flex:0 0 40px}
+  .zdjecia{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;margin:0 -16px 14px;padding:0 16px}
+  .zdjecia img{flex:0 0 88%;width:88%;max-height:60vh;object-fit:contain;background:var(--piasek);border-radius:16px;scroll-snap-align:center}
+  .zdjecia.edycja img,.zdjecia.edycja .dod{flex:0 0 96px;width:96px;height:96px;object-fit:cover}
+  .zdjecia .miniatura{position:relative;flex:0 0 96px}
+  .zdjecia .miniatura button{position:absolute;right:4px;top:4px;width:26px;height:26px;border-radius:50%;border:0;background:var(--grafit);color:#fff;font-size:15px;cursor:pointer;line-height:1}
+  .foto-przyciski{display:flex;gap:8px;margin-bottom:6px}
+  .foto-przyciski .btn{padding:16px 10px}
+  .info{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:15px;margin-bottom:14px}
+  .info dt{color:var(--szary);font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding-top:3px}
+  .info dd{margin:0}
+  .duzy-nr{font-size:13px;font-weight:600;letter-spacing:.08em;color:var(--szary)}
+  .qr-box{background:#fff;border-radius:16px;padding:14px;display:flex;justify-content:center}
+  .qr-box svg{width:200px;height:200px}
+  video#kamera{width:100%;border-radius:16px;background:#000}
+
+  /* arkusz etykiet: podgląd na ekranie i druk */
+  .arkusz{background:#fff;width:210mm;height:297mm;display:grid;grid-template-columns:repeat(3,70mm);grid-template-rows:repeat(8,37mm);transform-origin:top left}
+  .etykieta{width:70mm;height:37mm;display:flex;align-items:center;padding:3mm 3.5mm;gap:3.5mm;overflow:hidden}
+  .etykieta.ramka{outline:.15mm dashed #bbb;outline-offset:-.15mm}
+  .etykieta svg{width:29mm;height:29mm;flex:0 0 29mm}
+  .etykieta .nr{font-size:12mm;font-weight:700;line-height:1;letter-spacing:.01em}
+  .etykieta .podpis{font-size:3mm;line-height:1.25;color:#444;margin-top:1.5mm}
+  .podglad-wrap{overflow:hidden;border-radius:12px;border:1px solid var(--piasek);background:#fff}
+  @media print{
+    @page{size:A4;margin:0}
+    body.druk > *:not(#arkuszDruk){display:none !important}
+    body.druk{background:#fff;padding:0}
+    body.druk #arkuszDruk{display:block !important;position:static}
+    body.druk .arkusz{transform:none !important}
+    body.druk .etykieta.ramka{outline:none}
+  }
+  #arkuszDruk{display:none}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="top">
+    <div class="marka">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M3 15 16 4l13 11" fill="none" stroke="#FFA142" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M7 14v13h18V14" fill="none" stroke="#fff" stroke-width="2.4" stroke-linejoin="round"/><rect x="12" y="17" width="3.6" height="3.6" fill="#FFA142"/><rect x="16.8" y="17" width="3.6" height="3.6" fill="#fff"/><rect x="12" y="21.8" width="3.6" height="3.6" fill="#fff"/></svg>
+      Strych
+    </div>
+    <button class="kto" id="kto" type="button"></button>
+  </div>
+  <nav id="nav" class="hidden">
+    <button data-e="gar" aria-selected="true">Garderoba</button>
+    <button data-e="strych" aria-selected="false">Strych</button>
+    <button data-e="etykiety" aria-selected="false">Etykiety</button>
+    <button data-e="ust" aria-selected="false">Ustawienia</button>
+  </nav>
+</header>
+
+<main>
+  <div id="komunikat"></div>
+
+  <section id="e-login" class="ekran">
+    <div class="card stack">
+      <h3>Wejście do domowego strychu</h3>
+      <div class="field"><label for="kod">Kod domu</label><input type="text" id="kod" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="np. k7mw2xq9ab"></div>
+      <button class="btn primary" id="loginOk">Wejdź</button>
+      <p class="hint">Kod podaje osoba, która założyła arkusz. Wpisujesz go raz na każdym telefonie.</p>
+    </div>
+  </section>
+
+  <section id="e-gar" class="ekran">
+    <div id="baner"></div>
+    <div class="szukaj"><input type="search" id="szukaj" placeholder="Szukaj: numer, osoba, rozmiar, co jest w środku" autocomplete="off"></div>
+    <div class="filtry stack">
+      <div class="chips przewijane" id="fOsoby"></div>
+      <div class="chips przewijane" id="fInne"></div>
+    </div>
+    <div id="lista"></div>
+  </section>
+
+  <section id="e-strych" class="ekran">
+    <div class="card">
+      <div class="row" style="align-items:center;margin-bottom:10px"><h3 style="margin:0">Plan strychu</h3><div style="text-align:right"><button class="btn mala" id="planEdytuj">Edytuj plan</button></div></div>
+      <div id="planBox"></div>
+      <p class="hint" id="planHint"></p>
+    </div>
+    <div id="planDodatki"></div>
+    <div id="strefaLista"></div>
+  </section>
+
+  <section id="e-etykiety" class="ekran">
+    <div class="card stack">
+      <h3>Etykiety z kodem QR</h3>
+      <p class="hint" style="margin-top:0">Wydrukuj arkusz naklejek, przyklej po jednej na każdy worek lub karton (albo na plastikową zawieszkę przy worku). Pusta etykieta po zeskanowaniu od razu otwiera formularz „nowy worek”.</p>
+      <div class="row">
+        <div class="field" style="margin:0"><label for="etOd">Od numeru</label><input type="number" id="etOd" min="1" max="9999" inputmode="numeric"></div>
+        <div class="field" style="margin:0"><label for="etIle">Ile sztuk</label><input type="number" id="etIle" min="1" max="24" inputmode="numeric" value="24"></div>
+        <div class="field" style="margin:0"><label for="etPoz">Zacznij od pola</label><input type="number" id="etPoz" min="1" max="24" inputmode="numeric" value="1"></div>
+      </div>
+      <div class="podglad-wrap" id="etPodglad"></div>
+      <button class="btn primary" id="etDrukuj">Drukuj arkusz</button>
+      <p class="hint">Format: A4, 3 × 8 naklejek 70 × 37 mm (powszechny rozmiar arkuszy samoprzylepnych). W oknie drukowania wybierz skalę 100% i brak marginesów. „Zacznij od pola” pozwala dokończyć częściowo zużyty arkusz.</p>
+    </div>
+  </section>
+
+  <section id="e-ust" class="ekran">
+    <div class="card stack"><h3>Domownicy</h3><div id="ustDom"></div></div>
+    <div class="card stack">
+      <h3>Strych: proporcje planu</h3>
+      <div class="row">
+        <div><label for="planSzer">Szerokość (m)</label><input type="number" id="planSzer" inputmode="decimal" step="0.5"></div>
+        <div><label for="planDl">Długość (m)</label><input type="number" id="planDl" inputmode="decimal" step="0.5"></div>
+      </div>
+      <button class="btn" id="planZapisz">Zapisz wymiary</button>
+    </div>
+    <div class="card stack">
+      <h3>Dodaj telefon domownika</h3>
+      <p class="hint" style="margin-top:0">Domownik skanuje ten kod swoim aparatem, otwiera się aplikacja już z kodem domu. Potem „Dodaj do ekranu głównego”.</p>
+      <div class="qr-box" id="zapros"></div>
+      <button class="btn" id="kopiujLink">Skopiuj link zaproszenia</button>
+    </div>
+    <div class="card stack">
+      <h3>Przypomnienia</h3>
+      <p class="hint" style="margin-top:0">Worki z terminem przeglądu są oznaczone w aplikacji. Dodatkowo co poniedziałek rano przychodzi e-mail z listą, jeśli coś czeka (włączasz to raz w arkuszu: menu <b>Strych → Włącz przypomnienia e-mail</b>, adresy wpisujesz poniżej przy domownikach).</p>
+    </div>
+    <div class="card stack"><button class="btn" id="wyloguj">Wyloguj z tego telefonu</button></div>
+  </section>
+</main>
+
+<div class="fab hidden" id="fab">
+  <button class="btn skan hidden" id="skan" type="button">Skanuj</button>
+  <button class="btn primary" id="dodaj" type="button">+ Dodaj worek</button>
+</div>
+
+<div class="modal-bg" id="modalBg"><div class="modal" id="modal" role="dialog" aria-modal="true"></div></div>
+<div class="modal-bg" id="modal2Bg"><div class="modal maly" id="modal2" role="dialog" aria-modal="true"></div></div>
+<div id="arkuszDruk"></div>
+
+<script src="qrcode.js"></script>
+<script>
+(function () {
+  'use strict';
+  var API_URL = window.STRYCH_API || '';
+  var PALETA = ['#E87229', '#3B7EA1', '#6B8E4E', '#B5527A', '#8A6BBE', '#C9A227', '#2F9C95', '#7A7A7A'];
+  var TAGI = ['Lato', 'Zima', 'Przejściowe', 'Cały rok', 'Wyrośnięte', 'Do oddania'];
+  var SEZONY = ['Lato', 'Zima', 'Przejściowe', 'Cały rok'];
+  var S = { k: null, kto: null, dane: null, ekran: 'gar', edytujPlan: false, wybranaStrefa: '', offline: false,
+            f: { osoba: '', sezon: '', uwaga: false, zdjete: false, q: '' } };
+  var F = null;          // stan formularza worka
+
+  /* ---------- narzędzia ---------- */
+  function $(id) { return document.getElementById(id); }
+  function e(s) { return String(s === null || s === undefined ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function zapamietaj(k, v) { try { if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (x) {} }
+  function odczytaj(k) { try { return localStorage.getItem(k); } catch (x) { return null; } }
+  function pl(s) { return s ? s.slice(8, 10) + '.' + s.slice(5, 7) + '.' + s.slice(0, 4) : ''; }
+  function fmt(d) { return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
+  function dt(s) { return new Date(+s.slice(0, 4), +s.slice(5, 7) - 1, +s.slice(8, 10), 12); }
+  function plusDni(s, n) { var d = dt(s); d.setDate(d.getDate() + n); return fmt(d); }
+  function plusMies(s, n) { var d = dt(s), dz = d.getDate(); d.setDate(1); d.setMonth(d.getMonth() + n); d.setDate(Math.min(dz, new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate())); return fmt(d); }
+  function dzis() { return (S.dane && S.dane.dzis) || fmt(new Date()); }
+  function nastepna(md) {            // najbliższa przyszła data o danym dniu i miesiącu ("09-15")
+    var t = dzis(), r = +t.slice(0, 4), d = r + '-' + md;
+    return d > t ? d : (r + 1) + '-' + md;
+  }
+  function osoba(id) { var l = S.dane.domownicy; for (var i = 0; i < l.length; i++) if (l[i].id === id) return l[i]; return null; }
+  function imionaDla(w) { return w.dla.map(function (i) { var o = osoba(i); return o ? o.imie : '?'; }).join(', '); }
+  function strefa(id) { var l = S.dane.strefy; for (var i = 0; i < l.length; i++) if (l[i].id === id) return l[i]; return null; }
+  function worek(id) { var l = S.dane.worki; for (var i = 0; i < l.length; i++) if (l[i].id === id) return l[i]; return null; }
+  function normId(x) { x = String(x || '').toUpperCase().replace(/[^A-Z0-9]/g, ''); return /^\d+$/.test(x) ? ('000' + x).slice(-Math.max(3, x.length)) : x; }
+  function foto(id, rozm) { return 'https://drive.google.com/thumbnail?id=' + encodeURIComponent(id) + '&sz=w' + rozm; }
+  function bazaUrl() { return location.href.split('#')[0].split('?')[0]; }
+  function linkWorka(id) { return bazaUrl() + '#/w/' + id; }
+  function komunikat(t, blad) { $('komunikat').innerHTML = t ? '<div class="msg' + (blad ? ' err' : '') + '" role="status">' + e(t) + '</div>' : ''; if (t) setTimeout(function () { if ($('komunikat').textContent === t) $('komunikat').innerHTML = ''; }, 6000); }
+
+  /* ---------- API ---------- */
+  function api(fn, args) {
+    if (!API_URL) return Promise.reject(new Error('Aplikacja nie ma jeszcze adresu arkusza (linia API_URL w index.html).'));
+    return fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ k: S.k, kto: S.kto, fn: fn, args: args || [] }) })
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        if (!j.ok) { var er = new Error(j.error); if (/^SESJA/.test(j.error)) { er.sesja = true; er.message = j.error.replace(/^SESJA:\s*/, ''); } throw er; }
+        return j.result;
+      });
+  }
+  function wczytaj() {
+    return api('start').then(function (d) {
+      S.dane = d; S.offline = false;
+      zapamietaj('strych.dane', JSON.stringify({ t: Date.now(), d: d }));
+      if (!S.kto || !osoba(S.kto)) { S.kto = null; zapamietaj('strych.kto', null); }
+      return d;
+    }).catch(function (err) {
+      if (err.sesja) throw err;
+      var c = null; try { c = JSON.parse(odczytaj('strych.dane')); } catch (x) {}
+      if (c && c.d) { S.dane = c.d; S.offline = true; S.offlineOd = c.t; return c.d; }
+      throw err;
+    });
+  }
+
+  /* ---------- ocena worka ---------- */
+  function ocena(w) {
+    var o = { przeglad: false, wkrotce: false, zalega: false, dni: 0 };
+    if (w.status !== 'strych') return o;
+    var d = dzis(), ust = S.dane.ust;
+    if (w.przegladDo) { if (w.przegladDo <= d) o.przeglad = true; else if (w.przegladDo <= plusDni(d, ust.PRZEGLAD_DNI)) o.wkrotce = true; }
+    var ost = w.przejrzano || w.wstawiono;
+    if (ost) { if (ost < plusMies(d, -ust.ZALEGA_MIES)) o.zalega = true; o.dni = Math.round((dt(d) - dt(ost)) / 864e5); }
+    return o;
+  }
+  function wymagaUwagi(w) { var o = ocena(w); return o.przeglad || o.zalega; }
+  function pillsWorka(w) {
+    var o = ocena(w), p = '';
+    if (w.status !== 'strych') return '<span class="pill cichy">Zdjęty ' + pl(w.zdjeto) + '</span>';
+    if (o.przeglad) p += '<span class="pill blad">Do przeglądu</span>';
+    else if (o.wkrotce) p += '<span class="pill toku">Wkrótce: ' + pl(w.przegladDo) + '</span>';
+    if (o.zalega) p += '<span class="pill uwaga">Zalega ' + Math.round(o.dni / 30) + ' mies.</span>';
+    w.tagi.forEach(function (t) { p += '<span class="pill ' + (t === 'Wyrośnięte' || t === 'Do oddania' ? 'ciemny' : 'ok') + '">' + e(t) + '</span>'; });
+    if (w.czekaNa) { var c = osoba(w.czekaNa); p += '<span class="pill toku">Czeka na: ' + e(c ? c.imie : '?') + '</span>'; }
+    return p;
+  }
+  function miejsceTekst(w) {
+    var z = strefa(w.strefa), t = z ? z.nazwa : '';
+    if (w.polka) t += (t ? ', ' : '') + (w.polka === 'Podłoga' ? 'podłoga' : 'półka ' + w.polka);
+    return t;
+  }
+
+  /* ---------- nawigacja ---------- */
+  function pokazEkran(n) {
+    S.ekran = n;
+    Array.prototype.forEach.call(document.querySelectorAll('.ekran'), function (x) { x.classList.toggle('on', x.id === 'e-' + n); });
+    Array.prototype.forEach.call(document.querySelectorAll('#nav button'), function (b) { b.setAttribute('aria-selected', b.dataset.e === n ? 'true' : 'false'); });
+    $('fab').classList.toggle('hidden', n === 'login');
+    if (n === 'gar') renderGar(); if (n === 'strych') renderStrych(); if (n === 'etykiety') renderEtykiety(); if (n === 'ust') renderUst();
+  }
+  function renderWszystko() {
+    $('nav').classList.remove('hidden');
+    var o = osoba(S.kto);
+    $('kto').innerHTML = o ? e(o.imie) + '<small>zmień</small>' : '';
+    pokazEkran(S.ekran === 'login' ? 'gar' : S.ekran);
+    if (S.offline) komunikat('Brak połączenia. Pokazuję dane z ' + new Date(S.offlineOd).toLocaleString('pl-PL') + '. Zmiany wymagają internetu.', true);
+  }
+
+  /* ---------- garderoba (lista) ---------- */
+  function chip(attrs, tekst, wl, kolor) {
+    return '<button class="chip" type="button" ' + attrs + ' aria-pressed="' + (wl ? 'true' : 'false') + '">' + (kolor ? '<span class="kropka" style="background:' + kolor + '"></span>' : '') + e(tekst) + '</button>';
+  }
+  function renderGar() {
+    if (!S.dane) return;
+    var d = S.dane, f = S.f, kto = osoba(S.kto), h = '';
+    h = chip('data-os=""', 'Wszyscy', !f.osoba);
+    var os = d.domownicy.slice().sort(function (a, b) { return (a.id === S.kto ? -1 : 0) - (b.id === S.kto ? -1 : 0); });
+    os.forEach(function (o) { h += chip('data-os="' + e(o.id) + '"', o.id === S.kto ? 'Moje (' + o.imie + ')' : o.imie, f.osoba === o.id, o.kolor); });
+    $('fOsoby').innerHTML = h;
+    h = '';
+    SEZONY.forEach(function (s) { h += chip('data-sez="' + s + '"', s, f.sezon === s); });
+    h += chip('data-uw="1"', 'Wymaga uwagi', f.uwaga) + chip('data-zd="1"', 'Zdjęte', f.zdjete);
+    $('fInne').innerHTML = h;
+
+    var wszystkie = d.worki.filter(function (w) { return w.status === 'strych'; });
+    var ile = wszystkie.filter(wymagaUwagi).length;
+    $('baner').innerHTML = ile ? '<button class="baner" id="banerBtn" type="button"><span><b>' + ile + ' ' + (ile === 1 ? 'worek czeka' : ile < 5 ? 'worki czekają' : 'worków czeka') + ' na decyzję</b><br><span>termin przeglądu minął lub nikt nie zaglądał od roku</span></span><b>›</b></button>' : '';
+
+    var q = f.q.trim().toLowerCase();
+    var lista = d.worki.filter(function (w) {
+      if (f.zdjete ? w.status === 'strych' : w.status !== 'strych') return false;
+      if (f.osoba && w.dla.indexOf(f.osoba) < 0 && w.czekaNa !== f.osoba) return false;
+      if (f.sezon && w.tagi.indexOf(f.sezon) < 0) return false;
+      if (f.uwaga && !wymagaUwagi(w)) return false;
+      if (q) {
+        var z = strefa(w.strefa);
+        var t = [w.id, imionaDla(w), w.rozmiar, w.opis, w.tagi.join(' '), z ? z.nazwa : ''].join(' ').toLowerCase();
+        if (t.indexOf(q) < 0) return false;
+      }
+      return true;
+    }).sort(function (a, b) {
+      var pa = wymagaUwagi(a) ? 0 : 1, pb = wymagaUwagi(b) ? 0 : 1;
+      return pa - pb || (a.przegladDo || '9999').localeCompare(b.przegladDo || '9999') || a.id.localeCompare(b.id);
+    });
+    if (!lista.length) { $('lista').innerHTML = '<div class="pusto">' + (d.worki.length ? 'Nic nie pasuje do filtrów.' : 'Strych jest pusty w aplikacji.<br>Przyklej etykietę na pierwszy worek, zeskanuj ją aparatem i dodaj zawartość, albo dotknij „+ Dodaj worek”.') + '</div>'; return; }
+    $('lista').innerHTML = lista.map(function (w) {
+      return '<button class="worek' + (w.status !== 'strych' ? ' zdjety' : '') + '" type="button" data-id="' + e(w.id) + '">' +
+        '<div class="foto" style="background-image:url(\'' + foto(w.zdjecia[0], 240) + '\')"></div>' +
+        '<div class="tresc"><div class="nr">#' + e(w.id) + '</div><div class="dla">' + e(imionaDla(w)) + '</div>' +
+        '<div class="meta">' + e([w.rozmiar, miejsceTekst(w)].filter(Boolean).join(' · ') || 'bez lokalizacji') + '</div>' +
+        '<div class="pills">' + pillsWorka(w) + '</div></div></button>';
+    }).join('');
+  }
+
+  /* ---------- mapa ---------- */
+  function mapa(o) {
+    var d = S.dane, ust = d.ust, prop = Math.max(0.55, Math.min(1.5, ust.PLAN_DL / ust.PLAN_SZER)) * 100;
+    var licz = {};
+    if (o.licz) d.worki.forEach(function (w) { if (w.status === 'strych' && w.strefa) licz[w.strefa] = (licz[w.strefa] || 0) + 1; });
+    var h = '<div class="mapa' + (o.edycja ? ' edycja' : '') + '" id="' + (o.id || 'mapa') + '" style="padding-top:' + prop + '%">';
+    d.strefy.forEach(function (z) {
+      h += '<button type="button" class="strefa' + (o.sel === z.id ? ' sel' : '') + '" data-z="' + e(z.id) + '" style="left:' + z.x + '%;top:' + z.y + '%;width:' + z.w + '%;height:' + z.h + '%"' + (o.edycja ? ' tabindex="-1"' : '') + '>' + e(z.nazwa) + (licz[z.id] ? '<span class="licz">' + licz[z.id] + '</span>' : '') + '</button>';
+    });
+    return h + '<span class="wlaz">wejście na strych</span></div>';
+  }
+
+  function renderStrych() {
+    if (!S.dane) return;
+    var d = S.dane, ed = S.edytujPlan;
+    $('planEdytuj').textContent = ed ? 'Gotowe' : 'Edytuj plan';
+    $('planBox').innerHTML = mapa({ sel: S.wybranaStrefa, licz: !ed, edycja: ed, id: 'mapaGlowna' });
+    $('planHint').textContent = ed ? 'Przeciągnij palcem po planie, aby narysować strefę (regał, półkę, kąt). Dotknij strefy, aby zmienić nazwę lub ją usunąć.' :
+      (d.strefy.length ? 'Dotknij strefy, aby zobaczyć worki, które tam leżą. Liczba na strefie = worki na strychu.' : 'Plan jest pusty. Dotknij „Edytuj plan” i narysuj regały albo miejsca na strychu.');
+    var dod = '';
+    if (ed && !d.strefy.length) dod = '<div class="card"><button class="btn" id="szybkiStart">Wstaw przykładowy układ (2 regały, środek, przy włazie)</button></div>';
+    if (ed && d.strefy.length) dod = '<div class="card"><h3>Strefy</h3>' + d.strefy.map(function (z) {
+      return '<div class="wiersz-strefy"><span>' + e(z.nazwa) + '</span><button class="btn mala" data-zmien="' + e(z.id) + '">Nazwa</button><button class="btn mala danger" data-usunz="' + e(z.id) + '">Usuń</button></div>'; }).join('') + '</div>';
+    $('planDodatki').innerHTML = dod;
+    var lista = '';
+    if (!ed && S.wybranaStrefa) {
+      var z = strefa(S.wybranaStrefa), ws = d.worki.filter(function (w) { return w.status === 'strych' && w.strefa === S.wybranaStrefa; });
+      lista = '<h3 style="margin:6px 4px 10px">' + e(z ? z.nazwa : '') + ' (' + ws.length + ')</h3>' + (ws.length ? ws.map(kartaWorka).join('') : '<div class="pusto">Nic tu jeszcze nie leży.</div>');
+    }
+    $('strefaLista').innerHTML = lista;
+  }
+  function kartaWorka(w) {
+    return '<button class="worek" type="button" data-id="' + e(w.id) + '"><div class="foto" style="background-image:url(\'' + foto(w.zdjecia[0], 240) + '\')"></div><div class="tresc"><div class="nr">#' + e(w.id) + '</div><div class="dla">' + e(imionaDla(w)) + '</div><div class="meta">' + e([w.rozmiar, miejsceTekst(w)].filter(Boolean).join(' · ')) + '</div><div class="pills">' + pillsWorka(w) + '</div></div></button>';
+  }
+
+  function podlaczRysowanie() {
+    var m = $('mapaGlowna'); if (!m || !S.edytujPlan) return;
+    var start = null, szkic = null;
+    function pkt(ev) { var r = m.getBoundingClientRect(); return { x: Math.max(0, Math.min(100, (ev.clientX - r.left) / r.width * 100)), y: Math.max(0, Math.min(100, (ev.clientY - r.top) / r.height * 100)) }; }
+    m.addEventListener('pointerdown', function (ev) {
+      if (ev.target.closest('.strefa')) return;
+      start = pkt(ev); m.setPointerCapture(ev.pointerId);
+      szkic = document.createElement('div'); szkic.className = 'szkic'; m.appendChild(szkic);
+    });
+    m.addEventListener('pointermove', function (ev) {
+      if (!start) return; var p = pkt(ev);
+      szkic.style.left = Math.min(start.x, p.x) + '%'; szkic.style.top = Math.min(start.y, p.y) + '%';
+      szkic.style.width = Math.abs(p.x - start.x) + '%'; szkic.style.height = Math.abs(p.y - start.y) + '%';
+    });
+    m.addEventListener('pointerup', function (ev) {
+      if (!start) return; var p = pkt(ev), s0 = start; start = null; if (szkic) szkic.remove();
+      var z = { x: Math.min(s0.x, p.x), y: Math.min(s0.y, p.y), w: Math.abs(p.x - s0.x), h: Math.abs(p.y - s0.y) };
+      if (z.w < 4 || z.h < 4) return;
+      pytajNazwe('Nowa strefa', 'Regał ' + String.fromCharCode(65 + S.dane.strefy.length % 26), function (n) { z.nazwa = n; z.id = ''; zapiszStrefy(S.dane.strefy.concat([z])); });
+    });
+  }
+  function zapiszStrefy(lista) {
+    return api('zapiszStrefy', [lista]).then(function (s) { S.dane.strefy = s; renderStrych(); podlaczRysowanie(); }).catch(function (er) { komunikat(er.message, true); });
+  }
+  function pytajNazwe(tytul, wartosc, ok) {
+    $('modal2').innerHTML = '<h2>' + e(tytul) + '</h2><div class="field"><input type="text" id="nazwaIn" maxlength="40" value="' + e(wartosc) + '"></div><div class="row"><button class="btn" id="nazwaAnuluj">Anuluj</button><button class="btn primary" id="nazwaOk">Zapisz</button></div>';
+    $('modal2Bg').classList.add('on');
+    setTimeout(function () { var i = $('nazwaIn'); i.focus(); i.select(); }, 50);
+    function zamknij() { $('modal2Bg').classList.remove('on'); }
+    $('nazwaAnuluj').onclick = zamknij;
+    $('nazwaOk').onclick = function () { var n = $('nazwaIn').value.trim(); if (!n) return; zamknij(); ok(n); };
+  }
+
+  /* ---------- etykiety ---------- */
+  function nastepnyWolny() {
+    var m = 0; S.dane.worki.forEach(function (w) { if (/^\d+$/.test(w.id)) m = Math.max(m, +w.id); });
+    return m + 1;
+  }
+  function svgQr(tekst) {
+    var q = qrcode(0, 'M'); q.addData(tekst); q.make();
+    return q.createSvgTag({ cellSize: 4, margin: 0, scalable: true });
+  }
+  function etykietaHtml(id, ramka) {
+    return '<div class="etykieta' + (ramka ? ' ramka' : '') + '">' + svgQr(linkWorka(id)) + '<div><div class="nr">' + e(id) + '</div><div class="podpis">STRYCH<br>zeskanuj aparatem telefonu</div></div></div>';
+  }
+  function arkuszHtml(ids, poz, ramka) {
+    var h = '<div class="arkusz">', i;
+    for (i = 1; i < poz; i++) h += '<div class="etykieta"></div>';
+    ids.forEach(function (id) { h += etykietaHtml(id, ramka); });
+    return h + '</div>';
+  }
+  function zakresEtykiet() {
+    var od = Math.max(1, parseInt($('etOd').value, 10) || 1), ile = Math.max(1, Math.min(24, parseInt($('etIle').value, 10) || 1)), poz = Math.max(1, Math.min(24, parseInt($('etPoz').value, 10) || 1));
+    ile = Math.min(ile, 25 - poz);
+    var ids = []; for (var i = 0; i < ile; i++) ids.push(normId(String(od + i)));
+    return { ids: ids, poz: poz };
+  }
+  function renderEtykiety() {
+    if (!S.dane) return;
+    if (!$('etOd').value) $('etOd').value = nastepnyWolny();
+    var z = zakresEtykiet(), wrap = $('etPodglad'), szer = wrap.clientWidth || 340, skala = szer / (210 * 3.7795);
+    wrap.innerHTML = '<div style="height:' + (297 * 3.7795 * skala) + 'px"><div style="transform:scale(' + skala + ');transform-origin:top left;width:210mm">' + arkuszHtml(z.ids, z.poz, true) + '</div></div>';
+  }
+  function drukuj(ids, poz) {
+    $('arkuszDruk').innerHTML = arkuszHtml(ids, poz, false);
+    document.body.classList.add('druk');
+    setTimeout(function () { window.print(); }, 50);
+  }
+  window.addEventListener('afterprint', function () { document.body.classList.remove('druk'); $('arkuszDruk').innerHTML = ''; });
+
+  /* ---------- ustawienia ---------- */
+  function renderUst() {
+    if (!S.dane) return;
+    var d = S.dane, h = '';
+    d.domownicy.forEach(function (o, i) {
+      h += '<div class="stack" style="border-bottom:1px solid var(--piasek);padding-bottom:12px;margin-bottom:12px"><div class="row"><input type="text" data-di="' + i + '" data-p="imie" value="' + e(o.imie) + '" aria-label="Imię" maxlength="30"><input type="email" data-di="' + i + '" data-p="email" value="' + e(o.email) + '" placeholder="e-mail (opcjonalnie)" aria-label="E-mail"></div>' +
+        '<div class="chips">' + PALETA.map(function (c) { return '<button type="button" class="chip" data-di="' + i + '" data-kolor="' + c + '" aria-pressed="' + (o.kolor === c) + '" aria-label="Kolor"><span class="kropka" style="background:' + c + '"></span></button>'; }).join('') +
+        '<button type="button" class="chip" data-dusun="' + i + '">Usuń</button></div></div>';
+    });
+    h += '<button class="btn" id="domDodaj">+ Dodaj osobę</button><button class="btn primary" id="domZapisz">Zapisz domowników</button>';
+    $('ustDom').innerHTML = h;
+    S.edytowani = d.domownicy.map(function (o) { return { id: o.id, imie: o.imie, kolor: o.kolor, email: o.email }; });
+    $('planSzer').value = d.ust.PLAN_SZER; $('planDl').value = d.ust.PLAN_DL;
+    var lnk = bazaUrl() + '?k=' + encodeURIComponent(d.ust.KOD);
+    $('zapros').innerHTML = svgQr(lnk); S.linkZaproszenia = lnk;
+  }
+
+  /* ---------- szczegóły worka ---------- */
+  function otworzModal(html) { $('modal').innerHTML = html; $('modalBg').classList.add('on'); $('modal').scrollTop = 0; }
+  function zamknijModal() {
+    $('modalBg').classList.remove('on'); $('modal').innerHTML = ''; F = null; zatrzymajKamere();
+    if (/^#\/w\//.test(location.hash)) history.replaceState(null, '', bazaUrl());
+  }
+  function otworzWorek(idRaw) {
+    var id = normId(idRaw), w = worek(id);
+    if (!w) return formularz({ id: id });
+    if (w.status !== 'strych') return szczegoly(w);
+    szczegoly(w);
+  }
+  function szczegoly(w) {
+    var o = ocena(w), z = strefa(w.strefa), h = '';
+    h += '<div class="glowa"><div><div class="duzy-nr">WOREK #' + e(w.id) + '</div><h2>' + e(imionaDla(w)) + '</h2></div><button class="zamknij" data-zamknij aria-label="Zamknij">×</button></div>';
+    h += '<div class="zdjecia">' + w.zdjecia.map(function (i) { return '<img src="' + foto(i, 900) + '" alt="Zawartość worka" loading="lazy">'; }).join('') + '</div>';
+    h += '<div class="pills" style="margin-bottom:12px;display:flex;gap:5px;flex-wrap:wrap">' + pillsWorka(w) + '</div>';
+    h += '<dl class="info">';
+    if (w.rozmiar) h += '<dt>Rozmiar</dt><dd>' + e(w.rozmiar) + '</dd>';
+    if (w.opis) h += '<dt>W środku</dt><dd>' + e(w.opis) + '</dd>';
+    h += '<dt>Gdzie</dt><dd>' + (miejsceTekst(w) ? e(miejsceTekst(w)) : '<span style="color:var(--szary)">nie ustawiono</span>') + '</dd>';
+    h += '<dt>Wstawiony</dt><dd>' + pl(w.wstawiono) + (w.dodal ? ' (' + e(w.dodal) + ')' : '') + '</dd>';
+    if (w.status === 'strych') {
+      h += '<dt>Ostatni przegląd</dt><dd>' + (w.przejrzano ? pl(w.przejrzano) : 'jeszcze nie było') + '</dd>';
+      h += '<dt>Przypomnienie</dt><dd>' + (w.przegladDo ? pl(w.przegladDo) : 'brak') + '</dd>';
+    }
+    h += '</dl>';
+    if (w.status === 'strych' && z) h += '<div style="margin-bottom:14px">' + mapa({ sel: z.id, id: 'mapaSzcz' }) + '</div>';
+    h += '<div class="stack">';
+    if (w.status === 'strych') {
+      h += '<button class="btn primary" data-akcja="przejrzane">Przejrzane, zostaje na strychu</button>';
+      h += '<button class="btn dark" data-akcja="zdejmij">Zdjąłem ze strychu</button>';
+      h += '<div class="row"><button class="btn" data-akcja="edytuj">Edytuj</button><button class="btn" data-akcja="etykieta">Etykieta</button></div>';
+    } else {
+      h += '<button class="btn primary" data-akcja="wstaw">Wstaw nowy worek pod tym numerem</button>';
+    }
+    h += '<button class="btn danger" data-akcja="usun">Usuń wpis</button></div>';
+    S.biezacy = w.id;
+    otworzModal(h);
+  }
+
+  /* ---------- opcje przypomnienia ---------- */
+  function opcjeDat() {
+    var t = dzis(), o = [], tagi = F.tagi;
+    if (tagi.indexOf('Do oddania') >= 0 || tagi.indexOf('Wyrośnięte') >= 0) o.push({ k: '1m', l: 'Za miesiąc (decyzja: oddać?)', d: plusMies(t, 1) });
+    if (tagi.indexOf('Zima') >= 0) o.push({ k: 'sezon', l: 'Przed zimą: ' + pl(nastepna('09-15')), d: nastepna('09-15') });
+    else if (tagi.indexOf('Lato') >= 0) o.push({ k: 'sezon', l: 'Przed latem: ' + pl(nastepna('03-15')), d: nastepna('03-15') });
+    o.push({ k: '3m', l: 'Za 3 mies.', d: plusMies(t, 3) }, { k: '6m', l: 'Za 6 mies.', d: plusMies(t, 6) }, { k: '12m', l: 'Za rok', d: plusMies(t, 12) }, { k: 'wlasna', l: 'Własna data', d: '' }, { k: 'brak', l: 'Bez przypomnienia', d: '' });
+    return o;
+  }
+  function domyslnyTryb() {
+    var o = opcjeDat().map(function (x) { return x.k; });
+    return o.indexOf('1m') >= 0 ? '1m' : o.indexOf('sezon') >= 0 ? 'sezon' : '6m';
+  }
+  function renderDaty(root) {
+    var o = opcjeDat(), box = root.querySelector('#fDaty');
+    if (!F.reczny || !o.some(function (x) { return x.k === F.tryb; })) F.tryb = domyslnyTryb();
+    box.innerHTML = '<div class="chips">' + o.map(function (x) { return chip('data-tryb="' + x.k + '"', x.l, F.tryb === x.k); }).join('') + '</div>' +
+      (F.tryb === 'wlasna' ? '<div style="margin-top:10px"><input type="date" id="fDataWl" value="' + e(F.dataWl || '') + '" min="' + dzis() + '"></div>' : '');
+    F.opcje = o;
+  }
+  function dataPrzypomnienia(root) {
+    var x = F.opcje.filter(function (o) { return o.k === F.tryb; })[0];
+    if (!x || F.tryb === 'brak') return '';
+    if (F.tryb === 'wlasna') { var v = root.querySelector('#fDataWl'); return v ? v.value : ''; }
+    return x.d;
+  }
+
+  /* ---------- formularz worka ---------- */
+  function formularz(o) {
+    var w = worek(o.id), edycja = w && w.status === 'strych';
+    var ostatnie = {}; try { ostatnie = JSON.parse(odczytaj('strych.ostatnie') || '{}'); } catch (x) {}
+    F = {
+      id: o.id, edycja: edycja,
+      dla: edycja ? w.dla.slice() : (ostatnie.dla ? ostatnie.dla.filter(osoba) : []),
+      rozmiar: edycja ? w.rozmiar : '', opis: edycja ? w.opis : '',
+      tagi: edycja ? w.tagi.slice() : [], czekaNa: edycja ? w.czekaNa : '',
+      strefa: edycja ? w.strefa : (ostatnie.strefa && strefa(ostatnie.strefa) ? ostatnie.strefa : ''), polka: edycja ? w.polka : (ostatnie.polka || ''),
+      zdjecia: edycja ? w.zdjecia.map(function (i) { return { id: i, url: foto(i, 300) }; }) : [],
+      reczny: false, tryb: '', dataWl: ''
+    };
+    if (edycja && w.przegladDo) { F.reczny = true; F.tryb = 'wlasna'; F.dataWl = w.przegladDo; }
+    var d = S.dane, h = '';
+    h += '<div class="glowa"><div><div class="duzy-nr">' + (edycja ? 'EDYCJA' : 'NOWY WOREK') + '</div><h2>#' + e(F.id) + '</h2></div><button class="zamknij" data-zamknij aria-label="Zamknij">×</button></div>';
+    h += '<div id="fMsg"></div>';
+    h += '<div class="field"><label>1. Zdjęcie wszystkich ubrań z worka</label><div class="zdjecia edycja" id="fZdj"></div>' +
+         '<div class="foto-przyciski"><button class="btn dark" type="button" id="fAparat">Aparat</button><button class="btn" type="button" id="fGaleria">Z galerii</button></div>' +
+         '<input type="file" accept="image/*" capture="environment" id="inAparat" class="hidden"><input type="file" accept="image/*" id="inGaleria" class="hidden" multiple>' +
+         '<p class="hint">Rozłóż ubrania na podłodze i zrób jedno zdjęcie (maks. ' + d.ust.MAX_ZDJEC + '). Ułatwi to potem szukanie.</p></div>';
+    h += '<div class="field"><label>2. Dla kogo</label><div class="chips" id="fDla">' + d.domownicy.map(function (p) { return chip('data-dla="' + e(p.id) + '"', p.imie, F.dla.indexOf(p.id) >= 0, p.kolor); }).join('') + '</div></div>';
+    h += '<div class="field"><label for="fRozmiar">3. Rozmiar</label><input type="text" id="fRozmiar" maxlength="60" placeholder="np. 92–98 albo M" value="' + e(F.rozmiar) + '"></div>';
+    h += '<div class="field"><label>4. Sezon i status</label><div class="chips" id="fTagi">' + TAGI.map(function (t) { return chip('data-tag="' + t + '"', t, F.tagi.indexOf(t) >= 0); }).join('') + '</div>' +
+         '<div style="margin-top:10px"><label for="fCzeka">Czeka na kogoś (np. młodsze rodzeństwo)</label><select id="fCzeka"><option value="">nikt</option>' + d.domownicy.map(function (p) { return '<option value="' + e(p.id) + '"' + (F.czekaNa === p.id ? ' selected' : '') + '>' + e(p.imie) + '</option>'; }).join('') + '</select></div></div>';
+    h += '<div class="field"><label>5. Gdzie leży na strychu</label>';
+    if (d.strefy.length) {
+      h += '<div id="fMapa"></div><p class="hint" id="fMiejsce" style="margin-bottom:8px"></p><div class="chips" id="fPolka">' + ['Podłoga', '1', '2', '3', '4'].map(function (p) { return chip('data-polka="' + p + '"', p === 'Podłoga' ? 'Podłoga' : 'Półka ' + p, F.polka === p); }).join('') + '</div><p class="hint">Półki liczone od dołu.</p>';
+    } else h += '<p class="hint" style="margin:0">Plan strychu jest pusty. Zapisz worek teraz, a plan narysuj w zakładce „Strych”. Potem uzupełnisz lokalizację w edycji.</p>';
+    h += '</div>';
+    h += '<div class="field"><label for="fOpis">Co jest w środku (opcjonalnie)</label><textarea id="fOpis" maxlength="400" placeholder="np. 6 bluz, 3 spodnie, kurtka przeciwdeszczowa">' + e(F.opis) + '</textarea></div>';
+    h += '<div class="field"><label>6. Kiedy przypomnieć o wymianie</label><div id="fDaty"></div></div>';
+    h += '<button class="btn primary" id="fZapisz" type="button">Zapisz worek</button>';
+    otworzModal(h);
+    var root = $('modal');
+    renderZdjec(root); renderDaty(root); if (d.strefy.length) renderMapyForm(root);
+  }
+  function renderZdjec(root) {
+    var box = root.querySelector('#fZdj'), max = S.dane.ust.MAX_ZDJEC;
+    box.innerHTML = F.zdjecia.map(function (z, i) { return '<div class="miniatura"><img src="' + e(z.url) + '" alt="Zdjęcie ' + (i + 1) + '"><button type="button" data-fusun="' + i + '" aria-label="Usuń zdjęcie">×</button></div>'; }).join('') || '<div class="hint" style="margin:0">Brak zdjęć</div>';
+    root.querySelector('#fAparat').disabled = root.querySelector('#fGaleria').disabled = F.zdjecia.length >= max;
+  }
+  function renderMapyForm(root) {
+    root.querySelector('#fMapa').innerHTML = mapa({ sel: F.strefa, id: 'mapaForm' });
+    var z = strefa(F.strefa);
+    root.querySelector('#fMiejsce').textContent = z ? 'Wybrano: ' + z.nazwa : 'Dotknij strefy na planie.';
+  }
+  function zmniejsz(plik) {
+    return new Promise(function (ok, nie) {
+      var url = URL.createObjectURL(plik), img = new Image();
+      img.onload = function () {
+        var maks = 1280, sk = Math.min(1, maks / Math.max(img.naturalWidth, img.naturalHeight)), c = document.createElement('canvas');
+        c.width = Math.round(img.naturalWidth * sk); c.height = Math.round(img.naturalHeight * sk);
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        URL.revokeObjectURL(url);
+        c.toBlob(function (b) { b ? ok(b) : nie(new Error('Nie udało się przetworzyć zdjęcia.')); }, 'image/jpeg', 0.8);
+      };
+      img.onerror = function () { URL.revokeObjectURL(url); nie(new Error('Nie mogę otworzyć tego pliku jako zdjęcia.')); };
+      img.src = url;
+    });
+  }
+  function doBase64(blob) {
+    return new Promise(function (ok, nie) { var r = new FileReader(); r.onload = function () { ok(String(r.result).split(',')[1]); }; r.onerror = nie; r.readAsDataURL(blob); });
+  }
+  function dodajPliki(pliki, root) {
+    var wolne = S.dane.ust.MAX_ZDJEC - F.zdjecia.length;
+    Array.prototype.slice.call(pliki, 0, wolne).reduce(function (p, plik) {
+      return p.then(function () { return zmniejsz(plik).then(function (b) { F.zdjecia.push({ id: null, blob: b, url: URL.createObjectURL(b) }); renderZdjec(root); }); });
+    }, Promise.resolve()).catch(function (er) { $('fMsg').innerHTML = '<div class="msg err">' + e(er.message) + '</div>'; });
+  }
+  function zapiszFormularz(root) {
+    var btn = root.querySelector('#fZapisz'), msg = root.querySelector('#fMsg');
+    function blad(t) { msg.innerHTML = '<div class="msg err" role="alert">' + e(t) + '</div>'; root.scrollTop = 0; }
+    F.rozmiar = root.querySelector('#fRozmiar').value; F.opis = root.querySelector('#fOpis').value; F.czekaNa = root.querySelector('#fCzeka').value;
+    if (!F.zdjecia.length) return blad('Dodaj przynajmniej jedno zdjęcie.');
+    if (!F.dla.length) return blad('Wskaż, dla kogo są te ubrania.');
+    var data = dataPrzypomnienia(root);
+    if (F.tryb === 'wlasna' && !data) return blad('Wybierz własną datę przypomnienia.');
+    btn.disabled = true; msg.innerHTML = '';
+    var ids = [], nowe = F.zdjecia.filter(function (z) { return !z.id; }), n = 0;
+    var p = Promise.resolve();
+    F.zdjecia.forEach(function (z) {
+      p = p.then(function () {
+        if (z.id) { ids.push(z.id); return; }
+        n++; btn.textContent = 'Wysyłam zdjęcie ' + n + ' z ' + nowe.length + '…';
+        return doBase64(z.blob).then(function (b64) { return api('wgrajZdjecie', [F.id, b64]); }).then(function (id) { z.id = id; ids.push(id); });
+      });
+    });
+    p.then(function () {
+      btn.textContent = 'Zapisuję…';
+      return api('zapiszWorek', [{ id: F.id, dla: F.dla, rozmiar: F.rozmiar, tagi: F.tagi, czekaNa: F.czekaNa, strefa: F.strefa, polka: F.polka, opis: F.opis, zdjecia: ids, przegladDo: data }]);
+    }).then(function (w) {
+      var i = S.dane.worki.map(function (x) { return x.id; }).indexOf(w.id);
+      if (i >= 0) S.dane.worki[i] = w; else S.dane.worki.push(w);
+      zapamietaj('strych.ostatnie', JSON.stringify({ dla: F.dla, strefa: F.strefa, polka: F.polka }));
+      zapamietaj('strych.dane', JSON.stringify({ t: Date.now(), d: S.dane }));
+      zamknijModal(); komunikat('Zapisano worek #' + w.id + '.'); pokazEkran(S.ekran);
+    }).catch(function (er) {
+      if (er.sesja) return wyloguj(er.message);
+      btn.disabled = false; btn.textContent = 'Zapisz worek'; blad(er.message);
+    });
+  }
+
+  /* ---------- akcje na worku ---------- */
+  function przypomnienieModal(w) {
+    F = { tagi: w.tagi, reczny: false, tryb: '', dataWl: '' };
+    var h = '<h2>Kiedy następny przegląd?</h2><div id="fDaty"></div><div class="row" style="margin-top:14px"><button class="btn" id="przAnuluj">Anuluj</button><button class="btn primary" id="przOk">Zapisz</button></div>';
+    $('modal2').innerHTML = h; $('modal2Bg').classList.add('on');
+    var root = $('modal2'); renderDaty(root);
+    root.onclick = function (ev) { var b = ev.target.closest('[data-tryb]'); if (!b) return; F.tryb = b.dataset.tryb; F.reczny = true; renderDaty(root); };
+    $('przAnuluj').onclick = function () { $('modal2Bg').classList.remove('on'); F = null; };
+    $('przOk').onclick = function () {
+      var data = dataPrzypomnienia(root);
+      if (F.tryb === 'wlasna' && !data) return;
+      api('przejrzane', [w.id, data]).then(function (nw) { podmien(nw); $('modal2Bg').classList.remove('on'); zamknijModal(); komunikat('Zapisano przegląd worka #' + w.id + '.'); pokazEkran(S.ekran); })
+        .catch(function (er) { komunikat(er.message, true); });
+    };
+  }
+  function podmien(w) { var i = S.dane.worki.map(function (x) { return x.id; }).indexOf(w.id); if (i >= 0) S.dane.worki[i] = w; else S.dane.worki.push(w); }
+  function akcja(a) {
+    var w = worek(S.biezacy); if (!w) return;
+    if (a === 'przejrzane') return przypomnienieModal(w);
+    if (a === 'edytuj') return formularz({ id: w.id });
+    if (a === 'wstaw') return formularz({ id: w.id });
+    if (a === 'etykieta') { zamknijModal(); S.ekran = 'etykiety'; pokazEkran('etykiety'); $('etOd').value = parseInt(w.id, 10) || 1; $('etIle').value = 1; renderEtykiety(); return; }
+    if (a === 'zdejmij') { if (!confirm('Potwierdź: worek #' + w.id + ' został zdjęty ze strychu. Wpis zostanie w archiwum, a etykietę można użyć ponownie.')) return;
+      return api('zdejmij', [w.id]).then(function (nw) { podmien(nw); zamknijModal(); komunikat('Worek #' + w.id + ' zdjęty ze strychu.'); pokazEkran(S.ekran); }).catch(function (er) { komunikat(er.message, true); }); }
+    if (a === 'usun') { if (!confirm('Usunąć wpis worka #' + w.id + ' na stałe? Zdjęcia zostają w folderze na Dysku.')) return;
+      return api('usun', [w.id]).then(function () { S.dane.worki = S.dane.worki.filter(function (x) { return x.id !== w.id; }); zamknijModal(); komunikat('Usunięto wpis #' + w.id + '.'); pokazEkran(S.ekran); }).catch(function (er) { komunikat(er.message, true); }); }
+  }
+
+  /* ---------- skaner (tam, gdzie przeglądarka potrafi) ---------- */
+  var strumien = null, petla = null;
+  function zatrzymajKamere() { if (petla) { cancelAnimationFrame(petla); petla = null; } if (strumien) { strumien.getTracks().forEach(function (t) { t.stop(); }); strumien = null; } }
+  function skanuj() {
+    otworzModal('<div class="glowa"><h2>Skanuj etykietę</h2><button class="zamknij" data-zamknij aria-label="Zamknij">×</button></div><video id="kamera" playsinline muted></video><p class="hint">Skieruj aparat na kod QR na worku.</p>');
+    var det = new BarcodeDetector({ formats: ['qr_code'] });
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }).then(function (s) {
+      strumien = s; var v = $('kamera'); v.srcObject = s; v.play();
+      (function krok() {
+        petla = requestAnimationFrame(krok);
+        det.detect(v).then(function (wyn) {
+          if (!wyn.length) return;
+          var m = /#\/w\/([A-Za-z0-9]+)/.exec(wyn[0].rawValue);
+          if (m) { zatrzymajKamere(); otworzWorek(m[1]); }
+        }).catch(function () {});
+      })();
+    }).catch(function () { $('modal').insertAdjacentHTML('beforeend', '<div class="msg err">Brak dostępu do aparatu. Zeskanuj etykietę zwykłym aparatem telefonu.</div>'); });
+  }
+
+  /* ---------- logowanie ---------- */
+  function wyloguj(powod) {
+    S.k = null; S.kto = null; S.dane = null; zapamietaj('strych.k', null); zapamietaj('strych.kto', null); zapamietaj('strych.dane', null);
+    $('nav').classList.add('hidden'); $('kto').innerHTML = ''; zamknijModal(); pokazEkran('login');
+    if (powod) komunikat(powod, true);
+  }
+  function wyborOsoby() {
+    var h = '<div class="glowa"><h2>Kim jesteś?</h2></div><div class="stack">' + S.dane.domownicy.map(function (p) { return '<button class="btn" data-kim="' + e(p.id) + '"><span class="kropka" style="display:inline-block;width:10px;height:10px;border-radius:50%;background:' + p.kolor + ';margin-right:8px"></span>' + e(p.imie) + '</button>'; }).join('') + '</div><p class="hint">Dzięki temu filtr „Moje” pokazuje tylko Twoje ubrania, a historia zmian wie, kto co zrobił.</p>';
+    $('modal2').innerHTML = h; $('modal2Bg').classList.add('on');
+  }
+  function start() {
+    var par = new URLSearchParams(location.search), kod = par.get('k');
+    if (kod) { zapamietaj('strych.k', kod.trim()); history.replaceState(null, '', bazaUrl() + location.hash); }
+    S.k = odczytaj('strych.k'); S.kto = odczytaj('strych.kto');
+    if (!S.k) { pokazEkran('login'); return; }
+    pokazEkran('gar'); $('lista').innerHTML = '<div class="pusto">Wczytuję…</div>';
+    wczytaj().then(function () {
+      $('nav').classList.remove('hidden');
+      if (!S.kto) wyborOsoby();
+      renderWszystko(); obsluzHash();
+    }).catch(function (er) {
+      if (er.sesja) return wyloguj(er.message);
+      $('lista').innerHTML = '<div class="pusto">Nie udało się wczytać danych.<br>' + e(er.message) + '</div>';
+    });
+  }
+  function obsluzHash() {
+    var m = /^#\/w\/([A-Za-z0-9]+)$/.exec(location.hash);
+    if (m && S.dane && S.kto) otworzWorek(m[1]);
+  }
+
+  /* ---------- zdarzenia ---------- */
+  document.addEventListener('click', function (ev) {
+    var t = ev.target, b;
+    if (t.closest('[data-zamknij]')) return zamknijModal();
+    if ((b = t.closest('[data-kim]'))) { S.kto = b.dataset.kim; zapamietaj('strych.kto', S.kto); $('modal2Bg').classList.remove('on'); renderWszystko(); return; }
+    if ((b = t.closest('#kto'))) return wyborOsoby();
+    if ((b = t.closest('#nav button'))) { S.edytujPlan = false; return pokazEkran(b.dataset.e); }
+    if ((b = t.closest('[data-akcja]'))) return akcja(b.dataset.akcja);
+    if (t.closest('#banerBtn')) { S.f.uwaga = true; S.f.zdjete = false; return renderGar(); }
+    if ((b = t.closest('.worek[data-id]'))) return otworzWorek(b.dataset.id);
+    if (t.closest('#dodaj')) return formularz({ id: normId(String(nastepnyWolny())) });
+    if (t.closest('#skan')) return skanuj();
+    if (t.closest('#loginOk')) { var k = $('kod').value.trim(); if (!k) return; zapamietaj('strych.k', k); return start(); }
+    if (t.closest('#wyloguj')) return wyloguj();
+    if (t.closest('#kopiujLink')) { try { navigator.clipboard.writeText(S.linkZaproszenia); komunikat('Link skopiowany.'); } catch (x) { prompt('Skopiuj link:', S.linkZaproszenia); } return; }
+    // filtry
+    if ((b = t.closest('[data-os]'))) { S.f.osoba = b.dataset.os; return renderGar(); }
+    if ((b = t.closest('[data-sez]'))) { S.f.sezon = S.f.sezon === b.dataset.sez ? '' : b.dataset.sez; return renderGar(); }
+    if (t.closest('[data-uw]')) { S.f.uwaga = !S.f.uwaga; return renderGar(); }
+    if (t.closest('[data-zd]')) { S.f.zdjete = !S.f.zdjete; return renderGar(); }
+    // plan strychu
+    if (t.closest('#planEdytuj')) { S.edytujPlan = !S.edytujPlan; S.wybranaStrefa = ''; renderStrych(); podlaczRysowanie(); return; }
+    if (t.closest('#szybkiStart')) return zapiszStrefy([{ nazwa: 'Regał lewy', x: 3, y: 8, w: 18, h: 70 }, { nazwa: 'Regał prawy', x: 79, y: 8, w: 18, h: 70 }, { nazwa: 'Środek', x: 26, y: 20, w: 48, h: 45 }, { nazwa: 'Przy włazie', x: 26, y: 72, w: 48, h: 22 }]);
+    if ((b = t.closest('[data-zmien]'))) { var zz = strefa(b.dataset.zmien); return pytajNazwe('Nazwa strefy', zz.nazwa, function (n) { zapiszStrefy(S.dane.strefy.map(function (x) { return x.id === zz.id ? { id: x.id, nazwa: n, x: x.x, y: x.y, w: x.w, h: x.h } : x; })); }); }
+    if ((b = t.closest('[data-usunz]'))) { var uz = strefa(b.dataset.usunz), ile = S.dane.worki.filter(function (w) { return w.strefa === uz.id && w.status === 'strych'; }).length;
+      if (!confirm('Usunąć strefę „' + uz.nazwa + '”?' + (ile ? ' ' + ile + ' worków straci lokalizację.' : ''))) return;
+      return zapiszStrefy(S.dane.strefy.filter(function (x) { return x.id !== uz.id; })); }
+    if ((b = t.closest('#mapaGlowna .strefa')) && !S.edytujPlan) { S.wybranaStrefa = S.wybranaStrefa === b.dataset.z ? '' : b.dataset.z; return renderStrych(); }
+    if ((b = t.closest('#mapaGlowna .strefa')) && S.edytujPlan) { var zs = strefa(b.dataset.z); return pytajNazwe('Nazwa strefy', zs.nazwa, function (n) { zapiszStrefy(S.dane.strefy.map(function (x) { return x.id === zs.id ? { id: x.id, nazwa: n, x: x.x, y: x.y, w: x.w, h: x.h } : x; })); }); }
+    // etykiety
+    if (t.closest('#etDrukuj')) { var zr = zakresEtykiet(); return drukuj(zr.ids, zr.poz); }
+    // ustawienia
+    if (t.closest('#domDodaj')) { S.edytowani.push({ id: '', imie: 'Nowa osoba', kolor: PALETA[S.edytowani.length % PALETA.length], email: '' }); return renderUstZEdycji(); }
+    if ((b = t.closest('[data-kolor]'))) { S.edytowani[+b.dataset.di].kolor = b.dataset.kolor; return renderUstZEdycji(); }
+    if ((b = t.closest('[data-dusun]'))) { S.edytowani.splice(+b.dataset.dusun, 1); return renderUstZEdycji(); }
+    if (t.closest('#domZapisz')) return api('zapiszDomownikow', [S.edytowani]).then(function (l) { S.dane.domownicy = l; komunikat('Zapisano domowników.'); renderUst(); }).catch(function (er) { komunikat(er.message, true); });
+    if (t.closest('#planZapisz')) return api('ustawPlan', [$('planSzer').value, $('planDl').value]).then(function (p) { S.dane.ust.PLAN_SZER = p.PLAN_SZER; S.dane.ust.PLAN_DL = p.PLAN_DL; komunikat('Zapisano wymiary.'); }).catch(function (er) { komunikat(er.message, true); });
+    // formularz worka
+    var root = $('modal');
+    if (F && root.contains(t) && F.zdjecia) {
+      if ((b = t.closest('[data-dla]'))) { var i = F.dla.indexOf(b.dataset.dla); if (i >= 0) F.dla.splice(i, 1); else F.dla.push(b.dataset.dla); b.setAttribute('aria-pressed', i < 0); return; }
+      if ((b = t.closest('[data-tag]'))) {
+        var tg = b.dataset.tag, j = F.tagi.indexOf(tg);
+        if (j >= 0) F.tagi.splice(j, 1); else { if (SEZONY.indexOf(tg) >= 0) F.tagi = F.tagi.filter(function (x) { return SEZONY.indexOf(x) < 0; }); F.tagi.push(tg); }
+        Array.prototype.forEach.call(root.querySelectorAll('#fTagi .chip'), function (c) { c.setAttribute('aria-pressed', F.tagi.indexOf(c.dataset.tag) >= 0); });
+        return renderDaty(root);
+      }
+      if ((b = t.closest('[data-tryb]'))) { F.tryb = b.dataset.tryb; F.reczny = true; return renderDaty(root); }
+      if ((b = t.closest('[data-polka]'))) { F.polka = F.polka === b.dataset.polka ? '' : b.dataset.polka; Array.prototype.forEach.call(root.querySelectorAll('#fPolka .chip'), function (c) { c.setAttribute('aria-pressed', c.dataset.polka === F.polka); }); return; }
+      if ((b = t.closest('#mapaForm .strefa'))) { F.strefa = F.strefa === b.dataset.z ? '' : b.dataset.z; return renderMapyForm(root); }
+      if ((b = t.closest('[data-fusun]'))) { F.zdjecia.splice(+b.dataset.fusun, 1); return renderZdjec(root); }
+      if (t.closest('#fAparat')) return root.querySelector('#inAparat').click();
+      if (t.closest('#fGaleria')) return root.querySelector('#inGaleria').click();
+      if (t.closest('#fZapisz')) return zapiszFormularz(root);
+    }
+  });
+  function renderUstZEdycji() {   // przerysowanie listy domowników bez gubienia wpisanych zmian
+    var kopia = S.edytowani; var d = S.dane; var stare = d.domownicy;
+    d.domownicy = kopia; renderUst(); S.edytowani = kopia; d.domownicy = stare;
+  }
+  document.addEventListener('input', function (ev) {
+    var t = ev.target;
+    if (t.id === 'szukaj') { S.f.q = t.value; return renderGar(); }
+    if (t.dataset && t.dataset.di !== undefined && t.dataset.p) S.edytowani[+t.dataset.di][t.dataset.p] = t.value;
+    if (t.id === 'etOd' || t.id === 'etIle' || t.id === 'etPoz') renderEtykiety();
+  });
+  document.addEventListener('change', function (ev) {
+    var t = ev.target;
+    if (t.id === 'inAparat' || t.id === 'inGaleria') { dodajPliki(t.files, $('modal')); t.value = ''; }
+  });
+  $('modalBg').addEventListener('click', function (ev) { if (ev.target === $('modalBg') && !F) zamknijModal(); });
+  window.addEventListener('hashchange', obsluzHash);
+  $('kod').addEventListener('keydown', function (ev) { if (ev.key === 'Enter') $('loginOk').click(); });
+
+  if ('BarcodeDetector' in window && navigator.mediaDevices) $('skan').classList.remove('hidden');
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function () {});
+  start();
+})();
+</script>
+</body>
+</html>

@@ -12,3 +12,7 @@ Pliki nie zawierają danych pracowników ani kluczy dostępu. Klucze są wyłąc
 ## Ewidencja pojazdów
 
 Folder `pojazdy/` to druga aplikacja (PWA + Apps Script) do ewidencji pojazdów służbowych, kosztów i kilometrówki, w tym samym layoucie. Wdrożenie: `pojazdy/PUBLIKACJA.md`.
+
+## Strych (prywatnie, dom)
+
+Folder `strych/` to trzecia aplikacja: domowy bank garderoby przechowywanej na strychu (kody QR na workach, zdjęcie zawartości, dla kogo, sezon, plan strychu, przypomnienia). Wdrożenie: `strych/PUBLIKACJA.md`.
