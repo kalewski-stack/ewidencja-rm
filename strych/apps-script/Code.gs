@@ -9,15 +9,23 @@ var CONFIG = {
   PRZEGLAD_DNI_PRZED: 14,      // od ilu dni przed terminem worek pojawia się jako „wkrótce”
   ZALEGA_MIES: 12,             // worek bez żadnego przeglądu dłużej niż tyle miesięcy = „zalega”
   MAX_ZDJEC: 4,
-  TAGI: ['Lato', 'Zima', 'Przejściowe', 'Cały rok', 'Wyrośnięte', 'Do oddania'],
-  DOMYSLNI: ['Piotr', 'Żona', 'Dziecko 1', 'Dziecko 2', 'Dziecko 3', 'Dziecko 4', 'Teść', 'Teściowa'],
+  TAGI: ['Wiosna', 'Lato', 'Jesień', 'Zima', 'Cały rok', 'Wyrośnięte', 'Do oddania', 'Firany', 'Pościel', 'Materiały', 'Koce', 'Inne domowe'],
+  RODZAJE: ['Odzież', 'Obuwie', 'Dom'],
+  POJEMNIKI: ['Małe', 'Średnie', 'Duże'],
+  POJEMNIKI_OPIS: { 'Małe': 'pudełko ok. 30 l', 'Średnie': 'pudełko ok. 60 l', 'Duże': 'pudełko ok. 100 l' },
+  // rokUr = rok urodzenia (wiek liczy się sam); rozmiary startowe wg orientacyjnej tabeli wzrostu, do poprawienia w aplikacji
+  DOMYSLNI: [
+    { imie: 'Jurek', rola: 'osoba' }, { imie: 'Ania', rola: 'osoba' }, { imie: 'Marysia', rola: 'osoba' }, { imie: 'Piotr', rola: 'osoba' },
+    { imie: 'Tosia', rola: 'osoba', rokUr: 2013, ubr: '158', buty: '38' }, { imie: 'Julek', rola: 'osoba', rokUr: 2013, ubr: '158', buty: '38' },
+    { imie: 'Misia', rola: 'osoba', rokUr: 2015, ubr: '146', buty: '36' }, { imie: 'Gabi', rola: 'osoba', rokUr: 2024, ubr: '92', buty: '23' },
+    { imie: 'Dom (wspólne)', rola: 'wspolne' }],
   KOLORY: ['#E87229', '#3B7EA1', '#6B8E4E', '#B5527A', '#8A6BBE', '#C9A227', '#2F9C95', '#7A7A7A']
 };
 
 var TAB = {
-  Worki:      [['id','t'],['status','t'],['dla','t'],['rozmiar','t'],['tagi','t'],['czekaNa','t'],['strefa','t'],['polka','t'],['opis','t'],['zdjecia','t'],['wstawiono','t'],['przegladDo','t'],['przejrzano','t'],['zdjeto','t'],['dodal','t'],['zmieniono','t']],
-  Domownicy:  [['id','t'],['imie','t'],['kolor','t'],['email','t']],
-  Strefy:     [['id','t'],['nazwa','t'],['x','n'],['y','n'],['w','n'],['h','n']],
+  Worki:      [['id','t'],['status','t'],['dla','t'],['rozmiar','t'],['tagi','t'],['czekaNa','t'],['strefa','t'],['polka','t'],['opis','t'],['zdjecia','t'],['wstawiono','t'],['przegladDo','t'],['przejrzano','t'],['zdjeto','t'],['dodal','t'],['zmieniono','t'],['rodzaj','t'],['rozmiarOd','t'],['rozmiarDo','t'],['pojemnik','t']],
+  Domownicy:  [['id','t'],['imie','t'],['kolor','t'],['email','t'],['rokUr','t'],['rola','t'],['rozmiarUbr','t'],['rozmiarButy','t'],['rozmiarData','t']],
+  Strefy:     [['id','t'],['nazwa','t'],['x','n'],['y','n'],['w','n'],['h','n'],['polek','n']],
   Ustawienia: [['klucz','t'],['wartosc','t'],['opis','t']],
   Dziennik:   [['kiedy','t'],['kto','t'],['worek','t'],['akcja','t'],['szczegoly','t']]
 };
@@ -31,6 +39,12 @@ function tab_(nazwa) {
     s.getRange(1, 1, 1, def.length).setValues([def.map(function (d) { return d[0]; })]).setFontWeight('bold');
     def.forEach(function (d, i) { if (d[1] === 't') s.getRange(1, i + 1, s.getMaxRows(), 1).setNumberFormat('@'); });
     s.setFrozenRows(1);
+  }
+  else if (s.getLastColumn() < def.length) {      // zakładka sprzed dodania kolumn: dopisz brakujące nagłówki
+    for (var i = s.getLastColumn(); i < def.length; i++) {
+      s.getRange(1, i + 1).setValue(def[i][0]).setFontWeight('bold');
+      if (def[i][1] === 't') s.getRange(1, i + 1, s.getMaxRows(), 1).setNumberFormat('@');
+    }
   }
   return s;
 }
@@ -108,11 +122,18 @@ function idWorka_(x) {
 function lista_(s) { return String(s || '').split(',').map(function (x) { return x.trim(); }).filter(Boolean); }
 
 /* ============ MODEL ============ */
-function domownicy_() { return wiersze_('Domownicy').map(function (d) { return { id: d.id, imie: d.imie, kolor: d.kolor, email: d.email }; }); }
-function strefy_() { return wiersze_('Strefy').map(function (z) { return { id: z.id, nazwa: z.nazwa, x: z.x, y: z.y, w: z.w, h: z.h }; }); }
+function domownicy_() {
+  return wiersze_('Domownicy').map(function (d) {
+    return { id: d.id, imie: d.imie, kolor: d.kolor, email: d.email, rokUr: d.rokUr, rola: d.rola || 'osoba', rozmiarUbr: d.rozmiarUbr, rozmiarButy: d.rozmiarButy, rozmiarData: d.rozmiarData };
+  });
+}
+function strefy_() { return wiersze_('Strefy').map(function (z) { return { id: z.id, nazwa: z.nazwa, x: z.x, y: z.y, w: z.w, h: z.h, polek: z.polek > 0 ? z.polek : 4 }; }); }
+function pojemniki_() {
+  var o = {}; CONFIG.POJEMNIKI.forEach(function (p) { o[p] = ustawienie_('POJ_' + p, CONFIG.POJEMNIKI_OPIS[p]); }); return o;
+}
 function worekOut_(w) {
   return { id: w.id, status: w.status, dla: lista_(w.dla), rozmiar: w.rozmiar, tagi: lista_(w.tagi), czekaNa: w.czekaNa, strefa: w.strefa,
-           polka: w.polka, opis: w.opis, zdjecia: lista_(w.zdjecia), wstawiono: w.wstawiono, przegladDo: w.przegladDo,
+           polka: w.polka, opis: w.opis, zdjecia: lista_(w.zdjecia), rodzaj: w.rodzaj || 'Odzież', rozmiarOd: w.rozmiarOd, rozmiarDo: w.rozmiarDo, pojemnik: w.pojemnik, wstawiono: w.wstawiono, przegladDo: w.przegladDo,
            przejrzano: w.przejrzano, zdjeto: w.zdjeto, dodal: w.dodal, zmieniono: w.zmieniono };
 }
 function znajdz_(id) {
@@ -130,6 +151,7 @@ var API = {
       worki: wiersze_('Worki').map(worekOut_),
       ust: {
         PLAN_SZER: Number(ustawienie_('PLAN_SZER', 6)), PLAN_DL: Number(ustawienie_('PLAN_DL', 10)),
+        RZUT_ID: ustawienie_('RZUT_ID', ''), RZUT_PROP: Number(ustawienie_('RZUT_PROP', 0)), POJEMNIKI: pojemniki_(),
         KOD: ustawienie_('KOD', ''), ZALEGA_MIES: CONFIG.ZALEGA_MIES, PRZEGLAD_DNI: CONFIG.PRZEGLAD_DNI_PRZED, MAX_ZDJEC: CONFIG.MAX_ZDJEC
       }
     };
@@ -155,12 +177,16 @@ var API = {
     var tagi = (o.tagi || []).filter(function (t) { return CONFIG.TAGI.indexOf(t) >= 0; });
     var czekaNa = o.czekaNa ? String(o.czekaNa) : '';
     if (czekaNa && znaneOsoby.indexOf(czekaNa) < 0) throw new Error('Nieznany domownik w polu „czeka na”.');
+    var rodzaj = CONFIG.RODZAJE.indexOf(o.rodzaj) >= 0 ? o.rodzaj : 'Odzież';
+    var pojemnik = CONFIG.POJEMNIKI.indexOf(o.pojemnik) >= 0 ? o.pojemnik : '';
+    var od = tekst_(o.rozmiarOd, 8), doo = tekst_(o.rozmiarDo, 8);
+    if (od && !doo) doo = od; if (doo && !od) od = doo;
     var strefa = o.strefa ? String(o.strefa) : '';
     if (strefa && strefy_().filter(function (z) { return z.id === strefa; }).length === 0) throw new Error('Nieznana strefa strychu.');
     var przegladDo = o.przegladDo ? dataOk_(o.przegladDo, 'Przypomnienie') : '';
 
     var w = znajdz_(id), nowy = !w || w.status !== 'strych';
-    var pola = { id: id, status: 'strych', dla: dla.join(','), rozmiar: tekst_(o.rozmiar, 60), tagi: tagi.join(','), czekaNa: czekaNa,
+    var pola = { id: id, status: 'strych', dla: dla.join(','), rozmiar: od ? (od === doo ? od : od + '–' + doo) : '', rodzaj: rodzaj, rozmiarOd: od, rozmiarDo: doo, pojemnik: pojemnik, tagi: tagi.join(','), czekaNa: czekaNa,
                  strefa: strefa, polka: tekst_(o.polka, 20), opis: tekst_(o.opis, 400), zdjecia: zdj.join(','), przegladDo: przegladDo,
                  dodal: u.imie, zmieniono: teraz_() };
     if (!w) {
@@ -209,7 +235,7 @@ var API = {
   zapiszStrefy: function (u, lista) {
     if (!Array.isArray(lista) || lista.length > 40) throw new Error('Zbyt wiele stref.');
     var wyn = lista.map(function (z) {
-      var o = { id: /^[a-z0-9]{3,12}$/.test(String(z.id)) ? String(z.id) : 's' + losowy_(5), nazwa: tekst_(z.nazwa, 40), x: Number(z.x), y: Number(z.y), w: Number(z.w), h: Number(z.h) };
+      var o = { id: /^[a-z0-9]{3,12}$/.test(String(z.id)) ? String(z.id) : 's' + losowy_(5), nazwa: tekst_(z.nazwa, 40), x: Number(z.x), y: Number(z.y), w: Number(z.w), h: Number(z.h), polek: Math.max(1, Math.min(10, Math.round(Number(z.polek) || 4))) };
       if (!o.nazwa) throw new Error('Strefa musi mieć nazwę.');
       ['x', 'y', 'w', 'h'].forEach(function (k) { if (isNaN(o[k]) || o[k] < 0 || o[k] > 100) throw new Error('Zły wymiar strefy.'); o[k] = Math.round(o[k] * 10) / 10; });
       return o;
@@ -225,8 +251,16 @@ var API = {
     wiersze_('Worki').forEach(function (w) { lista_(w.dla).concat(w.czekaNa ? [w.czekaNa] : []).forEach(function (x) { uzyte[x] = true; }); });
     var wyn = lista.map(function (d, i) {
       var o = { id: /^d[a-z0-9]{3,10}$/.test(String(d.id)) ? String(d.id) : 'd' + losowy_(5), imie: tekst_(d.imie, 30),
-                kolor: /^#[0-9A-Fa-f]{6}$/.test(String(d.kolor)) ? String(d.kolor) : CONFIG.KOLORY[i % CONFIG.KOLORY.length], email: tekst_(d.email, 80) };
+                kolor: /^#[0-9A-Fa-f]{6}$/.test(String(d.kolor)) ? String(d.kolor) : CONFIG.KOLORY[i % CONFIG.KOLORY.length], email: tekst_(d.email, 80),
+                rokUr: '', rola: d.rola === 'wspolne' ? 'wspolne' : 'osoba', rozmiarUbr: tekst_(d.rozmiarUbr, 8), rozmiarButy: tekst_(d.rozmiarButy, 8), rozmiarData: '' };
       if (!o.imie) throw new Error('Każdy domownik musi mieć imię.');
+      if (d.rokUr !== '' && d.rokUr !== undefined && d.rokUr !== null) {
+        var r = Number(d.rokUr); if (!(r >= 1900 && r <= Number(dzis_().slice(0, 4)))) throw new Error(o.imie + ': zły rok urodzenia.');
+        o.rokUr = String(r);
+      }
+      var st = stare.filter(function (x) { return x.id === o.id; })[0];
+      var zmiana = !st || st.rozmiarUbr !== o.rozmiarUbr || st.rozmiarButy !== o.rozmiarButy;
+      o.rozmiarData = (zmiana && (o.rozmiarUbr || o.rozmiarButy)) ? dzis_() : (st ? st.rozmiarData : '');
       return o;
     });
     var ids = wyn.map(function (d) { return d.id; });
@@ -234,6 +268,21 @@ var API = {
     zastap_('Domownicy', wyn);
     dziennik_(u.imie, '', 'domownicy', wyn.length + ' osób');
     return domownicy_();
+  },
+
+  ustawRzut: function (u, id, prop) {
+    if (id && !/^[A-Za-z0-9_-]{10,80}$/.test(String(id))) throw new Error('Zły identyfikator pliku.');
+    prop = Number(prop);
+    if (id && !(prop > 0.2 && prop < 5)) throw new Error('Zły stosunek boków rzutu.');
+    ustaw_('RZUT_ID', id || '', 'zdjęcie rzutu strychu (tło planu)');
+    ustaw_('RZUT_PROP', id ? Math.round(prop * 1000) / 1000 : 0, 'wysokość / szerokość rzutu');
+    dziennik_(u.imie, '', 'rzut strychu', id ? 'ustawiony' : 'usunięty');
+    return { RZUT_ID: id || '', RZUT_PROP: id ? prop : 0 };
+  },
+
+  ustawPojemniki: function (u, opisy) {
+    CONFIG.POJEMNIKI.forEach(function (p) { ustaw_('POJ_' + p, tekst_(opisy[p], 60) || CONFIG.POJEMNIKI_OPIS[p], 'opis pojemnika: ' + p); });
+    return pojemniki_();
   },
 
   ustawPlan: function (u, szer, dl) {
@@ -244,7 +293,7 @@ var API = {
     return { PLAN_SZER: szer, PLAN_DL: dl };
   }
 };
-var ZAPISY = { wgrajZdjecie: 1, zapiszWorek: 1, przejrzane: 1, zdejmij: 1, usun: 1, zapiszStrefy: 1, zapiszDomownikow: 1, ustawPlan: 1 };
+var ZAPISY = { ustawRzut: 1, ustawPojemniki: 1, wgrajZdjecie: 1, zapiszWorek: 1, przejrzane: 1, zdejmij: 1, usun: 1, zapiszStrefy: 1, zapiszDomownikow: 1, ustawPlan: 1 };
 
 function folder_() {
   var id = ustawienie_('FOLDER_ID', '');
@@ -289,7 +338,10 @@ function przygotuj() {
   if (!ustawienie_('KOD', '')) ustaw_('KOD', losowy_(10), 'kod domu: wpisuje się go raz na telefonie (lub jest w linku)');
   ustaw_('APP_URL', ustawienie_('APP_URL', CONFIG.APP_URL), 'adres aplikacji (GitHub Pages), z ukośnikiem na końcu');
   if (!wiersze_('Domownicy').length) {
-    zastap_('Domownicy', CONFIG.DOMYSLNI.map(function (imie, i) { return { id: 'd' + losowy_(5), imie: imie, kolor: CONFIG.KOLORY[i % CONFIG.KOLORY.length], email: '' }; }));
+    zastap_('Domownicy', CONFIG.DOMYSLNI.map(function (d, i) {
+      return { id: 'd' + losowy_(5), imie: d.imie, kolor: CONFIG.KOLORY[i % CONFIG.KOLORY.length], email: '', rokUr: d.rokUr ? String(d.rokUr) : '', rola: d.rola,
+               rozmiarUbr: d.ubr || '', rozmiarButy: d.buty || '', rozmiarData: d.ubr ? dzis_() : '' };
+    }));
   }
   folder_();
   SpreadsheetApp.getUi().alert('Gotowe. Imiona domowników zmienisz w aplikacji (Ustawienia) albo w zakładce Domownicy.\nKod domu: ' + ustawienie_('KOD', '') + '\nLink do aplikacji z kodem: Strych → Pokaż kod domu i link.');

@@ -32,6 +32,16 @@ Link zawiera kod domu, więc wystarczy go otworzyć raz, potem „Dodaj do ekran
 2. Zakładka **Etykiety → Drukuj arkusz** (A4, naklejki 70 × 37 mm, 3 × 8; skala 100%, bez marginesów). Naklejka na worek albo na plastikową zawieszkę przy worku.
 3. Zeskanuj pustą etykietę zwykłym aparatem telefonu: otworzy się formularz nowego worka z tym numerem.
 
+## Rodzina, rozmiary i sezony
+
+- Arkusz startuje z listą: Jurek, Ania, Marysia, Piotr, Tosia, Julek, Misia, Gabi i pozycja **Dom (wspólne)** na firany, pościel i materiały. Imiona i **rok urodzenia** poprawisz w aplikacji (Ustawienia). Wiek liczy się sam co roku.
+  Rozmiary startowe dzieci są wzięte z tabeli orientacyjnej (Tosia i Julek 158 / buty 38, Misia 146 / 36, Gabi 92 / 23): sprawdź je w zakładce **Rozmiary**.
+- **Rozmiary**: raz w roku wpisujesz aktualny rozmiar ubrań i butów każdego dziecka. Aplikacja przypomina, gdy od 10 miesięcy nikt tego nie sprawdził, i sama oznacza worki jako „pasuje teraz”, „za małe” albo „pasuje od ok. 2028”.
+  Worek z tagiem „czeka na” jest oceniany względem tej osoby, nie względem tej, dla której został kupiony.
+- **Sezon**: zaznaczasz dowolne z Wiosna, Lato, Jesień, Zima albo „Cały rok” (np. jesień + zima, tylko lato). Przypomnienie podpowiada się na 2 tygodnie przed pierwszym sezonem, w którym worek będzie potrzebny. Filtr „Na ten sezon” pokazuje, co wyjąć teraz.
+- **Pojemniki**: małe, średnie i duże. Ich opisy (np. „pudełko ok. 60 l”) edytujesz w Ustawieniach.
+- **Rzut strychu**: w zakładce Strych → Edytuj plan → Wgraj rzut. Na nim rysujesz palcem strefy (regały, skosy, kąty), każdej nadajesz nazwę i liczbę półek. Przy worku wybierasz strefę i półkę (liczone od dołu), a w szczegółach pulsuje punkt w tym miejscu.
+
 ## Przypomnienia e-mail
 
 W zakładce **Domownicy** (albo w aplikacji, Ustawienia) wpisz adresy e-mail, potem w arkuszu **Strych → Włącz przypomnienia e-mail**.
