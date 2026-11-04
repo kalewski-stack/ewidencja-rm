@@ -185,25 +185,55 @@
     body.druk .strona{transform:none !important}
     body.druk .strona::after{border-top-color:#bbb}
   }
+
+  /* ekran startowy i ścieżki */
+  body{padding-bottom:calc(40px + env(safe-area-inset-bottom))}
+  .tytul{font-size:30px;font-weight:800;margin:4px 4px 16px;line-height:1.15}
+  .wstecz{min-height:52px;padding:6px 18px 6px 12px;border:2px solid var(--piasek);border-radius:999px;background:var(--biel);color:var(--pom);font:inherit;font-size:19px;font-weight:800;cursor:pointer}
+  .kafle{display:flex;flex-direction:column;gap:16px}
+  .kafel{display:flex;align-items:center;gap:18px;width:100%;min-height:122px;padding:18px 20px;border:0;border-radius:26px;background:var(--biel);color:var(--grafit);font:inherit;text-align:left;cursor:pointer;box-shadow:var(--cien);position:relative}
+  .kafel:active{transform:scale(.99)}
+  .kafel .ikona{flex:0 0 74px;width:74px;height:74px;border-radius:22px;background:var(--pom-jasny);display:flex;align-items:center;justify-content:center;color:var(--pom)}
+  .kafel .ikona svg{width:44px;height:44px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .kafel b{display:block;font-size:28px;font-weight:800;line-height:1.15}
+  .kafel .opis{display:block;font-size:18px;color:var(--szary);margin-top:4px;line-height:1.3}
+  .kafel.glowny{background:var(--pom);color:#fff;box-shadow:0 8px 24px rgba(31,111,235,.35)}
+  .kafel.glowny .ikona{background:rgba(255,255,255,.2);color:#fff} .kafel.glowny .opis{color:#E3EEFF}
+  .kafel.alert{background:var(--uwaga-jasny)} .kafel.alert .ikona{background:#FFE3A8;color:var(--pom2)}
+  .kafel .plakietka{position:static;margin-left:auto;flex:0 0 auto;min-width:46px;height:46px;padding:0 12px;border-radius:999px;background:var(--blad);color:#fff;font-size:22px;font-weight:800;display:flex;align-items:center;justify-content:center}
+  .ranga{display:inline-block;background:var(--znacznik);color:#fff;border-radius:50%;text-align:center;font-weight:800}
+  .link-maly{display:block;margin:22px auto 0;padding:12px 20px;border:0;background:none;color:var(--pom);font:inherit;font-size:19px;font-weight:700;text-decoration:underline;cursor:pointer}
+  .postep-t{font-size:17px;font-weight:800;color:var(--pom);margin-bottom:8px}
+  .postep-pasek{height:10px;background:#DCE6F5;border-radius:99px;overflow:hidden;margin-bottom:20px}
+  .postep-pasek div{height:100%;background:var(--pom);border-radius:99px;transition:width .2s}
+  .kt{font-size:28px;font-weight:800;margin:0 0 8px;line-height:1.2}
+  .przy-dole{position:sticky;bottom:0;padding:14px 0 calc(14px + env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(242,246,251,0),var(--bez) 28%)}
+  .wynik{background:#fff;border-radius:var(--r-karta);padding:16px;margin-bottom:16px;box-shadow:var(--cien)}
+  .wynik .miejsce{font-size:26px;font-weight:800;line-height:1.15}
+  .wynik .podtytul{font-size:18px;color:var(--szary);margin-top:2px}
+  .fotki{display:flex;gap:10px;margin:14px 0}
+  .fotki figure{margin:0;flex:1;min-width:0}
+  .fotki img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:16px;background:#DFE7F2;display:block}
+  .fotki figcaption{font-size:14.5px;color:var(--szary);margin-top:5px;font-weight:700}
+  .grupa-t{font-size:23px;font-weight:800;margin:24px 4px 10px;line-height:1.2}
+  .grupa-t small{font-weight:600;color:var(--szary);font-size:16.5px;display:block;margin-top:2px}
+  .przyp-akcje{display:flex;gap:10px;margin-top:10px}
+  .przyp-akcje .btn{min-height:54px;font-size:18px;padding:10px}
+  .strefa-foto{width:100%;max-height:280px;object-fit:cover;border-radius:16px;display:block;margin-bottom:6px}
+  .ok-duze{text-align:center;padding:36px 16px;background:var(--ok-jasny);border-radius:var(--r-karta);font-size:24px;font-weight:800;color:var(--ok)}
   #arkuszDruk{display:none}
 </style>
 </head>
 <body>
 
 <header>
-  <div class="marka">
+  <div class="marka" id="marka">
     <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M3 15 16 4l13 11" fill="none" stroke="#1F6FEB" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M7 14v13h18V14" fill="none" stroke="#14213D" stroke-width="2.6" stroke-linejoin="round"/><rect x="12" y="17" width="3.6" height="3.6" fill="#F97316"/><rect x="16.8" y="17" width="3.6" height="3.6" fill="#1F6FEB"/><rect x="12" y="21.8" width="3.6" height="3.6" fill="#1F6FEB"/></svg>
     Strych
   </div>
+  <button class="wstecz hidden" id="wstecz" type="button">‹ Wstecz</button>
   <button class="kto" id="kto" type="button"></button>
 </header>
-<nav id="nav" class="hidden">
-  <button data-e="gar" aria-selected="true"><svg viewBox="0 0 24 24"><path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.5z"/><path d="m3 7.5 9 4.5 9-4.5M12 12v9"/></svg>Rzeczy</button>
-  <button data-e="strych" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>Strych</button>
-  <button data-e="roz" aria-selected="false"><svg viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="8" rx="1.5"/><path d="M7 8v3M11 8v4M15 8v3M19 8v4"/></svg>Rozmiary</button>
-  <button data-e="etykiety" aria-selected="false"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6"/><rect x="14" y="4" width="6" height="6"/><rect x="4" y="14" width="6" height="6"/><path d="M14 14h2v2h-2zM18 18h2v2h-2zM14 18h2M18 14h2"/></svg>Kartki</button>
-  <button data-e="ust" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>Więcej</button>
-</nav>
 
 <main>
   <div id="komunikat"></div>
@@ -217,20 +247,49 @@
     </div>
   </section>
 
-  <section id="e-gar" class="ekran">
-    <div id="baner"></div>
-    <div class="szukaj"><input type="search" id="szukaj" placeholder="Szukaj, np. kozaki Ani" autocomplete="off"></div>
-    <div class="filtry stack">
-      <div class="chips przewijane" id="fOsoby"></div>
-      <div class="chips przewijane" id="fInne"></div>
-      <details class="wiecej"><summary>Więcej filtrów</summary>
-        <div class="stack" style="margin-top:6px"><div class="chips przewijane" id="fRodzaj"></div><select id="fRozm" aria-label="Filtr rozmiaru"></select></div>
-      </details>
+  <section id="e-home" class="ekran">
+    <div class="kafle">
+      <button class="kafel glowny" id="dodaj" type="button"><span class="ikona"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span><span><b>Na strych</b><span class="opis">Dodaj worek lub karton. Poprowadzę Cię krok po kroku.</span></span></button>
+      <button class="kafel" data-idz="szukam" type="button"><span class="ikona"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg></span><span><b>Szukam</b><span class="opis">Wybierz, czego szukasz, a pokażę, gdzie to leży.</span></span></button>
+      <button class="kafel" data-idz="strych" type="button"><span class="ikona"><svg viewBox="0 0 24 24"><path d="M3 6.5 9 4l6 2.5L21 4v13.5L15 20l-6-2.5L3 20z"/><path d="M9 4v13.5M15 6.5V20"/></svg></span><span><b>Mapka</b><span class="opis">Plan strychu. Dotknij miejsca, a zobaczysz, co tam leży.</span></span></button>
+      <button class="kafel" id="kafelPrzyp" data-idz="przyp" type="button"><span class="ikona"><svg viewBox="0 0 24 24"><path d="M6 17V11a6 6 0 1 1 12 0v6l1.5 2h-15z"/><path d="M10 21h4"/></svg></span><span><b>Przypomnienia</b><span class="opis" id="przypOpis">Na co zwrócić uwagę.</span></span><span class="plakietka hidden" id="przypLicz"></span></button>
     </div>
-    <div id="lista"></div>
+    <button class="link-maly" data-idz="wiecej" type="button">Więcej: rozmiary, kartki do druku, ustawienia</button>
+    <button class="link-maly hidden" id="skan" type="button" style="margin-top:0">Skanuj kod aparatem</button>
+  </section>
+
+  <section id="e-wiecej" class="ekran">
+    <h1 class="tytul">Więcej</h1>
+    <div class="stack">
+      <button class="btn" data-idz="roz" type="button">Rozmiary dzieci</button>
+      <button class="btn" data-idz="etykiety" type="button">Kartki do wydruku (kod QR)</button>
+      <button class="btn" data-idz="ust" type="button">Ustawienia i domownicy</button>
+    </div>
+  </section>
+
+  <section id="e-szukam" class="ekran">
+    <h1 class="tytul">Czego szukasz?</h1>
+    <div class="card"><label>1. Czyje to jest?</label><div class="chips" id="szOsoby"></div></div>
+    <div class="card"><label>2. Co to jest?</label><div class="chips" id="szRodzaj"></div></div>
+    <div class="card"><label>3. Na jaki sezon?</label><div class="chips" id="szSezon"></div></div>
+    <div class="card"><label for="szRozm">4. Jaki rozmiar?</label><select id="szRozm"></select></div>
+    <div class="card"><label for="szQ">5. Jak to się nazywa? (nieobowiązkowe)</label><input type="search" id="szQ" placeholder="np. czarne kozaki" autocomplete="off"><p class="hint">Możesz napisać całe zdanie, np. „czarne kozaki Ani”.</p><div class="chips" style="margin-top:12px" id="szInne"></div></div>
+    <div class="przy-dole stack"><button class="btn primary" id="szPokaz" type="button">Pokaż, gdzie szukać</button><button class="btn mala" id="szWyczysc" type="button">Wyczyść wybór</button></div>
+  </section>
+
+  <section id="e-wyniki" class="ekran">
+    <h1 class="tytul">Gdzie szukać</h1>
+    <div id="wynikiOpis"></div>
+    <div id="wynikiBox"></div>
+  </section>
+
+  <section id="e-przyp" class="ekran">
+    <h1 class="tytul">Przypomnienia</h1>
+    <div id="przypBox"></div>
   </section>
 
   <section id="e-strych" class="ekran">
+    <h1 class="tytul">Mapka strychu</h1>
     <div class="card">
       <div class="row" style="align-items:center;margin-bottom:10px"><h3 style="margin:0">Plan strychu</h3><div style="text-align:right"><button class="btn mala" id="planEdytuj">Zmień plan</button></div></div>
       <div id="planBox"></div>
@@ -293,11 +352,6 @@
   </section>
 </main>
 
-<div class="fab hidden" id="fab">
-  <button class="btn skan hidden" id="skan" type="button">Skanuj</button>
-  <button class="btn primary" id="dodaj" type="button">+ Dodaj worek</button>
-</div>
-
 <div class="modal-bg" id="modalBg"><div class="modal" id="modal" role="dialog" aria-modal="true"></div></div>
 <div class="modal-bg" id="modal2Bg"><div class="modal maly" id="modal2" role="dialog" aria-modal="true"></div></div>
 <div id="arkuszDruk"></div>
@@ -322,7 +376,7 @@
     [2, '2 lata', '92', '23–24'], [3, '3 lata', '98', '25–26'], [4, '4 lata', '104', '27–28'], [5, '5 lat', '110', '29–30'], [6, '6 lat', '116', '30–31'], [7, '7 lat', '122', '32–33'], [8, '8 lat', '128', '33–34'],
     [9, '9 lat', '134', '34–35'], [10, '10 lat', '140', '35–36'], [11, '11 lat', '146', '36–37'], [12, '12 lat', '152', '37–38'], [13, '13 lat', '158', '38–39'], [14, '14 lat', '164', '39–40'], [15, '15 lat', '170', '40–41']];
   var S = { k: null, kto: null, dane: null, ekran: 'gar', edytujPlan: false, wybranaStrefa: '', offline: false,
-            f: { osoba: '', sezon: '', rodzaj: '', rozmiar: '', rozm: '', naSezon: false, uwaga: false, zdjete: false, q: '' } };
+            sz: { osoba: '', rodzaj: '', sezon: '', rozmiar: '', q: '', zdjete: false } };
   var F = null;          // stan formularza worka
 
   /* ---------- narzędzia ---------- */
@@ -557,18 +611,20 @@
   }
 
   /* ---------- nawigacja ---------- */
+  var RODZIC = { wyniki: 'szukam', roz: 'wiecej', etykiety: 'wiecej', ust: 'wiecej' };
   function pokazEkran(n) {
     S.ekran = n;
     Array.prototype.forEach.call(document.querySelectorAll('.ekran'), function (x) { x.classList.toggle('on', x.id === 'e-' + n); });
-    Array.prototype.forEach.call(document.querySelectorAll('#nav button'), function (b) { b.setAttribute('aria-selected', b.dataset.e === n ? 'true' : 'false'); });
-    $('fab').classList.toggle('hidden', n !== 'gar' && n !== 'strych');
-    if (n === 'gar') renderGar(); if (n === 'strych') renderStrych(); if (n === 'roz') renderRoz(); if (n === 'etykiety') renderEtykiety(); if (n === 'ust') renderUst();
+    var start = n === 'home' || n === 'login';
+    $('wstecz').classList.toggle('hidden', start); $('marka').classList.toggle('hidden', !start);
+    if (n === 'home') renderHome(); if (n === 'szukam') renderSzukam(); if (n === 'wyniki') renderWyniki(); if (n === 'strych') renderStrych();
+    if (n === 'przyp') renderPrzyp(); if (n === 'roz') renderRoz(); if (n === 'etykiety') renderEtykiety(); if (n === 'ust') renderUst();
+    window.scrollTo(0, 0);
   }
   function renderWszystko() {
-    $('nav').classList.remove('hidden');
     var o = osoba(S.kto);
     $('kto').innerHTML = o ? e(o.imie) + '<small>zmień</small>' : '';
-    pokazEkran(S.ekran === 'login' ? 'gar' : S.ekran);
+    pokazEkran(S.ekran === 'login' ? 'home' : S.ekran);
     if (S.offline) komunikat('Brak połączenia. Pokazuję dane z ' + new Date(S.offlineOd).toLocaleString('pl-PL') + '. Zmiany wymagają internetu.', true);
   }
 
@@ -581,9 +637,16 @@
     return S.dane.domownicy.filter(function (o) { var w = wiek(o); return o.rola !== 'wspolne' && w !== null && w < 18 && (!o.rozmiarData || o.rozmiarData < gr); });
   }
   function kartaWorka(w, wyn, nr) {
-    return '<button class="worek' + (w.status !== 'strych' ? ' zdjety' : '') + '" type="button" data-id="' + e(w.id) + '"><div class="foto" style="background-image:url(\'' + foto(w.zdjecia[0], 240) + '\')"></div><div class="tresc"><div class="nr">' + (nr ? '<span class="ranga">' + nr + '</span>' : '') + '#' + e(w.id) + (w.rodzaj !== 'Odzież' ? ' · ' + e(w.rodzaj) : '') + (wyn ? (wyn.pewne ? (wyn.wlasc ? ' · zapisane w worku' : ' · zapisane u innej osoby') : ' · prawdopodobne') : '') + '</div><div class="dla">' + e(imionaDla(w)) + '</div><div class="meta">' + e([rozmiarTxt(w), w.pojemnik, miejsceTekst(w) || 'lokalizacja nieustawiona'].filter(Boolean).join(' · ')) + '</div>' + (wyn ? '<div class="powod">' + e(wyn.pow.join(' · ')) + '</div>' : '') + '<div class="pills">' + pillsWorka(w) + '</div></div></button>';
+    return '<button class="worek' + (w.status !== 'strych' ? ' zdjety' : '') + '" type="button" data-id="' + e(w.id) + '"><div class="foto" style="background-image:url(\'' + foto(w.zdjecia[0], 240) + '\')"></div><div class="tresc"><div class="nr">' + (nr ? '<span class="ranga">' + nr + '</span>' : '') + '#' + e(w.id) + (w.rodzaj !== 'Odzież' ? ' · ' + e(w.rodzaj) : '') + (wyn && wyn.pow.length ? (wyn.pewne ? (wyn.wlasc ? ' · zapisane w worku' : ' · zapisane u innej osoby') : ' · prawdopodobne') : '') + '</div><div class="dla">' + e(imionaDla(w)) + '</div><div class="meta">' + e([rozmiarTxt(w), w.pojemnik, miejsceTekst(w) || 'miejsce nieustawione'].filter(Boolean).join(' · ')) + '</div>' + (wyn && wyn.pow.length ? '<div class="powod">' + e(wyn.pow.join(' · ')) + '</div>' : '') + '<div class="pills">' + pillsWorka(w) + '</div></div></button>';
   }
-  function opcjeRozmiarow() {
+  function kartaRzeczy(w) {
+    var rz = w.rzeczy.slice(0, 5).join(', ') + (w.rzeczy.length > 5 ? ' i ' + (w.rzeczy.length - 5) + ' więcej' : '');
+    return '<button class="worek" type="button" data-id="' + e(w.id) + '"><div class="foto" style="background-image:url(\'' + foto(w.zdjecia[0], 240) + '\')"></div><div class="tresc"><div class="nr">#' + e(w.id) + (w.pojemnik ? ' · pudełko ' + e(w.pojemnik.toLowerCase()) : '') + '</div><div class="dla">' + e(imionaDla(w)) + '</div><div class="meta">' + e([rodzajA5(w), rozmiarTxt(w), miejsceTekst(w)].filter(Boolean).join(' · ')) + '</div>' + (rz ? '<div class="powod">Rzeczy: ' + e(rz) + '</div>' : (w.opis ? '<div class="powod">' + e(w.opis) + '</div>' : '')) + '</div></button>';
+  }
+  function opisKrotki(w) {
+    return [imionaDla(w), rodzajA5(w), rozmiarTxt(w), w.pojemnik ? 'pudełko ' + w.pojemnik.toLowerCase() : ''].filter(Boolean).join(' · ');
+  }
+  function opcjeRozmiarow(wybrany) {
     var m = {};
     S.dane.worki.forEach(function (w) { if (w.status !== 'strych' || w.rodzaj === 'Dom' || !w.rozmiarOd) return; m[w.rodzaj + ':' + w.rozmiarOd] = 1; m[w.rodzaj + ':' + (w.rozmiarDo || w.rozmiarOd)] = 1; });
     var k = Object.keys(m).sort(function (a, b) {
@@ -591,59 +654,117 @@
       if (x[0] !== y[0]) return x[0] === 'Odzież' ? -1 : 1;
       return x[0] === 'Obuwie' ? numr(x[1]) - numr(y[1]) : UBR.indexOf(x[1]) - UBR.indexOf(y[1]);
     });
-    return '<option value="">Rozmiar: wszystkie</option>' + k.map(function (v) { var c = v.split(':'); return '<option value="' + e(v) + '"' + (S.f.rozmiar === v ? ' selected' : '') + '>' + (c[0] === 'Obuwie' ? 'buty ' : 'ubrania ') + e(c[1]) + '</option>'; }).join('');
+    return '<option value="">Dowolny rozmiar</option>' + k.map(function (v) { var c = v.split(':'); return '<option value="' + e(v) + '"' + (wybrany === v ? ' selected' : '') + '>' + (c[0] === 'Obuwie' ? 'buty ' : 'ubrania ') + e(c[1]) + '</option>'; }).join('');
   }
-  function renderGar() {
-    if (!S.dane) return;
-    var d = S.dane, f = S.f, h = '';
-    h = chip('data-os=""', 'Wszyscy', !f.osoba);
-    var os = d.domownicy.slice().sort(function (a, b) { return (a.id === S.kto ? -1 : 0) - (b.id === S.kto ? -1 : 0); });
-    os.forEach(function (o) { h += chip('data-os="' + e(o.id) + '"', o.id === S.kto ? 'Moje (' + o.imie + ')' : o.imie, f.osoba === o.id, o.kolor); });
-    $('fOsoby').innerHTML = h;
-    h = chip('data-ns="1"', 'Na teraz: ' + sezonyAkt().join(' + '), f.naSezon);
-    SEZ4.forEach(function (n) { h += chip('data-sez="' + n + '"', n, f.sezon === n); });
-    h += chip('data-rz="pasuje"', 'Pasuje teraz', f.rozm === 'pasuje') + chip('data-rz="zamale"', 'Za małe', f.rozm === 'zamale') + chip('data-uw="1"', 'Wymaga uwagi', f.uwaga) + chip('data-zd="1"', 'Zabrane ze strychu', f.zdjete);
-    $('fInne').innerHTML = h;
-    $('fRodzaj').innerHTML = RODZAJE.map(function (r) { return chip('data-rod="' + r + '"', r === 'Dom' ? 'Dom: firany, pościel' : r, f.rodzaj === r); }).join('');
-    $('fRozm').innerHTML = opcjeRozmiarow();
 
-    var wszystkie = d.worki.filter(function (w) { return w.status === 'strych'; });
-    var ile = wszystkie.filter(wymagaUwagi).length, stare = rozmiaryStare();
-    var b = '';
-    if (stare.length) b += '<button class="baner info" id="banerRoz" type="button"><span><b>Sprawdź rozmiary dzieci</b><br><span>' + e(stare.map(function (o) { return o.imie; }).join(', ')) + ' — czy nie wyrosły?</span></span><b>›</b></button>';
-    if (ile) b += '<button class="baner" id="banerBtn" type="button"><span><b>' + ile + ' ' + (ile === 1 ? 'worek wymaga uwagi' : ile < 5 ? 'worki wymagają uwagi' : 'worków wymaga uwagi') + '</b><br><span>Dotknij, żeby zobaczyć, co trzeba sprawdzić.</span></span><b>›</b></button>';
-    $('baner').innerHTML = b;
-
-    var q = f.q.trim(), akt = sezonyAkt();
-    $('e-gar').classList.toggle('szuka', !!q && !f.zdjete);
-    var lista = d.worki.filter(function (w) {
-      if (f.zdjete ? w.status === 'strych' : w.status !== 'strych') return false;
-      if (f.osoba && w.dla.indexOf(f.osoba) < 0 && w.czekaNa !== f.osoba) return false;
-      if (f.sezon && w.tagi.indexOf(f.sezon) < 0) return false;
-      if (f.naSezon && !w.tagi.some(function (t) { return akt.indexOf(t) >= 0; })) return false;
-      if (f.rodzaj && w.rodzaj !== f.rodzaj) return false;
-      if (f.rozmiar && !rozmiarWZakresie(w, f.rozmiar)) return false;
-      if (f.rozm) { var r = ocena(w).rozm; if (!r || r.t !== f.rozm) return false; }
-      if (f.uwaga && !wymagaUwagi(w)) return false;
-      return true;
-    }).sort(function (a, b) {
-      var pa = wymagaUwagi(a) ? 0 : 1, pb = wymagaUwagi(b) ? 0 : 1;
-      return pa - pb || (a.przegladDo || '9999').localeCompare(b.przegladDo || '9999') || a.id.localeCompare(b.id);
+  /* ---------- ekran startowy ---------- */
+  function przypomnieniaDane() {
+    var gr = { przegapione: [], przeglad: [], pasuje: [], zamale: [], zalega: [], wkrotce: [] };
+    S.dane.worki.forEach(function (w) {
+      if (w.status !== 'strych') return;
+      var o = ocena(w), r = o.rozm;
+      if (o.przegapione.length) gr.przegapione.push(w);
+      else if (o.przeglad) gr.przeglad.push(w);
+      else if (r && r.t === 'pasuje') gr.pasuje.push(w);
+      else if (r && r.t === 'zamale') gr.zamale.push(w);
+      else if (o.zalega) gr.zalega.push(w);
+      else if (o.wkrotce) gr.wkrotce.push(w);
     });
-    if (q && !f.zdjete) {
-      var sm = szukajSmart(q, lista), top = sm.wyniki.slice(0, 3), reszta = sm.wyniki.slice(3, 23), hh = '';
-      if (!sm.wyniki.length) { $('lista').innerHTML = '<div class="pusto">Nic nie pasuje do „' + e(q) + '”.<br>Spróbuj samej nazwy rzeczy (np. „kozaki”) albo imienia właściciela.</div>'; return; }
-      hh += '<p class="wyniki-info">' + (sm.info.length ? 'Rozpoznano: ' + e(sm.info.join(' · ')) + '. ' : '') + (!sm.rzecz ? '' : top.some(function (x) { return x.pewne && x.wlasc; }) ? 'Jest wpis o tej rzeczy.' : 'Nie ma wpisu o tej rzeczy, więc to najbardziej prawdopodobne miejsca.') + '</p>';
-      var nrMap = {}, sels = [];
-      top.forEach(function (x, i) { if (x.w.strefa && !nrMap[x.w.strefa]) { nrMap[x.w.strefa] = i + 1; sels.push(x.w.strefa); } });
-      if (sels.length) hh += '<div class="card" style="padding:10px">' + mapa({ sels: sels, nr: nrMap, id: 'mapaWyniki' }) + '</div>';
-      hh += top.map(function (x, i) { return kartaWorka(x.w, x, i + 1); }).join('');
-      if (reszta.length) hh += '<h3 style="margin:14px 4px 10px;font-size:15px">Dalsze możliwości</h3>' + reszta.map(function (x) { return kartaWorka(x.w, x); }).join('');
-      $('lista').innerHTML = hh; return;
-    }
-    if (q) lista = lista.filter(function (w) { return norm([w.id, imionaDla(w), rozmiarTxt(w), w.opis, w.rzeczy.join(' '), w.tagi.join(' ')].join(' ')).indexOf(norm(q)) >= 0; });
-    if (!lista.length) { $('lista').innerHTML = '<div class="pusto">' + (d.worki.length ? 'Nic nie pasuje do filtrów.' : 'Strych jest pusty w aplikacji.<br>Przyklej etykietę na pierwszy worek, zeskanuj ją aparatem i dodaj zawartość, albo dotknij „+ Dodaj worek”.') + '</div>'; return; }
-    $('lista').innerHTML = lista.map(function (w) { return kartaWorka(w); }).join('');
+    return gr;
+  }
+  function renderHome() {
+    if (!S.dane) return;
+    var gr = przypomnieniaDane(), n = gr.przegapione.length + gr.przeglad.length + gr.pasuje.length + gr.zamale.length + gr.zalega.length + (rozmiaryStare().length ? 1 : 0);
+    $('przypLicz').classList.toggle('hidden', !n); $('przypLicz').textContent = n;
+    $('kafelPrzyp').classList.toggle('alert', n > 0);
+    $('przypOpis').textContent = n ? 'Coś czeka na Twoją decyzję. Dotknij, żeby zobaczyć.' : 'Wszystko w porządku. Nic nie wymaga uwagi.';
+  }
+
+  /* ---------- Szukam: wybór, czego szukasz ---------- */
+  function renderSzukam() {
+    if (!S.dane) return;
+    var d = S.dane, z = S.sz, h = chip('data-szos=""', 'Wszystkich', !z.osoba);
+    d.domownicy.forEach(function (o) { h += chip('data-szos="' + e(o.id) + '"', o.imie, z.osoba === o.id, o.kolor); });
+    $('szOsoby').innerHTML = h;
+    $('szRodzaj').innerHTML = [['', 'Wszystko'], ['Odzież', 'Ubrania'], ['Obuwie', 'Buty'], ['Dom', 'Dom: firany, pościel']].map(function (r) { return chip('data-szrod="' + r[0] + '"', r[1], z.rodzaj === r[0]); }).join('');
+    $('szSezon').innerHTML = chip('data-szsez=""', 'Dowolny', !z.sezon) + SEZ4.map(function (n) { return chip('data-szsez="' + n + '"', n, z.sezon === n); }).join('');
+    $('szRozm').innerHTML = opcjeRozmiarow(z.rozmiar);
+    $('szQ').value = z.q;
+    $('szInne').innerHTML = chip('data-szzd="1"', 'Pokaż też to, co zabrano ze strychu', z.zdjete);
+  }
+  function listaSzukam() {
+    var z = S.sz;
+    return S.dane.worki.filter(function (w) {
+      if (!z.zdjete && w.status !== 'strych') return false;
+      if (z.osoba && w.dla.indexOf(z.osoba) < 0 && w.czekaNa !== z.osoba) return false;
+      if (z.rodzaj && w.rodzaj !== z.rodzaj) return false;
+      if (z.sezon && w.tagi.indexOf(z.sezon) < 0 && w.tagi.indexOf('Cały rok') < 0) return false;
+      if (z.rozmiar && !rozmiarWZakresie(w, z.rozmiar)) return false;
+      return true;
+    });
+  }
+  function podsumowanieWyboru() {
+    var z = S.sz, t = [];
+    if (z.osoba) t.push('dla: ' + osoba(z.osoba).imie);
+    if (z.rodzaj) t.push(z.rodzaj === 'Odzież' ? 'ubrania' : z.rodzaj === 'Obuwie' ? 'buty' : 'dom');
+    if (z.sezon) t.push('sezon: ' + z.sezon);
+    if (z.rozmiar) { var c = z.rozmiar.split(':'); t.push((c[0] === 'Obuwie' ? 'buty ' : 'rozmiar ') + c[1]); }
+    if (z.q.trim()) t.push('„' + z.q.trim() + '”');
+    return t.length ? t.join(' · ') : 'wszystko';
+  }
+  function kartaWynik(x, i) {
+    var w = x.w, z = strefa(w.strefa);
+    return '<div class="wynik"><div style="display:flex;gap:12px;align-items:center"><span class="ranga" style="width:42px;height:42px;line-height:42px;font-size:21px;margin:0;flex:0 0 42px">' + (i + 1) + '</span><div><div class="miejsce">' + e(miejsceTekst(w) || 'miejsce nieustawione') + '</div><div class="podtytul">' + e(opisKrotki(w)) + '</div></div></div>' +
+      '<div class="fotki"><figure><img src="' + foto(w.zdjecia[0], 700) + '" alt="Zawartość worka" loading="lazy"><figcaption>Zawartość worka #' + e(w.id) + '</figcaption></figure>' + (z && z.zdjecie ? '<figure><img src="' + foto(z.zdjecie, 700) + '" alt="Miejsce" loading="lazy"><figcaption>Tak wygląda to miejsce</figcaption></figure>' : '') + '</div>' +
+      (x.pow && x.pow.length ? '<div class="meta"><b>Dlaczego tu:</b> ' + e(x.pow.join(' · ')) + (x.pewne && x.wlasc ? '' : '') + '</div>' : '') +
+      '<div class="pills" style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">' + pillsWorka(w) + '</div>' +
+      '<button class="btn" data-otworz="' + e(w.id) + '" type="button" style="margin-top:14px">Otwórz kartę worka</button></div>';
+  }
+  function renderWyniki() {
+    if (!S.dane) return;
+    var lista = listaSzukam(), q = S.sz.q.trim(), wyn, info = [];
+    if (q) { var sm = szukajSmart(q, lista); wyn = sm.wyniki; info = sm.info; if (S.sz.zdjete) lista.filter(function (w) { return w.status !== 'strych'; }).forEach(function (w) { if (norm([imionaDla(w), w.rzeczy.join(' '), w.opis].join(' ')).indexOf(norm(q)) >= 0) wyn.push({ w: w, sc: 0, pow: ['zabrane ze strychu'], pewne: false, wlasc: true }); }); }
+    else wyn = lista.map(function (w) { return { w: w, sc: 0, pow: [], pewne: false, wlasc: true }; }).sort(function (a, b) {
+      var pa = wymagaUwagi(a.w) ? 0 : 1, pb = wymagaUwagi(b.w) ? 0 : 1; return pa - pb || b.w.zmieniono.localeCompare(a.w.zmieniono); });
+    var top = wyn.slice(0, 3), reszta = wyn.slice(3, 20), h = '';
+    $('wynikiOpis').innerHTML = '<p class="wyniki-info" style="margin-top:-6px">Wybrano: <b>' + e(podsumowanieWyboru()) + '</b>' + (info.length ? '<br>Rozpoznano: ' + e(info.join(' · ')) : '') + '</p>';
+    if (!wyn.length) { $('wynikiBox').innerHTML = '<div class="pusto">Nic nie znalazłem.<br>Wróć i wybierz mniej warunków albo wpisz samą nazwę rzeczy.</div><button class="btn primary" data-idz="szukam" type="button">Zmień wybór</button>'; return; }
+    var nrMap = {}, sels = [];
+    top.forEach(function (x, i) { if (x.w.strefa && x.w.status === 'strych' && !nrMap[x.w.strefa]) { nrMap[x.w.strefa] = i + 1; sels.push(x.w.strefa); } });
+    if (sels.length) h += '<div class="card" style="padding:12px">' + mapa({ sels: sels, nr: nrMap, id: 'mapaWyniki' }) + '<p class="hint" style="margin-bottom:0">Numery na mapce odpowiadają wynikom poniżej.</p></div>';
+    h += '<p class="wyniki-info">' + (q && top[0] && top[0].pewne && top[0].wlasc ? 'Ta rzecz jest zapisana w worku nr 1.' : (q ? 'Najbardziej prawdopodobne miejsca:' : 'Pasujące worki (' + wyn.length + '):')) + '</p>';
+    h += top.map(kartaWynik).join('');
+    if (reszta.length) h += '<h3 class="grupa-t">Dalsze możliwości</h3>' + reszta.map(function (x) { return kartaWorka(x.w, x); }).join('');
+    h += '<button class="btn" data-idz="szukam" type="button" style="margin-top:8px">Zmień wybór</button>';
+    $('wynikiBox').innerHTML = h;
+  }
+
+  /* ---------- Przypomnienia ---------- */
+  function powodyTxt(w) {
+    var o = ocena(w), t = [];
+    if (o.przegapione.length) t.push('Minął sezon: ' + o.przegapione.join(', ') + ', a worek nie był ruszany.');
+    if (o.przeglad) t.push('Minął termin sprawdzenia (' + pl(w.przegladDo) + ').');
+    if (o.rozm && o.rozm.t === 'pasuje') t.push((o.rozm.nazwa ? o.rozm.nazwa + ': ' : '') + 'rozmiar pasuje na obecny, więc warto wyjąć.');
+    if (o.rozm && o.rozm.t === 'zamale') t.push((o.rozm.nazwa ? o.rozm.nazwa + ': ' : '') + 'rozmiar jest już za mały. Do oddania?');
+    if (o.zalega) t.push('Leży na strychu od ' + pl(w.przejrzano || w.wstawiono) + ' i nikt go nie sprawdzał.');
+    if (!t.length && o.wkrotce) t.push('Wkrótce termin sprawdzenia: ' + pl(w.przegladDo) + '.');
+    return t;
+  }
+  function kartaPrzyp(w) {
+    return '<div class="worek" style="display:block;cursor:default"><button class="worek" type="button" data-id="' + e(w.id) + '" style="box-shadow:none;padding:0;margin:0 0 6px;background:none"><div class="foto" style="background-image:url(\'' + foto(w.zdjecia[0], 240) + '\')"></div><div class="tresc"><div class="nr">#' + e(w.id) + '</div><div class="dla">' + e(imionaDla(w)) + '</div><div class="meta">' + e([rodzajA5(w), rozmiarTxt(w), miejsceTekst(w) || 'miejsce nieustawione'].filter(Boolean).join(' · ')) + '</div></div></button>' +
+      '<div class="powod" style="margin:6px 0 0">' + powodyTxt(w).map(function (x) { return e(x); }).join('<br>') + '</div>' +
+      '<div class="przyp-akcje"><button class="btn" type="button" data-szybka="przejrzane" data-id="' + e(w.id) + '">Sprawdziłem</button><button class="btn dark" type="button" data-szybka="zdejmij" data-id="' + e(w.id) + '">Zabrałem</button></div></div>';
+  }
+  function renderPrzyp() {
+    if (!S.dane) return;
+    var gr = przypomnieniaDane(), stare = rozmiaryStare(), h = '', n = 0;
+    var def = [['przegapione', 'Minął sezon, a worek leży', 'Te rzeczy były na sezon, który już minął. Zdecyduj: wyjąć czy zostawić.'], ['przeglad', 'Czas sprawdzić', 'Minął termin, który sam ustawiłeś.'], ['pasuje', 'Pasuje na obecny rozmiar', 'Dziecko urosło do tego rozmiaru. Warto wyjąć.'], ['zamale', 'Za małe', 'Rozmiar jest już za mały. Może oddać albo przekazać dalej?'], ['zalega', 'Leży za długo', 'Ponad rok bez sprawdzenia.'], ['wkrotce', 'Wkrótce termin', 'Niedługo trzeba będzie sprawdzić.']];
+    if (stare.length) { n++; h += '<button class="baner info" data-idz="roz" type="button"><span><b>Sprawdź rozmiary dzieci</b><br><span>' + e(stare.map(function (o) { return o.imie; }).join(', ')) + ' — czy nie wyrosły?</span></span><b>›</b></button>'; }
+    def.forEach(function (g) {
+      var l = gr[g[0]]; if (!l.length) return; n += l.length;
+      h += '<h3 class="grupa-t">' + e(g[1]) + ' (' + l.length + ')<small>' + e(g[2]) + '</small></h3>' + l.map(kartaPrzyp).join('');
+    });
+    $('przypBox').innerHTML = n ? h : '<div class="ok-duze">Wszystko w porządku.<br><span style="font-size:18px;font-weight:600">Nic nie wymaga uwagi.</span></div>';
   }
 
   /* ---------- rozmiary ---------- */
@@ -686,17 +807,18 @@
   function mapa(o) {
     var d = S.dane, ust = d.ust, rzut = ust.RZUT_ID && ust.RZUT_PROP > 0;
     var prop = (rzut ? Math.max(0.3, Math.min(3, ust.RZUT_PROP)) : Math.max(0.55, Math.min(1.5, ust.PLAN_DL / ust.PLAN_SZER))) * 100;
-    var licz = {};
-    if (o.licz) d.worki.forEach(function (w) { if (w.status === 'strych' && w.strefa) licz[w.strefa] = (licz[w.strefa] || 0) + 1; });
+    var licz = {}, kto = {};
+    if (o.licz) d.worki.forEach(function (w) { if (w.status === 'strych' && w.strefa) { licz[w.strefa] = (licz[w.strefa] || 0) + 1; (kto[w.strefa] = kto[w.strefa] || []).push(imionaDla(w) + (sezonTxt(w) ? ' ' + sezonTxt(w) : '')); } });
+    function tyt(z) { return o.licz ? ' title="' + e(z.nazwa + ': ' + (licz[z.id] || 0) + ' ' + ((licz[z.id] || 0) === 1 ? 'worek' : 'worków') + (kto[z.id] ? ' (' + kto[z.id].slice(0, 4).join('; ') + ')' : '')) + '"' : ''; }
     var sels = o.sels || (o.sel ? [o.sel] : []);
     var h = '<div class="mapa' + (o.edycja ? ' edycja' : '') + (rzut ? ' zrzutem' : '') + '" id="' + (o.id || 'mapa') + '" style="padding-top:' + prop + '%">';
     if (rzut) h += '<img class="rzut" src="' + foto(ust.RZUT_ID, 1600) + '" alt="Rzut strychu" draggable="false">';
     d.strefy.forEach(function (z) {
-      h += '<button type="button" class="strefa' + (sels.indexOf(z.id) >= 0 ? ' sel' : '') + '" data-z="' + e(z.id) + '" style="left:' + z.x + '%;top:' + z.y + '%;width:' + z.w + '%;height:' + z.h + '%"' + (o.edycja ? ' tabindex="-1"' : '') + '>' + (o.nr && o.nr[z.id] ? '<span class="numer">' + o.nr[z.id] + '</span>' : '') + e(z.nazwa) + (licz[z.id] ? '<span class="licz">' + licz[z.id] + '</span>' : '') + '</button>';
+      h += '<button type="button" class="strefa' + (sels.indexOf(z.id) >= 0 ? ' sel' : '') + '" data-z="' + e(z.id) + '"' + tyt(z) + ' style="left:' + z.x + '%;top:' + z.y + '%;width:' + z.w + '%;height:' + z.h + '%"' + (o.edycja ? ' tabindex="-1"' : '') + '>' + (o.nr && o.nr[z.id] ? '<span class="numer">' + o.nr[z.id] + '</span>' : '') + e(z.nazwa) + (licz[z.id] ? '<span class="licz">' + licz[z.id] + '</span>' : '') + '</button>';
     });
     return h + '<span class="wlaz">' + (rzut ? '' : 'wejście na strych') + '</span></div>';
   }
-  function strefaZ(x, zm) { var o = { id: x.id, nazwa: x.nazwa, x: x.x, y: x.y, w: x.w, h: x.h, polek: x.polek }; for (var k in zm) o[k] = zm[k]; return o; }
+  function strefaZ(x, zm) { var o = { id: x.id, nazwa: x.nazwa, x: x.x, y: x.y, w: x.w, h: x.h, polek: x.polek, zdjecie: x.zdjecie }; for (var k in zm) o[k] = zm[k]; return o; }
   function polekTxt(n) { return n + ' ' + (n === 1 ? 'półka' : n < 5 ? 'półki' : 'półek'); }
 
   function renderStrych() {
@@ -705,7 +827,7 @@
     $('planEdytuj').textContent = ed ? 'Gotowe' : 'Zmień plan';
     $('planBox').innerHTML = mapa({ sel: S.wybranaStrefa, licz: !ed, edycja: ed, id: 'mapaGlowna' });
     $('planHint').textContent = ed ? 'Przeciągnij palcem po planie, aby narysować strefę (regał, półkę, kąt). Dotknij strefy, aby zmienić nazwę i liczbę półek.' :
-      (d.strefy.length ? 'Dotknij strefy, aby zobaczyć worki, które tam leżą. Liczba na strefie = worki na strychu.' : 'Plan jest pusty. Dotknij „Zmień plan”, wgraj rzut strychu i narysuj regały albo miejsca.');
+      (d.strefy.length ? 'Dotknij miejsca na mapce, a pod spodem zobaczysz listę worków i rzeczy, które tam leżą. Liczba na miejscu = liczba worków.' : 'Plan jest pusty. Dotknij „Zmień plan”, wgraj rzut strychu i narysuj regały albo miejsca.');
     var dod = '';
     if (ed) dod += '<div class="card stack"><h3>Rzut strychu</h3><p class="hint" style="margin-top:0">Wgraj zdjęcie lub skan rzutu (plan z projektu domu, szkic odręczny, zdjęcie z góry). Strefy rysujesz na nim palcem.</p><button class="btn" id="rzutWgraj" type="button">' + (rzut ? 'Zmień rzut' : 'Wgraj rzut') + '</button>' + (rzut ? '<button class="btn danger" id="rzutUsun" type="button">Usuń rzut</button>' : '') + '<input type="file" id="inRzut" accept="image/*" class="hidden"></div>';
     if (ed && !d.strefy.length) dod += '<div class="card"><button class="btn" id="szybkiStart">Wstaw przykładowy układ (2 regały, środek, przy włazie)</button></div>';
@@ -715,7 +837,7 @@
     var lista = '';
     if (!ed && S.wybranaStrefa) {
       var z = strefa(S.wybranaStrefa), ws = d.worki.filter(function (w) { return w.status === 'strych' && w.strefa === S.wybranaStrefa; });
-      lista = '<h3 style="margin:6px 4px 10px">' + e(z ? z.nazwa : '') + ' (' + ws.length + ')</h3>' + (ws.length ? ws.map(kartaWorka).join('') : '<div class="pusto">Nic tu jeszcze nie leży.</div>');
+      lista = '<h3 class="grupa-t" style="margin-top:8px">' + e(z ? z.nazwa : '') + ' (' + ws.length + ')<small>' + (z ? polekTxt(z.polek) + ' i podłoga' : '') + '</small></h3>' + (z && z.zdjecie ? '<img class="strefa-foto" src="' + foto(z.zdjecie, 800) + '" alt="Zdjęcie miejsca"><p class="hint" style="margin:0 4px 12px">Tak wygląda to miejsce.</p>' : '') + (ws.length ? ws.map(kartaRzeczy).join('') : '<div class="pusto">Nic tu jeszcze nie leży.</div>');
     }
     $('strefaLista').innerHTML = lista;
   }
@@ -738,21 +860,29 @@
       if (!start) return; var p = pkt(ev), s0 = start; start = null; if (szkic) szkic.remove();
       var z = { x: Math.min(s0.x, p.x), y: Math.min(s0.y, p.y), w: Math.abs(p.x - s0.x), h: Math.abs(p.y - s0.y) };
       if (z.w < 3 || z.h < 3) return;
-      pytajStrefe('Nowa strefa', 'Regał ' + String.fromCharCode(65 + S.dane.strefy.length % 26), 4, function (n, polek) { z.nazwa = n; z.polek = polek; z.id = ''; zapiszStrefy(S.dane.strefy.concat([z])); });
+      pytajStrefe('Nowe miejsce', 'Regał ' + String.fromCharCode(65 + S.dane.strefy.length % 26), 4, function (n, polek, zd) { z.nazwa = n; z.polek = polek; z.zdjecie = zd; z.id = ''; zapiszStrefy(S.dane.strefy.concat([z])); });
     });
   }
   function zapiszStrefy(lista) {
     return api('zapiszStrefy', [lista]).then(function (s) { S.dane.strefy = s; renderStrych(); podlaczRysowanie(); }).catch(function (er) { komunikat(er.message, true); });
   }
-  function pytajStrefe(tytul, nazwa, polek, ok) {
+  function pytajStrefe(tytul, nazwa, polek, ok, zdj0) {
+    var zdj = zdj0 || '';
+    function podglad() { return zdj ? '<img class="strefa-foto" src="' + foto(zdj, 700) + '" alt="Zdjęcie miejsca">' : '<p class="hint" style="margin:0 0 8px">Bez zdjęcia.</p>'; }
     $('modal2').innerHTML = '<h2>' + e(tytul) + '</h2><div class="field"><label for="nazwaIn">Nazwa</label><input type="text" id="nazwaIn" maxlength="40" value="' + e(nazwa) + '"></div>' +
       '<div class="field"><label for="polekIn">Liczba półek (liczone od dołu, podłoga jest zawsze)</label><input type="number" id="polekIn" min="1" max="10" inputmode="numeric" value="' + polek + '"></div>' +
+      '<div class="field"><label>Zdjęcie tego miejsca (pomaga szybko trafić)</label><div id="zdjMiejsca">' + podglad() + '</div><button class="btn" type="button" id="zdjMiejscaBtn">Zrób zdjęcie miejsca</button><input type="file" accept="image/*" capture="environment" id="zdjMiejscaIn" class="hidden"></div>' +
       '<div class="row"><button class="btn" id="nazwaAnuluj">Anuluj</button><button class="btn primary" id="nazwaOk">Zapisz</button></div>';
     $('modal2Bg').classList.add('on');
-    setTimeout(function () { var i = $('nazwaIn'); i.focus(); i.select(); }, 50);
     function zamknij() { $('modal2Bg').classList.remove('on'); }
     $('nazwaAnuluj').onclick = zamknij;
-    $('nazwaOk').onclick = function () { var n = $('nazwaIn').value.trim(); if (!n) return; var pk = Math.max(1, Math.min(10, parseInt($('polekIn').value, 10) || 4)); zamknij(); ok(n, pk); };
+    $('zdjMiejscaBtn').onclick = function () { $('zdjMiejscaIn').click(); };
+    $('zdjMiejscaIn').onchange = function () {
+      var f = this.files[0]; if (!f) return; $('zdjMiejsca').innerHTML = '<p class="hint" style="margin:0 0 8px">Wysyłam zdjęcie…</p>';
+      zmniejsz(f, 1280).then(doBase64).then(function (b64) { return api('wgrajZdjecie', ['MIEJSCE', b64]); }).then(function (id) { zdj = id; $('zdjMiejsca').innerHTML = podglad(); })
+        .catch(function (er) { $('zdjMiejsca').innerHTML = '<div class="msg err">' + e(er.message) + '</div>'; });
+    };
+    $('nazwaOk').onclick = function () { var n = $('nazwaIn').value.trim(); if (!n) return; var pk = Math.max(1, Math.min(10, parseInt($('polekIn').value, 10) || 4)); zamknij(); ok(n, pk, zdj); };
   }
   function rozmiarObrazu(b) {
     return new Promise(function (ok, nie) { var u = URL.createObjectURL(b), i = new Image(); i.onload = function () { URL.revokeObjectURL(u); ok({ w: i.naturalWidth, h: i.naturalHeight }); }; i.onerror = nie; i.src = u; });
@@ -961,11 +1091,31 @@
   }
 
   /* ---------- formularz worka ---------- */
+  var KROKI = {
+    zdj: ['Zrób zdjęcie', 'Rozłóż rzeczy na podłodze i zrób jedno zdjęcie wszystkiego, co jest w worku.'],
+    rodzaj: ['Co wkładasz do worka?', ''],
+    dla: ['Dla kogo to jest?', 'Dotknij osoby. Możesz wybrać kilka.'],
+    roz: ['Jaki rozmiar?', 'Wybierz najmniejszy i największy rozmiar w worku. Jeśli jest jeden, wybierz tylko pierwszy.'],
+    sezon: ['Na jaki sezon?', 'Możesz wybrać kilka. Według tego dostaniesz przypomnienie przed sezonem.'],
+    poj: ['W jakim pudełku?', ''],
+    gdzie: ['Gdzie to położysz na strychu?', 'Dotknij miejsca na mapce, potem wybierz półkę.'],
+    dod: ['Coś jeszcze? (nieobowiązkowe)', 'Możesz od razu pominąć ten krok.'],
+    data: ['Kiedy przypomnieć?', 'Wybierz, kiedy mamy Ci przypomnieć o tym worku.']
+  };
+  function krokiAktywne() {
+    var dom = F.rodzaj === 'Dom', k = ['zdj', 'rodzaj'];
+    if (!(dom && wspolna())) k.push('dla');
+    if (!dom) k.push('roz');
+    return k.concat(['sezon', 'poj', 'gdzie', 'dod', 'data']);
+  }
+  function krok(k, tresc) {
+    return '<section class="krok hidden" data-k="' + k + '"><h2 class="kt">' + e(KROKI[k][0]) + '</h2>' + (KROKI[k][1] ? '<p class="hint" style="margin:0 0 16px">' + e(KROKI[k][1]) + '</p>' : '') + tresc + '</section>';
+  }
   function formularz(o) {
     var w = worek(o.id), edycja = w && w.status === 'strych';
     var ostatnie = {}; try { ostatnie = JSON.parse(odczytaj('strych.ostatnie') || '{}'); } catch (x) {}
     F = {
-      id: o.id, edycja: edycja,
+      id: o.id, edycja: edycja, k: 'zdj',
       rodzaj: edycja ? w.rodzaj : (ostatnie.rodzaj || 'Odzież'),
       dla: edycja ? w.dla.slice() : (ostatnie.dla ? ostatnie.dla.filter(osoba) : []),
       od: edycja ? w.rozmiarOd : '', do: edycja ? w.rozmiarDo : '',
@@ -977,31 +1127,66 @@
     };
     if (edycja && w.przegladDo) { F.reczny = true; F.tryb = 'wlasna'; F.dataWl = w.przegladDo; }
     var d = S.dane, h = '';
-    h += '<div class="glowa"><div><div class="duzy-nr">' + (edycja ? 'EDYCJA' : 'NOWY WOREK') + '</div><h2>#' + e(F.id) + '</h2></div><button class="zamknij" data-zamknij aria-label="Zamknij">×</button></div>';
-    h += '<div id="fMsg"></div>';
-    h += '<div class="field"><label class="k">Zrób zdjęcie rzeczy z worka</label><div class="zdjecia edycja" id="fZdj"></div>' +
-         '<div class="foto-przyciski"><button class="btn dark" type="button" id="fAparat">Zrób zdjęcie</button><button class="btn" type="button" id="fGaleria">Wybierz z telefonu</button></div>' +
+    h += '<div class="glowa"><div><div class="duzy-nr">' + (edycja ? 'ZMIANA WORKA' : 'NOWY WOREK') + ' #' + e(F.id) + '</div></div><button class="zamknij" data-zamknij aria-label="Zamknij">×</button></div>';
+    h += '<div class="postep-t" id="kTytul"></div><div class="postep-pasek"><div id="kPasek"></div></div><div id="fMsg"></div>';
+    h += krok('zdj', '<div class="zdjecia edycja" id="fZdj"></div>' +
+         '<div class="foto-przyciski"><button class="btn primary" type="button" id="fAparat">Zrób zdjęcie</button><button class="btn" type="button" id="fGaleria">Wybierz z telefonu</button></div>' +
          '<input type="file" accept="image/*" capture="environment" id="inAparat" class="hidden"><input type="file" accept="image/*" id="inGaleria" class="hidden" multiple>' +
-         '<p class="hint">Rozłóż rzeczy na podłodze i zrób jedno zdjęcie (maks. ' + d.ust.MAX_ZDJEC + '). Ułatwi to potem szukanie.</p></div>';
-    h += '<div class="field"><label class="k">Co to jest?</label><div class="chips" id="fRodzajF">' + RODZAJE.map(function (r) { return chip('data-rodzaj="' + r + '"', r === 'Dom' ? 'Dom: firany, pościel' : r, F.rodzaj === r); }).join('') + '</div></div>';
-    h += '<div class="field" id="sDla"><label class="k">Dla kogo?</label><div class="chips" id="fDla"></div></div>';
-    h += '<div class="field" id="sRozmiar"><label class="k">Jaki rozmiar? (od – do)</label><div class="row"><select id="fOd" aria-label="Rozmiar od"></select><select id="fDo" aria-label="Rozmiar do"></select></div><p class="hint" id="fHint"></p></div>';
-    h += '<div class="field"><label class="k">Na jaki sezon? (można kilka)</label><div class="chips" id="fSezon">' + SEZ4.concat(['Cały rok']).map(function (t) { return chip('data-tag="' + t + '"', t, F.tagi.indexOf(t) >= 0); }).join('') + '</div></div>';
-    h += '<div class="field" id="sDomTagi"><label class="k">Co dokładnie?</label><div class="chips">' + DOMOWE.map(function (t) { return chip('data-tag="' + t + '"', t, F.tagi.indexOf(t) >= 0); }).join('') + '</div></div>';
-    h += '<div class="field"><label>Czy to już do oddania?</label><div class="chips">' + STATUSY.map(function (t) { return chip('data-tag="' + t + '"', t, F.tagi.indexOf(t) >= 0); }).join('') + '</div>' +
-         '<div id="sCzeka" style="margin-top:10px"><label for="fCzeka">Czeka na kogoś (np. młodsze rodzeństwo)?</label><select id="fCzeka"><option value="">nie, na nikogo</option>' + d.domownicy.filter(function (p) { return p.rola !== 'wspolne'; }).map(function (p) { return '<option value="' + e(p.id) + '"' + (F.czekaNa === p.id ? ' selected' : '') + '>' + e(p.imie) + '</option>'; }).join('') + '</select></div></div>';
-    h += '<div class="field"><label class="k">Jakie pudełko?</label><div class="chips" id="fPoj">' + POJ.map(function (p) { return chip('data-poj="' + p + '"', p, F.pojemnik === p); }).join('') + '</div><p class="hint">' + POJ.map(function (p) { return e(p) + ' = ' + e(d.ust.POJEMNIKI[p] || ''); }).join(' · ') + '</p></div>';
-    h += '<div class="field"><label class="k">Gdzie leży na strychu?</label>';
-    if (d.strefy.length) h += '<div id="fMapa"></div><p class="hint" id="fMiejsce" style="margin-bottom:8px"></p><div class="chips" id="fPolka"></div>';
-    else h += '<p class="hint" style="margin:0">Plan strychu jest pusty. Zapisz worek teraz, a plan narysuj w zakładce „Strych”. Potem uzupełnisz lokalizację w edycji.</p>';
-    h += '</div>';
-    h += '<div class="field"><label for="fRzecz">Pojedyncze rzeczy do szukania (nieobowiązkowe)</label><div style="display:flex;gap:8px"><input type="text" id="fRzecz" maxlength="60" placeholder="np. czarne kozaki" enterkeyhint="done" style="flex:1"><button class="btn mala" type="button" id="fRzeczDodaj" style="flex:0 0 auto;padding:0 18px">Dodaj</button></div><div class="chips" id="fRzeczy" style="margin-top:10px"></div><p class="hint">Wpisz to, czego możesz szukać osobno (kozaki, kurtka puchowa, strój kąpielowy). Wyszukiwarka znajdzie to po nazwie i właścicielu.</p></div>';
-    h += '<div class="field"><label for="fOpis">Dopisek (nieobowiązkowe)</label><textarea id="fOpis" maxlength="400" placeholder="np. 6 bluz, 3 spodnie, kurtka przeciwdeszczowa">' + e(F.opis) + '</textarea></div>';
-    h += '<div class="field"><label class="k">Kiedy przypomnieć?</label><div id="fDaty"></div></div>';
-    h += '<button class="btn primary" id="fZapisz" type="button">Zapisz worek</button>';
+         '<p class="hint">Możesz dodać do ' + d.ust.MAX_ZDJEC + ' zdjęć.</p>');
+    h += krok('rodzaj', '<div class="chips" id="fRodzajF">' + RODZAJE.map(function (r) { return chip('data-rodzaj="' + r + '"', r === 'Odzież' ? 'Ubrania' : r === 'Obuwie' ? 'Buty' : 'Dom: firany, pościel', F.rodzaj === r); }).join('') + '</div>');
+    h += krok('dla', '<div class="chips" id="fDla"></div>');
+    h += krok('roz', '<div class="row"><div><label for="fOd">Od</label><select id="fOd"></select></div><div><label for="fDo">Do</label><select id="fDo"></select></div></div><p class="hint" id="fHint"></p>');
+    h += krok('sezon', '<div class="chips" id="fSezon">' + SEZ4.concat(['Cały rok']).map(function (t) { return chip('data-tag="' + t + '"', t, F.tagi.indexOf(t) >= 0); }).join('') + '</div>' +
+         '<div id="sDomTagi" style="margin-top:22px"><label>Co dokładnie?</label><div class="chips">' + DOMOWE.map(function (t) { return chip('data-tag="' + t + '"', t, F.tagi.indexOf(t) >= 0); }).join('') + '</div></div>');
+    h += krok('poj', '<div class="chips" id="fPoj">' + POJ.map(function (p) { return chip('data-poj="' + p + '"', p, F.pojemnik === p); }).join('') + '</div><p class="hint">' + POJ.map(function (p) { return '<b>' + e(p) + '</b>: ' + e(d.ust.POJEMNIKI[p] || ''); }).join('<br>') + '</p>');
+    h += krok('gdzie', d.strefy.length ? '<div id="fMapa"></div><p class="hint" id="fMiejsce" style="margin-bottom:12px"></p><label>Która półka? (liczone od dołu)</label><div class="chips" id="fPolka"></div>' : '<p class="hint" style="margin:0">Plan strychu jest jeszcze pusty. Zapisz worek, a miejsce narysujesz potem w zakładce Mapka.</p>');
+    h += krok('dod', '<label>Czy to już do oddania?</label><div class="chips">' + STATUSY.map(function (t) { return chip('data-tag="' + t + '"', t, F.tagi.indexOf(t) >= 0); }).join('') + '</div>' +
+         '<div id="sCzeka" style="margin-top:20px"><label for="fCzeka">Czeka na kogoś? (np. młodsze rodzeństwo)</label><select id="fCzeka"><option value="">nie, na nikogo</option>' + d.domownicy.filter(function (p) { return p.rola !== 'wspolne'; }).map(function (p) { return '<option value="' + e(p.id) + '"' + (F.czekaNa === p.id ? ' selected' : '') + '>' + e(p.imie) + '</option>'; }).join('') + '</select></div>' +
+         '<div style="margin-top:20px"><label for="fRzecz">Pojedyncze rzeczy do szukania</label><div style="display:flex;gap:8px"><input type="text" id="fRzecz" maxlength="60" placeholder="np. czarne kozaki" enterkeyhint="done" style="flex:1"><button class="btn mala" type="button" id="fRzeczDodaj" style="flex:0 0 auto">Dodaj</button></div><div class="chips" id="fRzeczy" style="margin-top:10px"></div></div>' +
+         '<div style="margin-top:20px"><label for="fOpis">Dopisek</label><textarea id="fOpis" maxlength="400" placeholder="np. 6 bluz, 3 spodnie">' + e(F.opis) + '</textarea></div>');
+    h += krok('data', '<div class="info" id="fPodsum"></div><div id="fDaty"></div>');
+    h += '<div class="stack" style="margin-top:24px"><button class="btn primary" id="fZapisz" type="button">Dalej</button><button class="btn" id="kWstecz" type="button">Wstecz</button>' + (edycja ? '<button class="btn dark" id="fZapiszTeraz" type="button">Zapisz zmiany teraz</button>' : '') + '</div>';
     otworzModal(h);
     var root = $('modal');
-    root.classList.add('formn'); renderZdjec(root); renderRzeczy(root); if (d.strefy.length) renderMapyForm(root); odswiezForm(root);
+    renderZdjec(root); renderRzeczy(root); if (d.strefy.length) renderMapyForm(root); odswiezForm(root); pokazKrok(root);
+  }
+  function pokazKrok(root) {
+    var k = krokiAktywne(), i = k.indexOf(F.k);
+    if (i < 0) { F.k = k[0]; i = 0; }
+    Array.prototype.forEach.call(root.querySelectorAll('.krok'), function (x) { x.classList.toggle('hidden', x.dataset.k !== F.k); });
+    root.querySelector('#kTytul').textContent = 'Krok ' + (i + 1) + ' z ' + k.length;
+    root.querySelector('#kPasek').style.width = ((i + 1) / k.length * 100) + '%';
+    root.querySelector('#kWstecz').classList.toggle('hidden', i === 0);
+    root.querySelector('#fZapisz').textContent = i === k.length - 1 ? 'Zapisz worek' : 'Dalej';
+    if (F.k === 'data') renderPodsum(root);
+    root.scrollTop = 0;
+  }
+  function walidujKrok() {
+    if (F.k === 'zdj' && !F.zdjecia.length) return 'Zrób przynajmniej jedno zdjęcie.';
+    if (F.k === 'dla' && !F.dla.length) return 'Dotknij osoby, dla której to jest.';
+    if (F.k === 'roz' && !(F.od || F.do)) return 'Wybierz rozmiar (wystarczy jeden).';
+    return '';
+  }
+  function renderPodsum(root) {
+    var z = strefa(F.strefa), r = [];
+    var dla = F.rodzaj === 'Dom' && wspolna() ? wspolna().imie : F.dla.map(function (i) { var o = osoba(i); return o ? o.imie : '?'; }).join(', ');
+    r.push(['Dla', dla || '—']);
+    if (F.rodzaj !== 'Dom') { var a = F.od || F.do, b = F.do || F.od; r.push(['Rozmiar', a ? (a === b ? a : a + '–' + b) : '—']); }
+    r.push(['Sezon', F.tagi.filter(function (t) { return SEZ4.indexOf(t) >= 0 || t === 'Cały rok'; }).join(' / ') || '—']);
+    r.push(['Pudełko', F.pojemnik || '—']);
+    r.push(['Miejsce', z ? z.nazwa + (F.polka ? (F.polka === 'Podłoga' ? ', podłoga' : ', półka ' + F.polka) : '') : '—']);
+    root.querySelector('#fPodsum').innerHTML = r.map(function (x) { return '<dt>' + e(x[0]) + '</dt><dd>' + e(x[1]) + '</dd>'; }).join('');
+  }
+  function odswiezForm(root) {
+    var dom = F.rodzaj === 'Dom', ws = wspolna();
+    root.querySelector('#sDomTagi').classList.toggle('hidden', !dom);
+    root.querySelector('#sCzeka').classList.toggle('hidden', dom);
+    Array.prototype.forEach.call(root.querySelectorAll('#fRodzajF .chip'), function (c) { c.setAttribute('aria-pressed', c.dataset.rodzaj === F.rodzaj); });
+    root.querySelector('#fDla').innerHTML = S.dane.domownicy.filter(function (p) { return !ws || dom === (p.rola === 'wspolne') || (dom && !ws); }).map(function (p) { return chip('data-dla="' + e(p.id) + '"', p.imie, F.dla.indexOf(p.id) >= 0, p.kolor); }).join('');
+    var lista = F.rodzaj === 'Obuwie' ? BUTY : UBR;
+    if (lista.indexOf(F.od) < 0) F.od = ''; if (lista.indexOf(F.do) < 0) F.do = '';
+    root.querySelector('#fOd').innerHTML = opcjeSel(lista, F.od); root.querySelector('#fDo').innerHTML = opcjeSel(lista, F.do);
+    odswiezHint(root); renderDaty(root);
   }
   function renderRzeczy(root) {
     root.querySelector('#fRzeczy').innerHTML = F.rzeczy.map(function (x, i) { return '<button type="button" class="chip" data-rzusun="' + i + '" aria-label="Usuń ' + e(x) + '">' + e(x) + ' ×</button>'; }).join('');
@@ -1009,18 +1194,7 @@
   function dodajRzecz(root) {
     var inp = root.querySelector('#fRzecz');
     inp.value.split(',').forEach(function (x) { x = x.trim(); if (x && F.rzeczy.indexOf(x) < 0 && F.rzeczy.length < 40) F.rzeczy.push(x); });
-    inp.value = ''; renderRzeczy(root); inp.focus();
-  }
-  function odswiezForm(root) {
-    var dom = F.rodzaj === 'Dom', ws = wspolna();
-    function pokaz(id, tak) { root.querySelector(id).classList.toggle('hidden', !tak); }
-    pokaz('#sDla', !(dom && ws)); pokaz('#sRozmiar', !dom); pokaz('#sDomTagi', dom); pokaz('#sCzeka', !dom);
-    Array.prototype.forEach.call(root.querySelectorAll('#fRodzajF .chip'), function (c) { c.setAttribute('aria-pressed', c.dataset.rodzaj === F.rodzaj); });
-    root.querySelector('#fDla').innerHTML = S.dane.domownicy.filter(function (p) { return !ws || dom === (p.rola === 'wspolne') || (dom && !ws); }).map(function (p) { return chip('data-dla="' + e(p.id) + '"', p.imie, F.dla.indexOf(p.id) >= 0, p.kolor); }).join('');
-    var lista = F.rodzaj === 'Obuwie' ? BUTY : UBR;
-    if (lista.indexOf(F.od) < 0) F.od = ''; if (lista.indexOf(F.do) < 0) F.do = '';
-    root.querySelector('#fOd').innerHTML = opcjeSel(lista, F.od); root.querySelector('#fDo').innerHTML = opcjeSel(lista, F.do);
-    odswiezHint(root); renderDaty(root);
+    inp.value = ''; renderRzeczy(root);
   }
   function odswiezHint(root) {
     var box = root.querySelector('#fHint'); if (!box) return;
@@ -1159,7 +1333,7 @@
   /* ---------- logowanie ---------- */
   function wyloguj(powod) {
     S.k = null; S.kto = null; S.dane = null; zapamietaj('strych.k', null); zapamietaj('strych.kto', null); zapamietaj('strych.dane', null);
-    $('nav').classList.add('hidden'); $('kto').innerHTML = ''; zamknijModal(); pokazEkran('login');
+    $('kto').innerHTML = ''; zamknijModal(); pokazEkran('login');
     if (powod) komunikat(powod, true);
   }
   function wyborOsoby() {
@@ -1171,14 +1345,14 @@
     if (kod) { zapamietaj('strych.k', kod.trim()); history.replaceState(null, '', bazaUrl() + location.hash); }
     S.k = odczytaj('strych.k'); S.kto = odczytaj('strych.kto');
     if (!S.k) { pokazEkran('login'); return; }
-    pokazEkran('gar'); $('lista').innerHTML = '<div class="pusto">Wczytuję…</div>';
+    pokazEkran('home'); komunikat('Wczytuję…');
     wczytaj().then(function () {
-      $('nav').classList.remove('hidden');
+      $('komunikat').innerHTML = '';
       if (!S.kto) wyborOsoby();
       renderWszystko(); obsluzHash();
     }).catch(function (er) {
       if (er.sesja) return wyloguj(er.message);
-      $('lista').innerHTML = '<div class="pusto">Nie udało się wczytać danych.<br>' + e(er.message) + '</div>';
+      komunikat('Nie udało się wczytać danych: ' + er.message, true);
     });
   }
   function obsluzHash() {
@@ -1194,35 +1368,31 @@
     if ((b = t.closest('#kto'))) return wyborOsoby();
     if ((b = t.closest('#nav button'))) { S.edytujPlan = false; return pokazEkran(b.dataset.e); }
     if ((b = t.closest('[data-akcja]'))) return akcja(b.dataset.akcja);
-    if (t.closest('#banerBtn')) { S.f.uwaga = true; S.f.zdjete = false; return renderGar(); }
-    if (t.closest('#banerRoz')) return pokazEkran('roz');
-    if (t.closest('#rozZapisz')) return zapiszRozmiary();
-    if (t.closest('#rzutWgraj')) return $('inRzut').click();
-    if (t.closest('#rzutUsun')) { if (!confirm('Usunąć rzut z planu? Strefy zostaną.')) return; return api('ustawRzut', ['', 0]).then(function () { S.dane.ust.RZUT_ID = ''; S.dane.ust.RZUT_PROP = 0; renderStrych(); podlaczRysowanie(); }).catch(function (er) { komunikat(er.message, true); }); }
-    if (t.closest('#pojZapisz')) { var op = {}; Array.prototype.forEach.call(document.querySelectorAll('[data-poj][id^=poj]'), function (i) { op[i.dataset.poj] = i.value; }); return api('ustawPojemniki', [op]).then(function (x) { S.dane.ust.POJEMNIKI = x; komunikat('Zapisano opisy pojemników.'); }).catch(function (er) { komunikat(er.message, true); }); }
+    if ((b = t.closest('[data-idz]'))) return pokazEkran(b.dataset.idz);
+    if (t.closest('#wstecz')) return pokazEkran(RODZIC[S.ekran] || 'home');
+    if ((b = t.closest('[data-otworz]'))) return otworzWorek(b.dataset.otworz);
+    if ((b = t.closest('[data-szybka]'))) { S.biezacy = b.dataset.id; return akcja(b.dataset.szybka); }
+    if ((b = t.closest('[data-szos]'))) { S.sz.osoba = b.dataset.szos; return renderSzukam(); }
+    if ((b = t.closest('[data-szrod]'))) { S.sz.rodzaj = b.dataset.szrod; return renderSzukam(); }
+    if ((b = t.closest('[data-szsez]'))) { S.sz.sezon = b.dataset.szsez; return renderSzukam(); }
+    if (t.closest('[data-szzd]')) { S.sz.zdjete = !S.sz.zdjete; return renderSzukam(); }
+    if (t.closest('#szPokaz')) { S.sz.q = $('szQ').value; return pokazEkran('wyniki'); }
+    if (t.closest('#szWyczysc')) { S.sz = { osoba: '', rodzaj: '', sezon: '', rozmiar: '', q: '', zdjete: false }; return renderSzukam(); }
     if ((b = t.closest('.worek[data-id]'))) return otworzWorek(b.dataset.id);
     if (t.closest('#dodaj')) return formularz({ id: normId(String(nastepnyWolny())) });
     if (t.closest('#skan')) return skanuj();
     if (t.closest('#loginOk')) { var k = $('kod').value.trim(); if (!k) return; zapamietaj('strych.k', k); return start(); }
     if (t.closest('#wyloguj')) return wyloguj();
     if (t.closest('#kopiujLink')) { try { navigator.clipboard.writeText(S.linkZaproszenia); komunikat('Link skopiowany.'); } catch (x) { prompt('Skopiuj link:', S.linkZaproszenia); } return; }
-    // filtry
-    if ((b = t.closest('[data-os]'))) { S.f.osoba = b.dataset.os; return renderGar(); }
-    if ((b = t.closest('[data-sez]'))) { S.f.sezon = S.f.sezon === b.dataset.sez ? '' : b.dataset.sez; return renderGar(); }
-    if (t.closest('[data-ns]')) { S.f.naSezon = !S.f.naSezon; return renderGar(); }
-    if ((b = t.closest('[data-rz]'))) { S.f.rozm = S.f.rozm === b.dataset.rz ? '' : b.dataset.rz; return renderGar(); }
-    if ((b = t.closest('#fRodzaj [data-rod]'))) { S.f.rodzaj = S.f.rodzaj === b.dataset.rod ? '' : b.dataset.rod; return renderGar(); }
-    if (t.closest('[data-uw]')) { S.f.uwaga = !S.f.uwaga; return renderGar(); }
-    if (t.closest('[data-zd]')) { S.f.zdjete = !S.f.zdjete; return renderGar(); }
     // plan strychu
     if (t.closest('#planEdytuj')) { S.edytujPlan = !S.edytujPlan; S.wybranaStrefa = ''; renderStrych(); podlaczRysowanie(); return; }
     if (t.closest('#szybkiStart')) return zapiszStrefy([{ nazwa: 'Regał lewy', x: 3, y: 8, w: 18, h: 70, polek: 4 }, { nazwa: 'Regał prawy', x: 79, y: 8, w: 18, h: 70, polek: 4 }, { nazwa: 'Środek', x: 26, y: 20, w: 48, h: 45, polek: 1 }, { nazwa: 'Przy włazie', x: 26, y: 72, w: 48, h: 22, polek: 1 }]);
-    if ((b = t.closest('[data-zmien]'))) { var zz = strefa(b.dataset.zmien); return pytajStrefe('Strefa', zz.nazwa, zz.polek, function (n, pk) { zapiszStrefy(S.dane.strefy.map(function (x) { return x.id === zz.id ? strefaZ(x, { nazwa: n, polek: pk }) : x; })); }); }
+    if ((b = t.closest('[data-zmien]'))) { var zz = strefa(b.dataset.zmien); return pytajStrefe('Miejsce', zz.nazwa, zz.polek, function (n, pk, zd) { zapiszStrefy(S.dane.strefy.map(function (x) { return x.id === zz.id ? strefaZ(x, { nazwa: n, polek: pk, zdjecie: zd }) : x; })); }, zz.zdjecie); }
     if ((b = t.closest('[data-usunz]'))) { var uz = strefa(b.dataset.usunz), ile = S.dane.worki.filter(function (w) { return w.strefa === uz.id && w.status === 'strych'; }).length;
       if (!confirm('Usunąć strefę „' + uz.nazwa + '”?' + (ile ? ' ' + ile + ' worków straci lokalizację.' : ''))) return;
       return zapiszStrefy(S.dane.strefy.filter(function (x) { return x.id !== uz.id; })); }
     if ((b = t.closest('#mapaGlowna .strefa')) && !S.edytujPlan) { S.wybranaStrefa = S.wybranaStrefa === b.dataset.z ? '' : b.dataset.z; return renderStrych(); }
-    if ((b = t.closest('#mapaGlowna .strefa')) && S.edytujPlan) { var zs = strefa(b.dataset.z); return pytajStrefe('Strefa', zs.nazwa, zs.polek, function (n, pk) { zapiszStrefy(S.dane.strefy.map(function (x) { return x.id === zs.id ? strefaZ(x, { nazwa: n, polek: pk }) : x; })); }); }
+    if ((b = t.closest('#mapaGlowna .strefa')) && S.edytujPlan) { var zs = strefa(b.dataset.z); return pytajStrefe('Miejsce', zs.nazwa, zs.polek, function (n, pk, zd) { zapiszStrefy(S.dane.strefy.map(function (x) { return x.id === zs.id ? strefaZ(x, { nazwa: n, polek: pk, zdjecie: zd }) : x; })); }, zs.zdjecie); }
     // etykiety
     if (t.closest('#etDrukuj')) return drukuj();
     if ((b = t.closest('[data-ettryb]'))) { S.etTryb = b.dataset.ettryb; return renderEtykiety(); }
@@ -1239,7 +1409,7 @@
       if ((b = t.closest('[data-rodzaj]'))) {
         var nowy = b.dataset.rodzaj, ws2 = wspolna();
         if (ws2 && nowy === 'Dom') F.dla = [ws2.id]; else if (ws2 && F.rodzaj === 'Dom') F.dla = [];
-        F.rodzaj = nowy; return odswiezForm(root);
+        F.rodzaj = nowy; odswiezForm(root); return pokazKrok(root);
       }
       if ((b = t.closest('#fDla [data-dla]'))) { var i = F.dla.indexOf(b.dataset.dla); if (i >= 0) F.dla.splice(i, 1); else F.dla.push(b.dataset.dla); b.setAttribute('aria-pressed', i < 0); odswiezHint(root); return renderDaty(root); }
       if ((b = t.closest('[data-tag]'))) {
@@ -1259,7 +1429,15 @@
       if ((b = t.closest('[data-fusun]'))) { F.zdjecia.splice(+b.dataset.fusun, 1); return renderZdjec(root); }
       if (t.closest('#fAparat')) return root.querySelector('#inAparat').click();
       if (t.closest('#fGaleria')) return root.querySelector('#inGaleria').click();
-      if (t.closest('#fZapisz')) return zapiszFormularz(root);
+      if (t.closest('#fZapiszTeraz')) return zapiszFormularz(root);
+      if (t.closest('#kWstecz')) { var k2 = krokiAktywne(), i2 = k2.indexOf(F.k); if (i2 > 0) { F.k = k2[i2 - 1]; $('fMsg').innerHTML = ''; pokazKrok(root); } return; }
+      if (t.closest('#fZapisz')) {
+        var kk = krokiAktywne();
+        if (F.k === kk[kk.length - 1]) return zapiszFormularz(root);
+        var bl = walidujKrok();
+        if (bl) { $('fMsg').innerHTML = '<div class="msg err" role="alert">' + e(bl) + '</div>'; root.scrollTop = 0; return; }
+        $('fMsg').innerHTML = ''; F.k = kk[kk.indexOf(F.k) + 1]; return pokazKrok(root);
+      }
     }
   });
   function renderUstZEdycji() {   // przerysowanie listy domowników bez gubienia wpisanych zmian
@@ -1268,7 +1446,7 @@
   }
   document.addEventListener('input', function (ev) {
     var t = ev.target;
-    if (t.id === 'szukaj') { S.f.q = t.value; return renderGar(); }
+    if (t.id === 'szQ') S.sz.q = t.value;
     if (t.dataset && t.dataset.di !== undefined && t.dataset.p) S.edytowani[+t.dataset.di][t.dataset.p] = t.value;
     if (t.id === 'etOd' || t.id === 'etIle' || t.id === 'etPoz') renderEtykiety();
   });
@@ -1276,7 +1454,7 @@
     var t = ev.target;
     if (t.id === 'inAparat' || t.id === 'inGaleria') { dodajPliki(t.files, $('modal')); t.value = ''; }
     if (t.dataset && t.dataset.et) { var id = t.dataset.et, i = (S.etWybrane = S.etWybrane || []).indexOf(id); if (t.checked && i < 0) S.etWybrane.push(id); if (!t.checked && i >= 0) S.etWybrane.splice(i, 1); renderEtykiety(); }
-    if (t.id === 'fRozm') { S.f.rozmiar = t.value; renderGar(); }
+    if (t.id === 'szRozm') S.sz.rozmiar = t.value;
     if (t.id === 'inRzut') { if (t.files[0]) wgrajRzut(t.files[0]); t.value = ''; }
     if (F && F.zdjecia && $('modal').contains(t)) {
       if (t.id === 'fOd') { F.od = t.value; odswiezHint($('modal')); renderDaty($('modal')); }

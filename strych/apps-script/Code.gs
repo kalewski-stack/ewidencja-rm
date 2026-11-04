@@ -25,7 +25,7 @@ var CONFIG = {
 var TAB = {
   Worki:      [['id','t'],['status','t'],['dla','t'],['rozmiar','t'],['tagi','t'],['czekaNa','t'],['strefa','t'],['polka','t'],['opis','t'],['zdjecia','t'],['wstawiono','t'],['przegladDo','t'],['przejrzano','t'],['zdjeto','t'],['dodal','t'],['zmieniono','t'],['rodzaj','t'],['rozmiarOd','t'],['rozmiarDo','t'],['pojemnik','t'],['rzeczy','t']],
   Domownicy:  [['id','t'],['imie','t'],['kolor','t'],['email','t'],['rokUr','t'],['rola','t'],['rozmiarUbr','t'],['rozmiarButy','t'],['rozmiarData','t']],
-  Strefy:     [['id','t'],['nazwa','t'],['x','n'],['y','n'],['w','n'],['h','n'],['polek','n']],
+  Strefy:     [['id','t'],['nazwa','t'],['x','n'],['y','n'],['w','n'],['h','n'],['polek','n'],['zdjecie','t']],
   Ustawienia: [['klucz','t'],['wartosc','t'],['opis','t']],
   Dziennik:   [['kiedy','t'],['kto','t'],['worek','t'],['akcja','t'],['szczegoly','t']]
 };
@@ -127,7 +127,7 @@ function domownicy_() {
     return { id: d.id, imie: d.imie, kolor: d.kolor, email: d.email, rokUr: d.rokUr, rola: d.rola || 'osoba', rozmiarUbr: d.rozmiarUbr, rozmiarButy: d.rozmiarButy, rozmiarData: d.rozmiarData };
   });
 }
-function strefy_() { return wiersze_('Strefy').map(function (z) { return { id: z.id, nazwa: z.nazwa, x: z.x, y: z.y, w: z.w, h: z.h, polek: z.polek > 0 ? z.polek : 4 }; }); }
+function strefy_() { return wiersze_('Strefy').map(function (z) { return { id: z.id, nazwa: z.nazwa, x: z.x, y: z.y, w: z.w, h: z.h, polek: z.polek > 0 ? z.polek : 4, zdjecie: z.zdjecie }; }); }
 function pojemniki_() {
   var o = {}; CONFIG.POJEMNIKI.forEach(function (p) { o[p] = ustawienie_('POJ_' + p, CONFIG.POJEMNIKI_OPIS[p]); }); return o;
 }
@@ -238,7 +238,7 @@ var API = {
   zapiszStrefy: function (u, lista) {
     if (!Array.isArray(lista) || lista.length > 40) throw new Error('Zbyt wiele stref.');
     var wyn = lista.map(function (z) {
-      var o = { id: /^[a-z0-9]{3,12}$/.test(String(z.id)) ? String(z.id) : 's' + losowy_(5), nazwa: tekst_(z.nazwa, 40), x: Number(z.x), y: Number(z.y), w: Number(z.w), h: Number(z.h), polek: Math.max(1, Math.min(10, Math.round(Number(z.polek) || 4))) };
+      var o = { id: /^[a-z0-9]{3,12}$/.test(String(z.id)) ? String(z.id) : 's' + losowy_(5), nazwa: tekst_(z.nazwa, 40), x: Number(z.x), y: Number(z.y), w: Number(z.w), h: Number(z.h), polek: Math.max(1, Math.min(10, Math.round(Number(z.polek) || 4))), zdjecie: /^[A-Za-z0-9_-]{10,80}$/.test(String(z.zdjecie || '')) ? String(z.zdjecie) : '' };
       if (!o.nazwa) throw new Error('Strefa musi mieć nazwę.');
       ['x', 'y', 'w', 'h'].forEach(function (k) { if (isNaN(o[k]) || o[k] < 0 || o[k] > 100) throw new Error('Zły wymiar strefy.'); o[k] = Math.round(o[k] * 10) / 10; });
       return o;

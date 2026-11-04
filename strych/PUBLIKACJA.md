@@ -32,6 +32,18 @@ Link zawiera kod domu, więc wystarczy go otworzyć raz, potem „Dodaj do ekran
 2. Po dodaniu worka zakładka **Kartki → Wydrukuj** (A4, skala 100%, bez marginesów, dwie kartki A5 na arkusz). Kartkę przyklej albo przypnij do worka lub kartonu.
 3. Zeskanuj kod zwykłym aparatem telefonu: otworzy się karta worka. Pusty numer otwiera formularz nowego worka.
 
+## Jak się z tego korzysta (ekran startowy)
+
+Po otwarciu są cztery duże przyciski:
+
+1. **Na strych**: kreator prowadzi krok po kroku (zdjęcie, co to jest, dla kogo, rozmiar, sezon, pudełko, miejsce na mapce i półka, dodatki, przypomnienie) i na końcu zapisuje worek. Potem proponuje wydruk kartki A5.
+2. **Szukam**: wybierasz po kolei: czyje, co to jest, sezon, rozmiar, ewentualnie nazwę rzeczy. Na końcu dostajesz mapkę z numerowanymi miejscami, zdjęcie worka, zdjęcie tego miejsca i krótki opis, gdzie szukać (do trzech najbardziej prawdopodobnych worków).
+3. **Mapka**: plan strychu. Dotknij miejsca (po najechaniu kursorem na komputerze pojawia się też podpowiedź), a pod mapką zobaczysz zdjęcie miejsca i listę worków z rzeczami, które tam leżą.
+4. **Przypomnienia**: lista tego, na co trzeba zwrócić uwagę: minął sezon, a worek leży; minął termin; rozmiar już pasuje albo jest za mały; worek leży za długo. Przy każdym są przyciski „Sprawdziłem” i „Zabrałem”. Liczba na przycisku to liczba spraw do załatwienia.
+
+Pod przyciskami jest link „Więcej”: rozmiary dzieci, kartki do druku i ustawienia (domownicy, pojemniki).
+Zdjęcie miejsca dodajesz w Mapce → Zmień plan → Edytuj przy wybranym miejscu.
+
 ## Rodzina, rozmiary i sezony
 
 - Arkusz startuje z listą: Jurek, Ania, Marysia, Piotr, Tosia, Julek, Misia, Gabi i pozycja **Dom (wspólne)** na firany, pościel i materiały. Imiona i **rok urodzenia** poprawisz w aplikacji (Ustawienia). Wiek liczy się sam co roku.
