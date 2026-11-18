@@ -6,6 +6,7 @@ Dane trafiają do arkusza Google przez Apps Script. Wygląd zgodny z kluczem kom
 - `index.html` — aplikacja (adres API w linii `var API_URL`)
 - `manifest.webmanifest`, `sw.js`, `ikony/` — ikona i praca jako aplikacja na ekranie głównym
 - `PUBLIKACJA.md` — jak wdrożyć i aktualizować
+- `apps-script/Code.gs` — backend (kopia tego, co jest wklejone w Apps Script arkusza; po każdej zmianie wgraj Wdróż → Nowa wersja)
 
 Pliki nie zawierają danych pracowników ani kluczy dostępu. Klucze są wyłącznie w arkuszu.
 

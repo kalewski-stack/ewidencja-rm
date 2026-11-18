@@ -421,6 +421,7 @@
   function zajety(el, tak) { el.className = el.className.replace(' ladowanie', '') + (tak ? ' ladowanie' : ''); }
   function fmtM(m) { var h = Math.floor(m / 60), r = m % 60; if (!r) return h + ' h'; if (!h) return r + ' min'; return h + ' h ' + ('0' + r).slice(-2) + ' min'; }
   function fmtH(h) { return fmtM(Math.round(Math.abs(h || 0) * 60)); }
+  function fmtDni(x) { return String(Math.round((Number(x) || 0) * 10) / 10).replace('.', ','); }
   function liczDni(n, j, m, w) { n = Number(n) || 0; if (n === 1) return n + ' ' + j; var r = n % 10, s = n % 100; return n + ' ' + ((r >= 2 && r <= 4 && (s < 12 || s > 14)) ? m : w); }
   function fmtMin(min) { return fmtM(Math.max(0, Math.round(min))); }
   function naMin(t) { var c = t.split(':'); return Number(c[0]) * 60 + Number(c[1]); }
@@ -811,13 +812,11 @@
     var u = m.urlopRok;
     $('mUrlopEt').textContent = 'Urlop w roku ' + m.mies.slice(0, 4);
     if (u) {
-      // niepełny etat: pula w godzinach, dzień urlopu = norma dzienna (art. 154 § 2 KP); dni = wykorzystane + ile jeszcze wejdzie
-      var dniRazem = u.godzinowo ? u.wykorzystane + Math.floor(u.zostaloDni) : u.przysluguje;
-      var zostDni = u.godzinowo ? Math.floor(u.zostaloDni) : u.zostalo;
-      $('mUrlop').innerHTML = '<em>' + u.wykorzystane + '</em> z ' + liczDni(dniRazem, 'dnia', 'dni', 'dni');
+      // dni = godziny / norma dzienna osoby (pełny etat 8 h, 7/8: 7 h, 1/2: 4 h); przy stanie przeniesionym mogą być ułamkowe
+      $('mUrlop').innerHTML = '<em>' + fmtDni(u.wykorzystane) + '</em> z ' + fmtDni(u.przysluguje) + ' dni';
       $('mUrlopOpis').textContent = fmtH(u.wykorzystaneGodz) + ' z ' + fmtH(u.przyslugujeGodz) + ' · ' +
-        (u.zostaloGodz > 0.01 ? 'zostało ' + liczDni(zostDni, 'dzień', 'dni', 'dni') + ' (' + fmtH(u.zostaloGodz) + ')' : 'cały urlop wykorzystany') +
-        (u.zaplanowane ? ' · ' + u.zaplanowane + ' zaplanow.' : '');
+        (u.zostaloGodz > 0.01 ? 'zostało ' + fmtDni(u.zostaloDni) + ' dni (' + fmtH(u.zostaloGodz) + ')' : 'cały urlop wykorzystany') +
+        (u.zaplanowane ? ' · ' + u.zaplanowane + ' zaplanow.' : '') + (u.stanNa ? ' · stan z ' + dataPL(u.stanNa) : '');
     } else { $('mUrlop').textContent = '—'; $('mUrlopOpis').textContent = ''; }
     var tb = $('mDniTabela'); tb.innerHTML = '';
     var ety = { praca: 'praca', 'w toku': 'w pracy', urlop: 'urlop', l4: 'L4', 'wolne-zamian': 'wolne w zamian', odbior: 'odbiór nadgodzin', inne: 'inne', brak: 'brak wpisu', wolny: 'wolne', dzis: 'dziś', przyszly: '' };
@@ -957,7 +956,7 @@
     z.osoby.forEach(function (o) {
       var tr = document.createElement('tr'); tr.className = 'klik';
       var rz = o.rozliczenie || {};
-      tr.innerHTML = '<td><b>' + o.imie + '</b>' + (o.etat !== 1 ? ' <span class="mini">' + etatTekst(o.etat) + '</span>' : '') + '<br><span class="mini">urlop w roku ' + (o.urlopRok ? (o.urlopRok.godzinowo ? liczDni(o.urlopRok.wykorzystane, 'dzień', 'dni', 'dni') + ' (' + fmtH(o.urlopRok.wykorzystaneGodz) + ' z ' + fmtH(o.urlopRok.przyslugujeGodz) + ')' : o.urlopRok.wykorzystane + '/' + o.urlopRok.przysluguje + ' dni') : '—') + (o.urlop || o.l4 || o.inne || o.odbior ? ' · w mies.: urlop ' + (o.urlop || 0) + ', L4 ' + (o.l4 || 0) + (o.odbior ? ', odbiór ' + o.odbior : '') + (o.inne ? ', inne ' + o.inne : '') : '') + '</span></td>' +
+      tr.innerHTML = '<td><b>' + o.imie + '</b>' + (o.etat !== 1 ? ' <span class="mini">' + etatTekst(o.etat) + '</span>' : '') + '<br><span class="mini">urlop w roku ' + (o.urlopRok ? fmtDni(o.urlopRok.wykorzystane) + '/' + fmtDni(o.urlopRok.przysluguje) + ' dni' + (o.urlopRok.godzinowo ? ' (' + fmtH(o.urlopRok.wykorzystaneGodz) + ' z ' + fmtH(o.urlopRok.przyslugujeGodz) + ')' : '') : '—') + (o.urlop || o.l4 || o.inne || o.odbior ? ' · w mies.: urlop ' + (o.urlop || 0) + ', L4 ' + (o.l4 || 0) + (o.odbior ? ', odbiór ' + o.odbior : '') + (o.inne ? ', inne ' + o.inne : '') : '') + '</span></td>' +
         '<td class="n">' + fmtH(rz.razem != null ? rz.razem : o.godziny) + '</td>' +
         '<td class="n" style="color:' + (rz.nadgodziny > 0.01 ? 'var(--pom2)' : 'inherit') + '">' + (rz.nadgodziny > 0.01 ? '+' + fmtH(rz.nadgodziny) : fmtH(0)) + '</td>' +
         '<td class="n">' + fmtH(rz.zostalo || 0) + '</td>' +
