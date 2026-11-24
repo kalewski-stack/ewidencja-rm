@@ -16,7 +16,7 @@
   "rules": [{ "type": "Text", "globs": ["**/*.txt"], "fallthrough": true }],
   "vars": {
     // Krótki adres z kodu QR. Zmień przed wdrożeniem (rozdział 17 specyfikacji, punkt 1).
-    "PUBLIC_URL": "https://ekran-na-zywo.scratch-earth.workers.dev",
+    "PUBLIC_URL": "https://ekran-na-zywo.tarry-lentil.workers.dev",
     "EVENT_ID": "radom-2026-11-25"
   },
   // Kopia zapasowa stanu co 5 minut do R2 (opcjonalnie). Odkomentuj po utworzeniu bucketa:
