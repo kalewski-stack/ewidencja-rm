@@ -7,3 +7,4 @@ apps/web/public/theme/
 test-results/
 apps/web/public/static/
 .secrets.local.json
+INSTRUKCJA-OPERATORA.pdf
