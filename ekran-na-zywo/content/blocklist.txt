@@ -1,0 +1,24 @@
+# Lista słów blokowanych w pytaniach (jedno na linię, bez polskich znaków też zadziała).
+# Trafienie nie kasuje pytania: dostaje status "ukryte" z flagą dla moderatora.
+# Dopasowanie po rdzeniu słowa (początek wyrazu).
+kurw
+chuj
+huj
+pierdol
+pierdal
+jeb
+pizd
+skurwysyn
+skurwiel
+cwel
+ciot
+debil
+idiot
+kretyn
+gowno
+gówn
+dziwk
+szmat
+fuck
+shit
+bitch

@@ -1,0 +1,5 @@
+# Skopiuj do .dev.vars (tylko lokalnie). Na produkcji: wrangler secret put NAZWA
+OPS_TOKEN=dev-ops
+MOD_TOKEN=dev-mod
+SCREEN_KEY=dev-screen
+SALT=dev-salt

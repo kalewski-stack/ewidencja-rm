@@ -1,0 +1,9 @@
+node_modules/
+apps/web/dist/
+apps/web/public/theme/
+.wrangler/
+.dev.vars
+*.log
+test-results/
+apps/web/public/static/
+.secrets.local.json

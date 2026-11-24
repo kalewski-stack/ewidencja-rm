@@ -1,0 +1,32 @@
+/* Plansza do druku: jasne tło, czarny tekst, QR min. 8 cm boku. */
+body.print { background: #d9dce1; color: #111; font-family: var(--font-body); }
+body.print { --surface2: #e3e6ea; --muted: #444; --logo-h: 14mm; --funding-fs: 9pt; }
+.print-tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 12px 16px; font-size: 14px; }
+.print-tools button { padding: 8px 14px; border: 1px solid #888; background: #fff; color: #111; border-radius: 8px; }
+.print-tools button.on { background: #111; color: #fff; }
+.print-tools button.go { background: #0b62c4; color: #fff; border-color: #0b62c4; font-weight: 700; }
+.print-err { padding: 40px; font-size: 18px; }
+.sheet { background: #fff; margin: 12px auto 40px; padding: 14mm; display: flex; flex-direction: column; gap: 8mm; box-shadow: 0 4px 24px rgba(0,0,0,.25); overflow: hidden; }
+.sheet.a4-portrait { width: 210mm; height: 297mm; }
+.sheet.a4-landscape { width: 297mm; height: 210mm; }
+.sheet.a5-portrait { width: 148mm; height: 210mm; padding: 10mm; --logo-h: 10mm; }
+.sheet.a5-landscape { width: 210mm; height: 148mm; padding: 10mm; --logo-h: 10mm; }
+.sheet-main { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8mm; text-align: center; min-height: 0; }
+.sheet[class*="landscape"] .sheet-main { flex-direction: row; text-align: left; gap: 12mm; }
+.sheet-text h1 { font-size: 34pt; line-height: 1.08; }
+.sheet-text p { font-size: 16pt; margin-top: 4mm; color: #333; }
+.sheet.a5-portrait .sheet-text h1, .sheet.a5-landscape .sheet-text h1 { font-size: 24pt; }
+.sheet.a5-portrait .sheet-text p, .sheet.a5-landscape .sheet-text p { font-size: 12pt; }
+.sheet-qr { display: flex; flex-direction: column; align-items: center; gap: 3mm; }
+.sheet-qr img { width: 130mm; height: 130mm; display: block; }
+.sheet.a4-landscape .sheet-qr img { width: 120mm; height: 120mm; }
+.sheet.a5-portrait .sheet-qr img { width: 100mm; height: 100mm; }
+.sheet.a5-landscape .sheet-qr img { width: 88mm; height: 88mm; }
+.sheet-url { font-family: var(--font-num); font-size: 20pt; font-weight: 700; overflow-wrap: anywhere; }
+.sheet[class*="a5"] .sheet-url { font-size: 14pt; }
+.sheet-foot { font-size: 9pt; color: #444; text-align: center; }
+@media print {
+  body.print { background: #fff; }
+  .print-tools { display: none; }
+  .sheet { margin: 0; box-shadow: none; }
+}

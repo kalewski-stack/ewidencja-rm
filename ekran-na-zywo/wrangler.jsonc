@@ -1,0 +1,27 @@
+{
+  // Ekran na żywo: jeden Worker + jeden Durable Object (jedna instancja = jedno wydarzenie)
+  "name": "ekran-na-zywo",
+  "main": "apps/worker/src/index.ts",
+  "compatibility_date": "2026-06-01",
+  "assets": {
+    "directory": "apps/web/dist",
+    "binding": "ASSETS",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "404-page",
+    // Worker najpierw tylko tam, gdzie jest logika. Reszta to pliki statyczne.
+    "run_worker_first": ["/api/*", "/ws", "/health", "/qr.svg", "/ankieta", "/pytania"]
+  },
+  "durable_objects": { "bindings": [{ "name": "EVENT", "class_name": "EventRoom" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["EventRoom"] }],
+  "rules": [{ "type": "Text", "globs": ["**/*.txt"], "fallthrough": true }],
+  "vars": {
+    // Krótki adres z kodu QR. Zmień przed wdrożeniem (rozdział 17 specyfikacji, punkt 1).
+    "PUBLIC_URL": "http://localhost:8787",
+    "EVENT_ID": "radom-2026-11-25"
+  },
+  // Kopia zapasowa stanu co 5 minut do R2 (opcjonalnie). Odkomentuj po utworzeniu bucketa:
+  //   npx wrangler r2 bucket create ekran-na-zywo-backup
+  // "r2_buckets": [{ "binding": "BACKUP", "bucket_name": "ekran-na-zywo-backup" }],
+  "observability": { "enabled": true }
+  // Sekrety (wrangler secret put): OPS_TOKEN, MOD_TOKEN, SCREEN_KEY, SALT
+}

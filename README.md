@@ -13,3 +13,7 @@ Pliki nie zawierają danych pracowników ani kluczy dostępu. Klucze są wyłąc
 ## Ewidencja pojazdów
 
 Folder `pojazdy/` to druga aplikacja (PWA + Apps Script) do ewidencji pojazdów służbowych, kosztów i kilometrówki, w tym samym layoucie. Wdrożenie: `pojazdy/PUBLIKACJA.md`.
+
+## Ekran na żywo (konferencja, Radom 25.11.2026)
+
+Folder `ekran-na-zywo/` to osobny projekt (Cloudflare Workers): ankieta na żywo, infografiki, pytania do ekspertów i 5 rekomendacji. Opis i wdrożenie: `ekran-na-zywo/README.md`.
