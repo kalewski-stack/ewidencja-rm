@@ -5,7 +5,7 @@ import { formatNumber } from '@shared/util.ts';
 import { theme, reducedMotion } from '../lib/theme.ts';
 import { t } from '../lib/i18n.ts';
 
-const SLOTS = ['ue', 'eures', 'wup'] as const;
+const SLOTS = ['wup', 'eures', 'ue'] as const;
 
 /** Pasek logotypów. Dopóki brak plików w content/assets, pokazujemy szare prostokąty z nazwą slotu. */
 export function Logos({ withFunding = true }: { withFunding?: boolean }) {

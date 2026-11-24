@@ -1,29 +1,43 @@
 {
-  "name": "roboczy",
+  "name": "informator-eures",
   "placeholder": true,
   "colors": {
-    "bg": "#0e1116",
-    "surface": "#171c24",
-    "surface2": "#212835",
-    "text": "#f4f6f9",
-    "muted": "#aab4c3",
-    "accent1": "#4da3ff",
-    "accent2": "#ffb454",
-    "bars": ["#4da3ff", "#ffb454", "#9aa5b5"],
-    "series": ["#4da3ff", "#ffb454", "#7ddc9a", "#d59bff"],
-    "mapScale": ["#1f2a3a", "#2c5d92", "#4da3ff", "#bfe0ff"],
-    "ok": "#58d68d",
-    "err": "#ff6b6b",
-    "onAccent": "#0e1116"
+    "bg": "#164194",
+    "surface": "#103680",
+    "surface2": "#0b2a66",
+    "text": "#ffffff",
+    "muted": "#c7e8f7",
+    "accent1": "#ffdd00",
+    "accent2": "#c7e8f7",
+    "bars": [
+      "#ffdd00",
+      "#c7e8f7",
+      "#436fb6"
+    ],
+    "series": [
+      "#ffdd00",
+      "#c7e8f7",
+      "#7be0a0",
+      "#ff9ec7"
+    ],
+    "mapScale": [
+      "#436fb6",
+      "#8fc3ea",
+      "#c7e8f7",
+      "#ffffff"
+    ],
+    "ok": "#7be0a0",
+    "err": "#ff8a80",
+    "onAccent": "#0b2a66"
   },
   "phoneLight": {
-    "bg": "#f5f6f8",
+    "bg": "#f4f8fc",
     "surface": "#ffffff",
-    "surface2": "#e8ebf0",
-    "text": "#12161c",
-    "muted": "#4d5766",
-    "accent1": "#0b62c4",
-    "accent2": "#9a5b00",
+    "surface2": "#dbe7f3",
+    "text": "#0f2350",
+    "muted": "#3f5075",
+    "accent1": "#164194",
+    "accent2": "#436fb6",
     "onAccent": "#ffffff"
   },
   "fonts": {
@@ -32,12 +46,35 @@
     "body": "system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
     "number": "system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
   },
-  "type": { "display": 132, "h1": 84, "h2": 64, "body": 40, "small": 30, "source": 24 },
-  "radius": { "s": 10, "m": 18, "l": 28 },
+  "type": {
+    "display": 132,
+    "h1": 84,
+    "h2": 64,
+    "body": 40,
+    "small": 30,
+    "source": 24
+  },
+  "radius": {
+    "s": 10,
+    "m": 18,
+    "l": 28
+  },
   "shadow": "0 12px 40px rgba(0,0,0,.35)",
-  "motion": { "fast": 250, "base": 500, "slow": 900, "ease": "cubic-bezier(.2,.8,.2,1)" },
-  "logos": { "wup": null, "eures": null, "ue": null },
+  "motion": {
+    "fast": 250,
+    "base": 500,
+    "slow": 900,
+    "ease": "cubic-bezier(.2,.8,.2,1)"
+  },
+  "logos": {
+    "wup": "logo-wup.png",
+    "eures": "logo-eures.png",
+    "ue": "logo-finansowanie.png"
+  },
   "fundingText": "",
-  "background": { "type": "none", "file": null },
+  "background": {
+    "type": "none",
+    "file": null
+  },
   "shapes": []
 }

@@ -4,7 +4,7 @@
     "subtitle": "między szansą a zagrożeniem",
     "project": "EURES w regionie Mazowieckim regionalnym 1",
     "organizer": "Wojewódzki Urząd Pracy w Warszawie",
-    "place": "Radom, Hotel Garden Inn",
+    "place": "Radom, Hotel Hilton Garden Inn",
     "date": "25.11.2026"
   },
   "polls": [
@@ -12,13 +12,40 @@
       "id": "p1",
       "text": "Czy migracje stanowią obecnie większą szansę czy większe zagrożenie dla europejskiego rynku pracy?",
       "options": [
-        { "id": "szansa", "label": "Większa szansa" },
-        { "id": "zagrozenie", "label": "Większe zagrożenie" }
+        {
+          "id": "szansa",
+          "label": "Większa szansa"
+        },
+        {
+          "id": "zagrozenie",
+          "label": "Większe zagrożenie"
+        }
       ],
-      "thirdOption": { "enabled": false, "id": "trudno", "label": "Trudno powiedzieć" }
+      "thirdOption": {
+        "enabled": false,
+        "id": "trudno",
+        "label": "Trudno powiedzieć"
+      }
     }
   ],
-  "experts": [],
+  "experts": [
+    {
+      "name": "dr hab. Paweł Kaczmarczyk",
+      "role": "Ośrodek Badań nad Migracjami UW"
+    },
+    {
+      "name": "dr Kamil Matuszczyk",
+      "role": "Uniwersytet Warszawski"
+    },
+    {
+      "name": "Katarzyna Jaszczuk",
+      "role": "Fundacja Innowacja i Wiedza"
+    },
+    {
+      "name": "Bartłomiej Potocki",
+      "role": "Ministerstwo Rodziny, Pracy i Polityki Społecznej"
+    }
+  ],
   "flags": {
     "cornerBar": true,
     "backgroundLayer": true
@@ -31,16 +58,72 @@
     "questionsWindowMinutes": 10,
     "ipRequestsPerMinute": 6000
   },
-  "slides": { "defaultSeconds": 10, "transitionMs": 600 },
+  "slides": {
+    "defaultSeconds": 10,
+    "transitionMs": 600
+  },
   "agenda": [
-    { "time": "9:00", "label": "Rejestracja, infografiki w pętli", "scene": "infographics", "phoneMode": "poll", "pollOpen": true },
-    { "time": "9:30", "label": "Otwarcie i ankieta na żywo", "scene": "poll_live", "phoneMode": "poll", "pollOpen": true },
-    { "time": "9:45", "label": "Wykłady (plansza tytułowa)", "scene": "idle", "phoneMode": "thanks" },
-    { "time": "12:45", "label": "Przerwa: zbieranie pytań do ekspertów", "scene": "questions_collect", "phoneMode": "questions" },
-    { "time": "13:10", "label": "Panel: wynik ankiety jako punkt odniesienia", "scene": "poll_result", "phoneMode": "questions" },
-    { "time": "14:00", "label": "Sesja pytań uczestników", "scene": "question_focus", "phoneMode": "thanks" },
-    { "time": "14:05", "label": "5 rekomendacji, odsłanianie", "scene": "recommendations", "phoneMode": "thanks" },
-    { "time": "14:10", "label": "Podsumowanie (plansza do zdjęć)", "scene": "summary", "phoneMode": "thanks" },
-    { "time": "14:30", "label": "Koniec części oficjalnej", "scene": "idle", "phoneMode": "closed" }
+    {
+      "time": "9:00",
+      "label": "Rejestracja, infografiki w pętli",
+      "scene": "infographics",
+      "phoneMode": "poll",
+      "pollOpen": true
+    },
+    {
+      "time": "9:30",
+      "label": "Otwarcie i ankieta na żywo",
+      "scene": "poll_live",
+      "phoneMode": "poll",
+      "pollOpen": true
+    },
+    {
+      "time": "9:40",
+      "label": "Wykłady I do III (plansza tytułowa)",
+      "scene": "idle",
+      "phoneMode": "thanks"
+    },
+    {
+      "time": "12:30",
+      "label": "Przerwa: zbieranie pytań do ekspertów",
+      "scene": "questions_collect",
+      "phoneMode": "questions"
+    },
+    {
+      "time": "12:50",
+      "label": "Wystąpienie B. Potockiego (plansza tytułowa, pytania nadal otwarte)",
+      "scene": "idle",
+      "phoneMode": "questions"
+    },
+    {
+      "time": "13:10",
+      "label": "Panel: wynik ankiety jako punkt odniesienia",
+      "scene": "poll_result",
+      "phoneMode": "questions"
+    },
+    {
+      "time": "14:10",
+      "label": "Sesja pytań uczestników",
+      "scene": "question_focus",
+      "phoneMode": "thanks"
+    },
+    {
+      "time": "14:15",
+      "label": "5 rekomendacji, odsłanianie",
+      "scene": "recommendations",
+      "phoneMode": "thanks"
+    },
+    {
+      "time": "14:20",
+      "label": "Podsumowanie (plansza do zdjęć)",
+      "scene": "summary",
+      "phoneMode": "thanks"
+    },
+    {
+      "time": "14:30",
+      "label": "Koniec części merytorycznej",
+      "scene": "idle",
+      "phoneMode": "closed"
+    }
   ]
 }

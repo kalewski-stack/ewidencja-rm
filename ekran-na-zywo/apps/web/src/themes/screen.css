@@ -9,7 +9,7 @@ body.screen { background: #000; overflow: hidden; cursor: none; }
 .stage[data-scene="blackout"] { background: #000; }
 .bg-layer {
   position: absolute; inset: 0; pointer-events: none;
-  background: var(--bg-image, radial-gradient(1200px 700px at 85% 0%, color-mix(in srgb, var(--accent1) 14%, transparent), transparent 70%)) center / cover no-repeat;
+  background: var(--bg-image, radial-gradient(1200px 700px at 85% 0%, color-mix(in srgb, var(--accent2) 22%, transparent), transparent 70%)) center / cover no-repeat;
 }
 .safe { position: absolute; inset: 54px 96px; display: flex; flex-direction: column; gap: 22px; }
 .scene-slot { flex: 1; min-height: 0; display: flex; animation: sceneIn 600ms var(--ease) both; }

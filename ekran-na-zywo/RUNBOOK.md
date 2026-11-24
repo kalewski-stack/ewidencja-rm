@@ -10,16 +10,19 @@ Pasek u góry `/ops` ma być zielony: „Połączono" i „Ekran żyje". Nic nie
 | 8:30 | Sprawdź pasek stanu. Telefony: Poczekalnia. Scena 1 (plansza tytułowa). | ekran: tytuł konferencji |
 | 9:00 | **Dalej** (spacja): krok 9:00. | ekran: infografiki w pętli, w rogu QR i licznik. Ankieta otwarta, telefony: ankieta |
 | 9:30 | **Dalej**: krok 9:30. | ekran: ankieta na żywo, słupki rosną |
-| ok. 9:43 | **Zamknij ankietę (finał)**, potwierdź. Potem „Pobierz planszę PNG". | ekran: wynik końcowy, zwycięska odpowiedź podświetlona |
-| 9:45 | **Dalej**: krok 9:45. | ekran: plansza tytułowa. Telefony: podziękowanie |
-| 12:45 | **Dalej**: krok 12:45. | ekran: QR, licznik pytań, zatwierdzone karty. Telefony: formularz pytań |
-| 12:45 do 13:10 | Zakładka Pytania: **Zatwierdź na ekran** dla dobrych, **Ukryj** dla reszty. Pytania ustne: „Dodaj pytanie ręcznie". | nowe karty wjeżdżają na ekran |
-| 13:10 | **Dalej**: krok 13:10. | ekran: wynik ankiety jako punkt odniesienia |
-| 13:10 do 14:00 | Moderator układa kolejkę „Na panel" w `/mod`. Ty wpisujesz rekomendacje, jeśli dyktuje (zakładka Rekomendacje, zapis automatyczny). | ekran bez zmian |
-| 14:00 | **Dalej**: krok 14:00. Potem **Następne na ekran** dla każdego pytania, po odpowiedzi „Oznacz aktualne jako zadane". | ekran: jedno pytanie na całą planszę |
-| 14:05 | **Dalej**: krok 14:05. W zakładce Rekomendacje klikaj **Następna** w rytm moderatora (5 razy). | rekomendacje wchodzą po jednej |
-| 14:10 | **Dalej**: krok 14:10. | ekran: wszystkie 5, statycznie, do zdjęć |
+| ok. 9:38 | **Zamknij ankietę (finał)**, potwierdź. Potem „Pobierz planszę PNG". | ekran: wynik końcowy, zwycięska odpowiedź podświetlona |
+| 9:40 | **Dalej**: krok 9:40. | ekran: plansza tytułowa (wykłady I do III). Telefony: podziękowanie |
+| 12:30 | **Dalej**: krok 12:30. | ekran: QR, licznik pytań, zatwierdzone karty. Telefony: formularz pytań |
+| 12:30 do 12:50 | Zakładka Pytania: **Zatwierdź na ekran** dla dobrych, **Ukryj** dla reszty. Pytania ustne: „Dodaj pytanie ręcznie". | nowe karty wjeżdżają na ekran |
+| 12:50 | **Dalej**: krok 12:50. | ekran: plansza tytułowa na wystąpienie B. Potockiego. Telefony nadal przyjmują pytania |
+| 13:10 | **Dalej**: krok 13:10. | ekran: wynik ankiety jako punkt odniesienia panelu |
+| 13:10 do 14:10 | Moderator układa kolejkę „Na panel" w `/mod`. Ty wpisujesz rekomendacje, jeśli dyktuje (zakładka Rekomendacje, zapis automatyczny). | ekran bez zmian |
+| ok. 14:10 | **Dalej**: krok 14:10. Potem **Następne na ekran** dla każdego pytania, po odpowiedzi „Oznacz aktualne jako zadane". | ekran: jedno pytanie na całą planszę |
+| ok. 14:15 | **Dalej**: krok 14:15. W zakładce Rekomendacje klikaj **Następna** w rytm moderatora (5 razy). | rekomendacje wchodzą po jednej |
+| 14:20 | **Dalej**: krok 14:20. | ekran: wszystkie 5, statycznie, do zdjęć |
 | 14:30 | **Dalej**: krok 14:30. Zakładka Eksport: **Pobierz wszystko (ZIP)**. | ekran: plansza tytułowa. Telefony: zamknięte |
+
+Godziny według zaakceptowanego informatora (panel 13:10 do 14:20, podsumowanie 14:20 do 14:30). Sesja pytań ok. 14:10 i rekomendacje ok. 14:15 to założenie robocze: moderator decyduje na scenie, agenda jest tylko podpowiedzią.
 
 Skróty: 1 do 9 sceny, 0 blackout, spacja „Dalej". Nie działają, gdy kursor jest w polu tekstowym.
 Akcje niebezpieczne (zamknięcie, zerowanie, wpis ręczny) zawsze pytają o potwierdzenie. Zerowanie ankiety wymaga wpisania słowa RESET.

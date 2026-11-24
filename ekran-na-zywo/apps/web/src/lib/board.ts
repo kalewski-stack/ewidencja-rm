@@ -48,7 +48,7 @@ async function base(w: number, h: number): Promise<{ cv: HTMLCanvasElement; ctx:
   const logoH = Math.round(w * 0.033);
   let footY = h - my;
   const logos = (theme as any).logos as Record<string, string | null>;
-  const imgs = (await Promise.all(['ue', 'eures', 'wup'].map((k) => (logos[k] ? loadImg(`/theme/${logos[k]}`) : null)))).filter(Boolean) as HTMLImageElement[];
+  const imgs = (await Promise.all(['wup', 'eures', 'ue'].map((k) => (logos[k] ? loadImg(`/theme/${logos[k]}`) : null)))).filter(Boolean) as HTMLImageElement[];
   const funding = (theme as any).fundingText as string;
   if (funding) {
     ctx.fillStyle = C.muted; ctx.font = `${Math.round(w * 0.0125)}px ${F.body}`;

@@ -1,4 +1,4 @@
-# Checklista: dzień wydarzenia (25.11.2026, Radom, Hotel Garden Inn)
+# Checklista: dzień wydarzenia (25.11.2026, Radom, Hotel Hilton Garden Inn)
 
 ## Dzień wcześniej
 
