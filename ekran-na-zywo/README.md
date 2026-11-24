@@ -84,6 +84,7 @@ Cały wygląd steruje `content/theme.json` i katalog `content/assets/`.
 - Logotypy: wrzuć pliki do `content/assets/` i wpisz nazwy w `logos.wup`, `logos.eures`, `logos.ue`. Tekst finansowania: `fundingText`. Brak pliku = szary prostokąt z nazwą slotu.
 - Fonty self-hosted: pliki do `content/assets/`, wpis w `fonts.files` (`{ "family": "Nazwa", "file": "plik.woff2", "weight": "700" }`) i nazwa rodziny w `fonts.heading`, `fonts.body`, `fonts.number`.
 - Tło ekranu: `background: { "type": "image", "file": "tlo.svg" }`. Warstwę tła wyłącza flaga `flags.backgroundLayer` w `config.json`.
+- Obecny motyw: paleta Funduszy Europejskich dla Mazowsza (ciemny granat `#11306e`, granat `#003399`, niebieski `#0052b0`, błękit `#6bb1e2`, jasny błękit `#a6d4ff`, żółty `#ffdd00`) i logotypy dostarczone przez klienta (WUP, EURES, zestawienie znaków FEM w wersji poziomej kolorowej, na białym tle).
 - Po podmianie ustaw `"placeholder": false`. Poprawki układu: `apps/web/src/themes/`.
 - Po zmianie motywu wygeneruj plansze awaryjne od nowa (`npm run export:static`).
 

@@ -1,43 +1,43 @@
 {
-  "name": "informator-eures",
-  "placeholder": true,
+  "name": "fem-eures",
+  "placeholder": false,
   "colors": {
-    "bg": "#164194",
-    "surface": "#103680",
-    "surface2": "#0b2a66",
+    "bg": "#11306e",
+    "surface": "#003399",
+    "surface2": "#0052b0",
     "text": "#ffffff",
-    "muted": "#c7e8f7",
+    "muted": "#a6d4ff",
     "accent1": "#ffdd00",
-    "accent2": "#c7e8f7",
+    "accent2": "#6bb1e2",
     "bars": [
       "#ffdd00",
-      "#c7e8f7",
-      "#436fb6"
+      "#6bb1e2",
+      "#a6d4ff"
     ],
     "series": [
       "#ffdd00",
-      "#c7e8f7",
-      "#7be0a0",
-      "#ff9ec7"
+      "#6bb1e2",
+      "#ffffff",
+      "#a6d4ff"
     ],
     "mapScale": [
-      "#436fb6",
-      "#8fc3ea",
-      "#c7e8f7",
+      "#0052b0",
+      "#6bb1e2",
+      "#a6d4ff",
       "#ffffff"
     ],
     "ok": "#7be0a0",
-    "err": "#ff8a80",
-    "onAccent": "#0b2a66"
+    "err": "#ffb3ab",
+    "onAccent": "#11306e"
   },
   "phoneLight": {
-    "bg": "#f4f8fc",
+    "bg": "#ffffff",
     "surface": "#ffffff",
-    "surface2": "#dbe7f3",
-    "text": "#0f2350",
-    "muted": "#3f5075",
-    "accent1": "#164194",
-    "accent2": "#436fb6",
+    "surface2": "#a6d4ff",
+    "text": "#11306e",
+    "muted": "#11306e",
+    "accent1": "#003399",
+    "accent2": "#0052b0",
     "onAccent": "#ffffff"
   },
   "fonts": {

@@ -155,7 +155,7 @@ body.screen { background: #000; overflow: hidden; cursor: none; }
 .linechart .series-label { font-size: 34px; font-weight: 700; opacity: 0; animation: fade 500ms ease forwards; }
 @keyframes fade { to { opacity: 1; } }
 .map { width: 100%; display: flex; align-items: center; gap: 60px; }
-.map .country { fill: var(--surface2); stroke: var(--bg); stroke-width: 1.2; transition: fill 700ms var(--ease); }
+.map .country { fill: var(--surface); stroke: var(--bg); stroke-width: 1.2; transition: fill 700ms var(--ease); }
 .legend { display: grid; grid-template-columns: 44px auto; gap: 8px 22px; align-items: stretch; }
 .legend-bar { height: 320px; border-radius: var(--r-s); }
 .legend-ticks { display: flex; flex-direction: column; justify-content: space-between; font-family: var(--font-num); font-size: 36px; }

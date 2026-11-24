@@ -20,6 +20,8 @@ button:disabled { cursor: default; opacity: .55; }
 .logo { height: var(--logo-h, 40px); width: auto; max-width: 100%; object-fit: contain; }
 /* Logotypy klienta mają białe tło, więc dostają białą płytkę (wymóg czytelności znaków UE). */
 img.logo { background: #fff; border-radius: var(--r-s); }
+/* Znaki dodatkowe (WUP, EURES) nie mogą być wyższe niż znaki w pasku Funduszy Europejskich. */
+img.logo-wup, img.logo-eures { height: calc(var(--logo-h, 40px) * .82); }
 .logo-empty {
   width: calc(var(--logo-h, 40px) * 2.8); display: grid; place-items: center;
   background: var(--surface2); color: var(--muted); border-radius: var(--r-s);

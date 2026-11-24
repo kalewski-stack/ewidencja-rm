@@ -14,7 +14,7 @@ export function Logos({ withFunding = true }: { withFunding?: boolean }) {
     <div class="logos">
       <div class="logos-row">
         {SLOTS.map((s) => logos[s]
-          ? <img class="logo" src={`/theme/${logos[s]}`} alt={t(`logo.${s}`)} />
+          ? <img class={`logo logo-${s}`} src={`/theme/${logos[s]}`} alt={t(`logo.${s}`)} />
           : <div class="logo logo-empty" aria-label={t(`logo.${s}`)}>logo.{s}</div>)}
       </div>
       {withFunding && (theme as any).fundingText ? <div class="funding">{(theme as any).fundingText}</div> : null}
