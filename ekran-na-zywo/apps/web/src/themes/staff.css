@@ -171,3 +171,6 @@ summary { cursor: pointer; font-weight: 600; padding: 6px 0; }
   .rec-num { flex-direction: row; width: auto; gap: 10px; align-items: baseline; }
   .manual input { width: 96px; }
 }
+
+.manual-toggle { margin: 10px 0 0; background: transparent; border-color: var(--surface2); justify-content: flex-start; text-align: left; }
+.manual-box { margin-bottom: 10px; }

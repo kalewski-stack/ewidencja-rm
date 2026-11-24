@@ -179,8 +179,11 @@ function PollPanel({ staff }: { staff: Staff }) {
           : <Confirm cls="warn big" disabled={off} text={t('poll.close.confirm')} onYes={() => staff.run('poll.close', {}, t('poll.closed'))}>{t('poll.close')}</Confirm>}
         <button class="btn" onClick={async () => download(await pollPng(v), 'ankieta-wynik-1920x1080.png')}>{t('poll.png')}</button>
       </div>
-      <details open={!!manual} onToggle={(e) => { if (!(e.target as HTMLDetailsElement).open) setManual(null); }}>
-        <summary onClick={() => setManual(manual ?? Object.fromEntries(p.options.map((o) => [o.id, String(tally[o.id])])))}>{t('poll.manual')}</summary>
+      <button type="button" class="btn manual-toggle" aria-expanded={!!manual}
+        onClick={() => setManual(manual ? null : Object.fromEntries(p.options.map((o) => [o.id, String(tally[o.id])])))}>
+        {manual ? '▼' : '▶'} {t('poll.manual')}
+      </button>
+      <div class="manual-box" hidden={!manual}>
         <p class="note">{t('poll.manual.note')}</p>
         {manual ? (
           <div class="manual">
@@ -198,7 +201,7 @@ function PollPanel({ staff }: { staff: Staff }) {
             </div>
           </div>
         ) : null}
-      </details>
+      </div>
       <button class="btn danger sm" disabled={off} onClick={reset}>{t('poll.reset')}</button>
     </section>
   );
