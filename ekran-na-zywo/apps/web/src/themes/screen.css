@@ -130,7 +130,7 @@ body.screen { background: #000; overflow: hidden; cursor: none; }
 .placeholder b { letter-spacing: .2em; color: var(--accent2); }
 .unit { font-size: .38em; margin-left: 18px; color: var(--muted); font-weight: 600; }
 .unit-s { margin-left: 8px; color: var(--muted); font-size: .7em; }
-.big { display: flex; flex-direction: column; gap: 20px; }
+.bignum { display: flex; flex-direction: column; gap: 20px; }
 .big-value { font-family: var(--font-num); font-size: 300px; font-weight: 800; line-height: .95; letter-spacing: -.03em; color: var(--accent1); font-variant-numeric: tabular-nums; }
 .big-caption { font-size: 48px; line-height: 1.2; max-width: 1500px; text-wrap: balance; }
 .compare { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 30px 80px; }

@@ -33,7 +33,7 @@ export function SlideView({ slide, showPlaceholder }: { slide: Slide; showPlaceh
 function BigNumber({ s }: { s: SlideBigNumber }) {
   const d = s.decimals ?? decimalsOf(s.value!);
   return (
-    <div class="big">
+    <div class="bignum">
       <div class="big-value"><AnimNumber value={s.value!} from={0} decimals={d} duration={1800} />{s.unit ? <span class="unit">{s.unit}</span> : null}</div>
       {s.caption ? <p class="big-caption">{s.caption}</p> : null}
     </div>

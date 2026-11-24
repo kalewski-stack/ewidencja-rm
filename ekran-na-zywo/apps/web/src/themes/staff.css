@@ -38,7 +38,8 @@ body.staff input[type="text"], body.staff input[type="number"], body.staff input
   background: var(--bg); color: var(--text); border: 1px solid var(--surface2); border-radius: var(--r-s); padding: 9px 10px; min-height: 40px; max-width: 100%;
 }
 body.staff textarea { width: 100%; resize: vertical; line-height: 1.35; }
-.check { display: inline-flex; gap: 6px; align-items: center; min-height: 34px; }
+.check { display: inline-flex; gap: 8px; align-items: center; min-height: 34px; }
+.check input { width: 20px; height: 20px; accent-color: var(--accent1); }
 
 .status { position: sticky; top: 0; z-index: 20; display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: center; padding: 10px 4px; background: var(--bg); font-size: 14px; }
 .dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; background: var(--err); }
@@ -111,13 +112,13 @@ summary { cursor: pointer; font-weight: 600; padding: 6px 0; }
 .queue { background: var(--bg); border-radius: var(--r-s); padding: 12px; }
 .queue h3 { margin: 0 auto 0 0 !important; }
 .queue ol { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
-.queue li { display: flex; gap: 10px; align-items: center; background: var(--surface); border-radius: var(--r-s); padding: 8px 10px; }
+.queue li { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; background: var(--surface); border-radius: var(--r-s); padding: 8px 10px; }
 .queue li.live { box-shadow: 0 0 0 2px var(--accent2); }
 .queue li.dragging { opacity: .4; }
 .grip { cursor: grab; color: var(--muted); padding: 6px 2px; user-select: none; }
-.queue-text { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.queue-text { flex: 1 1 240px; min-width: 0; overflow-wrap: anywhere; }
 .queue-text small { display: block; color: var(--muted); }
-.queue-btns { display: flex; gap: 4px; flex: none; }
+.queue-btns { display: flex; gap: 4px; flex: none; margin-left: auto; }
 
 .recs-ed { display: flex; flex-direction: column; gap: 10px; }
 .rec-slot { display: flex; gap: 12px; background: var(--bg); border-radius: var(--r-s); padding: 10px 12px; border-left: 6px solid var(--surface2); }
@@ -153,3 +154,20 @@ summary { cursor: pointer; font-weight: 600; padding: 6px 0; }
 .toasts { position: fixed; right: 16px; bottom: 16px; z-index: 50; display: flex; flex-direction: column; gap: 8px; max-width: min(520px, 92vw); }
 .toast { padding: 12px 16px; border-radius: var(--r-s); background: var(--ok); color: var(--on-accent); font-weight: 600; box-shadow: var(--shadow); }
 .toast.err { background: var(--err); }
+
+/* Wąskie ekrany (telefon): panel działa awaryjnie, wszystko w jednej kolumnie, bez ściskania tekstu. */
+@media (max-width: 640px) {
+  .ops, .mod { padding: 0 8px 32px; }
+  .panel { padding: 12px 10px; }
+  .status { gap: 4px 12px; font-size: 13px; }
+  .offline { top: 70px; }
+  .queue .row { align-items: stretch; }
+  .queue h3 { flex: 1 1 100%; }
+  .queue .row .btn { flex: 1 1 auto; }
+  .queue-btns { width: 100%; justify-content: flex-end; }
+  .q-actions .btn { flex: 1 1 auto; }
+  .main-tabs .tab { flex: 1 1 auto; justify-content: center; }
+  .rec-slot { flex-direction: column; gap: 6px; }
+  .rec-num { flex-direction: row; width: auto; gap: 10px; align-items: baseline; }
+  .manual input { width: 96px; }
+}
