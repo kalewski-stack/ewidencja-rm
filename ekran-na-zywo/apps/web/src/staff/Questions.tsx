@@ -154,7 +154,7 @@ function Card({ staff, q, hint, fresh }: { staff: Staff; q: Question; hint?: str
           {q.status === 'on_screen'
             ? <button class="btn" disabled={off} onClick={() => staff.run('q.unfocus')}>{t('q.unshow')}</button> : null}
           {(q.status === 'approved' || q.status === 'on_screen') && !inQueue
-            ? <button class="btn" disabled={off} onClick={() => staff.run('queue.set', { ids: [...v.queue, q.id] })}>{t('q.toQueue')}</button> : null}
+            ? <button class="btn" disabled={off} onClick={() => staff.run('queue.add', { id: q.id })}>{t('q.toQueue')}</button> : null}
           {q.status === 'approved' || q.status === 'on_screen'
             ? <button class="btn" disabled={off} onClick={() => staff.run('q.answered', { id: q.id })}>{t('q.answered')}</button> : null}
           {q.status !== 'hidden'
@@ -202,7 +202,7 @@ function Queue({ staff }: { staff: Staff }) {
               <button class="btn sm" disabled={off || i === 0} aria-label={t('queue.up')} onClick={() => move(q.id, i - 1)}>↑</button>
               <button class="btn sm" disabled={off || i === items.length - 1} aria-label={t('queue.down')} onClick={() => move(q.id, i + 1)}>↓</button>
               <button class="btn sm accent" disabled={off || q.status === 'on_screen'} onClick={() => staff.run('q.focus', { id: q.id })}>{q.status === 'on_screen' ? t('queue.live') : t('q.show')}</button>
-              <button class="btn sm" disabled={off} aria-label={t('queue.remove')} onClick={() => staff.run('queue.set', { ids: v.queue.filter((x) => x !== q.id) })}>✕</button>
+              <button class="btn sm" disabled={off} aria-label={t('queue.remove')} onClick={() => staff.run('queue.remove', { id: q.id })}>✕</button>
             </span>
           </li>
         ))}

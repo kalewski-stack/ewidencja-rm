@@ -110,7 +110,10 @@ Serwer musi działać (`npm run dev`). Testy zerują ankietę, więc nie urucham
 npm test                    # funkcjonalne i odpornościowe (Playwright)
 npm run loadtest            # 150 klientów WS, 150 głosów w 10 s, 60 pytań w 2 min
 npm run loadtest -- --fast  # to samo, pytania w 12 s
+npm run audit               # przegląd w przeglądarce: każdy przycisk, teksty, układ (165 kroków)
 ```
+
+Po testach i przeglądzie na wdrożeniu wyczyść dane: `npm run purge -- --yes`.
 
 Playwright: `npm i -D playwright && npx playwright install chromium` (jeśli nie ma go w systemie).
 

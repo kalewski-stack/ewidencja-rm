@@ -144,6 +144,7 @@
   "poll.total": "Razem",
   "poll.open": "Otwórz ankietę",
   "poll.reopen": "Otwórz ponownie",
+  "poll.reopen.confirm": "Otworzyć ankietę ponownie? Telefony znów będą przyjmować głosy, a wynik końcowy zniknie z ekranu.",
   "poll.opened": "Ankieta otwarta",
   "poll.close": "Zamknij ankietę (finał)",
   "poll.close.confirm": "Zamknąć ankietę? Na ekranie pojawi się wynik końcowy, a telefony przestaną przyjmować głosy.",

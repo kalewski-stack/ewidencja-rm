@@ -13,6 +13,8 @@ export function Recs({ staff }: { staff: Staff }) {
   const [drafts, setDrafts] = useState<Draft[]>(() => v.recommendations.map((r) => ({ title: r.title, text: r.text, baseRev: r.rev, dirty: false, saving: false })));
   const ref = useRef(drafts);
   ref.current = drafts;
+  const staffRef = useRef(staff);
+  staffRef.current = staff;
   const timers = useRef<Record<number, number>>({});
 
   // Zmiana z serwera (np. od operatora): przyjmujemy ją w slotach, których sami właśnie nie edytujemy.
@@ -23,21 +25,29 @@ export function Recs({ staff }: { staff: Staff }) {
     }));
   }, [v.recommendations.map((r) => r.rev).join(',')]);
 
+  // Zapisy jednego slotu idą po kolei. Równoległe żądania (np. blur i timer naraz) dawały fałszywy konflikt
+  // i mogły cofnąć świeżo wpisany tekst.
+  const busy = useRef<boolean[]>([]);
   const save = async (i: number) => {
     const d = ref.current[i];
     if (!d.dirty) return;
+    if (busy.current[i]) return; // po zakończeniu bieżącego zapisu pójdzie następny, jeśli tekst się zmienił
+    busy.current[i] = true;
     setDrafts((ds) => ds.map((x, j) => (j === i ? { ...x, saving: true } : x)));
     const sent = { title: d.title, text: d.text };
     const res = await staff.run('rec.set', { index: i, ...sent, baseRev: d.baseRev });
+    busy.current[i] = false;
+    const cur = ref.current[i];
+    if (res?.rev !== undefined) {
+      const changedSince = cur.title !== sent.title || cur.text !== sent.text;
+      setDrafts((ds) => ds.map((x, j) => (j === i ? { ...x, baseRev: res.rev, saving: false, dirty: x.title !== sent.title || x.text !== sent.text } : x)));
+      if (changedSince) { clearTimeout(timers.current[i]); timers.current[i] = window.setTimeout(() => save(i), 300); }
+      return;
+    }
+    // Konflikt (ktoś inny zmienił ten slot): bierzemy wersję z serwera. Brak sieci: tekst zostaje do ponowienia.
+    const srv = staffRef.current.view?.recommendations[i];
     setDrafts((ds) => ds.map((x, j) => {
       if (j !== i) return x;
-      if (res?.rev !== undefined) {
-        const changedSince = x.title !== sent.title || x.text !== sent.text;
-        if (changedSince) timers.current[i] = window.setTimeout(() => save(i), 400);
-        return { ...x, baseRev: res.rev, saving: false, dirty: changedSince };
-      }
-      // Konflikt lub brak sieci: przy konflikcie bierzemy wersję z serwera, przy braku sieci zostawiamy tekst do ponowienia.
-      const srv = staff.view?.recommendations[i];
       if (srv && srv.rev !== x.baseRev) return { title: srv.title, text: srv.text, baseRev: srv.rev, dirty: false, saving: false };
       return { ...x, saving: false };
     }));

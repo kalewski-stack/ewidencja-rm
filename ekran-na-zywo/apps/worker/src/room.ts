@@ -573,6 +573,16 @@ export class EventRoom extends DurableObject<Env> {
         if (next < 0 || next >= list.length) throw new CmdError('end', dir > 0 ? 'To było ostatnie pytanie w kolejce.' : 'To jest pierwsze pytanie w kolejce.');
         return this.exec('q.focus', { id: list[next], switchScene: p.switchScene }, role);
       }
+      // Dodawanie i usuwanie pojedynczo: szybkie kliknięcia nie nadpisują sobie kolejki.
+      case 'queue.add': {
+        const q = this.q(p.id);
+        if (!s.queue.includes(q.id)) s.queue.push(q.id);
+        return this.commit();
+      }
+      case 'queue.remove': {
+        s.queue = s.queue.filter((x) => x !== p.id);
+        return this.commit();
+      }
       case 'queue.set': {
         if (!Array.isArray(p.ids)) throw new CmdError('bad_request', 'Niepoprawna kolejka.');
         const known = new Set(s.questions.map((q) => q.id));

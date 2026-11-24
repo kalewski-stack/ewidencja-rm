@@ -16,6 +16,7 @@
     "loadtest": "node scripts/loadtest.ts",
     "test": "node --test --test-concurrency=1 scripts/tests/e2e.test.ts",
     "purge": "node scripts/purge.ts",
+    "audit": "node scripts/audit.ts",
     "secrets": "node scripts/secrets.ts"
   },
   "dependencies": {

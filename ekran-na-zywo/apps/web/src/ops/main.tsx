@@ -152,6 +152,11 @@ function PollPanel({ staff }: { staff: Staff }) {
   const pct = percents(tally);
   const [manual, setManual] = useState<Record<string, string> | null>(null);
   const off = !staff.online;
+  // Po zmianie stanu ankiety przyciski otwarcia i zamknięcia są przez chwilę nieaktywne: drugie, przypadkowe
+  // kliknięcie w to samo miejsce nie cofnie właśnie wykonanej akcji.
+  const [cool, setCool] = useState(false);
+  useEffect(() => { setCool(true); const id = setTimeout(() => setCool(false), 1500); return () => clearTimeout(id); }, [v.pollStatus]);
+
 
   const reset = () => {
     if (!window.confirm(t('poll.reset.confirm1'))) return;
@@ -175,8 +180,10 @@ function PollPanel({ staff }: { staff: Staff }) {
       </table>
       <div class="row wrap">
         {v.pollStatus !== 'open'
-          ? <button class="btn primary big" disabled={off} onClick={() => staff.run('poll.open', {}, t('poll.opened'))}>{v.pollStatus === 'closed' ? t('poll.reopen') : t('poll.open')}</button>
-          : <Confirm cls="warn big" disabled={off} text={t('poll.close.confirm')} onYes={() => staff.run('poll.close', {}, t('poll.closed'))}>{t('poll.close')}</Confirm>}
+          ? (v.pollStatus === 'closed'
+            ? <Confirm cls="primary big" disabled={off || cool} text={t('poll.reopen.confirm')} onYes={() => staff.run('poll.open', {}, t('poll.opened'))}>{t('poll.reopen')}</Confirm>
+            : <button class="btn primary big" disabled={off || cool} onClick={() => staff.run('poll.open', {}, t('poll.opened'))}>{t('poll.open')}</button>)
+          : <Confirm cls="warn big" disabled={off || cool} text={t('poll.close.confirm')} onYes={() => staff.run('poll.close', {}, t('poll.closed'))}>{t('poll.close')}</Confirm>}
         <button class="btn" onClick={async () => download(await pollPng(v), 'ankieta-wynik-1920x1080.png')}>{t('poll.png')}</button>
       </div>
       <button type="button" class="btn manual-toggle" aria-expanded={!!manual}
