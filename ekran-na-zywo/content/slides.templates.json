@@ -1,0 +1,61 @@
+{
+  "slides": [
+    {
+      "id": "szablon-big-number",
+      "type": "bigNumber",
+      "title": "SZABLON: jedna duża liczba",
+      "value": null,
+      "unit": "",
+      "caption": "Do uzupełnienia: wartość, jednostka i podpis.",
+      "source": "",
+      "year": null,
+      "verified": false,
+      "notes": "Brak danych. Potrzebne: jedna liczba o mobilności zawodowej w UE (np. z Eurostatu lub raportu Komisji Europejskiej), z nazwą instytucji i rokiem."
+    },
+    {
+      "id": "szablon-bar",
+      "type": "bar",
+      "title": "SZABLON: wykres słupkowy",
+      "unit": "",
+      "categories": [],
+      "source": "",
+      "year": null,
+      "verified": false,
+      "notes": "Brak danych. Potrzebne: do 8 kategorii (etykieta + wartość), np. kraje lub grupy wieku. Źródło i rok."
+    },
+    {
+      "id": "szablon-line",
+      "type": "line",
+      "title": "SZABLON: wykres liniowy",
+      "unit": "",
+      "x": [],
+      "series": [],
+      "source": "",
+      "year": null,
+      "verified": false,
+      "notes": "Brak danych. Potrzebne: oś X (lata) i do 4 serii, np. prognoza demograficzna dla Polski i UE. Źródło i rok."
+    },
+    {
+      "id": "szablon-compare",
+      "type": "compare",
+      "title": "SZABLON: dwie liczby obok siebie",
+      "left": { "value": null, "unit": "", "label": "" },
+      "right": { "value": null, "unit": "", "label": "" },
+      "source": "",
+      "year": null,
+      "verified": false,
+      "notes": "Brak danych. Potrzebne: dwie porównywalne wartości z jednego źródła (np. Polska i średnia UE)."
+    },
+    {
+      "id": "szablon-map",
+      "type": "map",
+      "title": "SZABLON: mapa Europy",
+      "unit": "",
+      "values": {},
+      "source": "",
+      "year": null,
+      "verified": false,
+      "notes": "Brak danych. Potrzebne: wartości per kraj według kodu ISO 3166-1 alpha-2 (np. PL, DE, FR). Źródło i rok."
+    }
+  ]
+}
