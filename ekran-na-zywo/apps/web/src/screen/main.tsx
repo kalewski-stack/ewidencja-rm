@@ -45,7 +45,9 @@ function App() {
   const [localScene, setLocalScene] = useState<SceneId | null>(null);
   const [localStatic, setLocalStatic] = useState(false);
   const slideRef = useRef(0);
-  const sceneRef = useRef<SceneId | null>(null);
+  // Ostatnia scena znana z serwera (także z pamięci po odświeżeniu bez sieci): zmiana od operatora zawsze
+  // kasuje lokalne, awaryjne nadpisanie.
+  const sceneRef = useRef<SceneId | null>(cached()?.scene ?? null);
   const scale = useScale();
 
   useEffect(() => {
@@ -69,14 +71,15 @@ function App() {
   // Shift + strzałki zmieniają scenę lokalnie, Shift + S przełącza obrazy statyczne, Shift + B wygasza.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (!e.shiftKey || preview) return;
+      if (preview) return;
+      if (e.key === 'Escape') { setLocalScene(null); setLocalStatic(false); return; }
+      if (!e.shiftKey) return;
       const cur = localScene ?? view?.scene ?? 'idle';
       const i = SCENES.indexOf(cur);
       if (e.key === 'ArrowRight') setLocalScene(SCENES[(i + 1) % SCENES.length]);
       else if (e.key === 'ArrowLeft') setLocalScene(SCENES[(i - 1 + SCENES.length) % SCENES.length]);
       else if (e.key.toLowerCase() === 's') setLocalStatic((x) => !x);
       else if (e.key.toLowerCase() === 'b') setLocalScene(cur === 'blackout' ? 'idle' : 'blackout');
-      else if (e.key === 'Escape') { setLocalScene(null); setLocalStatic(false); }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
